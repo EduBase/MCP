@@ -97,6 +97,7 @@ async function sendEduBaseApiRequest(method: string, endpoint: string, data: obj
 	let headers = {
 		'Content-Type': 'application/json',
 		'Accept-Encoding': 'gzip',
+		'EduBase-API-Client': 'MCP',
 		'EduBase-API-App': EDUBASE_API_APP,
 		'EduBase-API-Secret': EDUBASE_API_KEY
 	};
