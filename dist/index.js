@@ -1,32 +1,44 @@
 #!/usr/bin/env node
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { CallToolRequestSchema, ListToolsRequestSchema, ListPromptsRequestSchema, GetPromptRequestSchema, isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
+import { randomUUID } from "node:crypto";
 import queryString from "query-string";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { InMemoryEventStore } from '@modelcontextprotocol/sdk/examples/shared/inMemoryEventStore.js';
+import express from "express";
+import bodyParser from "body-parser";
+import { getClientIp } from "./helpers.js";
+/* Enable SSE or Streamable HTTP mode */
+const SSE = ((process.env.EDUBASE_SSE_MODE || 'false') == 'true');
+const STREAMABLE_HTTP = ((process.env.EDUBASE_STREAMABLE_HTTP_MODE || 'false') == 'true');
 /* Check required EduBase environment variables */
-const EDUBASE_API_URL = process.env.EDUBASE_API_URL;
-const EDUBASE_API_APP = process.env.EDUBASE_API_APP;
-const EDUBASE_API_KEY = process.env.EDUBASE_API_KEY;
-if (!EDUBASE_API_URL) {
+const EDUBASE_API_URL = process.env.EDUBASE_API_URL || 'https://www.edubase.net/api';
+if (!EDUBASE_API_URL || EDUBASE_API_URL.length == 0) {
     console.error('Error: EDUBASE_API_URL environment variable is required');
     process.exit(1);
 }
-if (!EDUBASE_API_APP) {
-    console.error('Error: EDUBASE_API_APP environment variable is required');
+var EDUBASE_API_APP = process.env.EDUBASE_API_APP || '';
+if (!SSE && !STREAMABLE_HTTP && EDUBASE_API_APP.length == 0) {
+    console.error('Error: EDUBASE_API_APP environment variable is required with this transport mode');
     process.exit(1);
 }
-if (!EDUBASE_API_KEY) {
-    console.error('Error: EDUBASE_API_KEY environment variable is required');
+var EDUBASE_API_KEY = process.env.EDUBASE_API_KEY || '';
+if (!SSE && !STREAMABLE_HTTP && EDUBASE_API_KEY.length == 0) {
+    console.error('Error: EDUBASE_API_KEY environment variable is required with this transport mode');
     process.exit(1);
 }
-/* Supported tools */
+/* Supported tools and prompts */
 import { EDUBASE_API_TOOLS, EDUBASE_API_TOOLS_OUTPUT_SCHEMA } from "./tools.js";
+import { EDUBASE_API_PROMPTS, EDUBASE_API_PROMPTS_HANDLERS } from "./prompts.js";
 /* Create MCP server */
 const server = new Server({
     name: '@edubase/mcp',
-    version: '1.0.10',
+    version: '1.0.11',
 }, {
     capabilities: {
+        prompts: {},
         tools: {},
     },
 });
@@ -69,8 +81,7 @@ function checkRateLimit() {
     requestRate.second++;
     requestRate.minute++;
 }
-/* EduBase API requests */
-async function sendEduBaseApiRequest(method, endpoint, data) {
+async function sendEduBaseApiRequest(method, endpoint, data, authentication) {
     /* Check method and endpoint */
     method = method.toUpperCase();
     if (!['GET', 'POST', 'DELETE'].includes(method)) {
@@ -79,17 +90,31 @@ async function sendEduBaseApiRequest(method, endpoint, data) {
     if (endpoint.length == 0) {
         throw new Error('Invalid endpoint');
     }
-    if (endpoint[0] != '/')
+    if (endpoint[0] != '/') {
         endpoint = '/' + endpoint;
+    }
     /* Check rate limit */
     checkRateLimit();
+    /* Prepare authentication (prefer EDUBASE_API_APP and EDUBASE_API_KEY environment variables) */
+    if (!authentication) {
+        authentication = { app: EDUBASE_API_APP, secret: EDUBASE_API_KEY };
+    }
+    else {
+        if (!authentication.hasOwnProperty('app') || authentication.app.length == 0 || EDUBASE_API_APP.length > 0) {
+            authentication.app = EDUBASE_API_APP;
+        }
+        if (!authentication.hasOwnProperty('secret') || authentication.secret.length == 0 || EDUBASE_API_KEY.length > 0) {
+            authentication.secret = EDUBASE_API_KEY;
+        }
+    }
     /* Send request with input data */
     let headers = {
         'Content-Type': 'application/json',
         'Accept-Encoding': 'gzip',
         'EduBase-API-Client': 'MCP',
-        'EduBase-API-App': EDUBASE_API_APP,
-        'EduBase-API-Secret': EDUBASE_API_KEY
+        'EduBase-API-Transport': (STREAMABLE_HTTP) ? 'Streamable HTTP' : ((SSE) ? 'SSE' : 'Stdio'),
+        'EduBase-API-App': authentication.app,
+        'EduBase-API-Secret': authentication.secret
     };
     const response = await fetch(EDUBASE_API_URL + endpoint + (method == 'GET' ? '?' + queryString.stringify(data) : ''), {
         method: method,
@@ -111,6 +136,25 @@ async function sendEduBaseApiRequest(method, endpoint, data) {
     }
 }
 /* Configure request handlers */
+server.setRequestHandler(ListPromptsRequestSchema, async () => ({
+    prompts: Object.values(EDUBASE_API_PROMPTS),
+}));
+server.setRequestHandler(GetPromptRequestSchema, (request) => {
+    try {
+        /* Decompose request and check arguments */
+        const { name, arguments: args } = request.params;
+        const promptHandler = EDUBASE_API_PROMPTS_HANDLERS[name];
+        if (!promptHandler) {
+            throw new Error('Prompt not found');
+        }
+        /* Return prompt response */
+        return promptHandler;
+    }
+    catch (error) {
+        /* Request failed */
+        return {};
+    }
+});
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: EDUBASE_API_TOOLS,
 }));
@@ -124,9 +168,36 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         if (!args) {
             throw new Error('No arguments provided');
         }
+        const meta = request.params._meta || {};
+        /* Prepare authentication */
+        let authentication = null;
+        if (meta && meta.headers && meta.headers['edubase-api-app'] && meta.headers['edubase-api-secret']) {
+            /* Use authentication from request headers */
+            authentication = {
+                app: meta.headers['edubase-api-app'],
+                secret: meta.headers['edubase-api-secret']
+            };
+        }
+        else if (meta && meta.headers && meta.headers['authorization'] && meta.headers['authorization'].startsWith('Bearer ')) {
+            /* Use authentication from Bearer token */
+            try {
+                /* Decode Bearer token */
+                const [app, secret] = atob(meta.headers['authorization'].split(' ')[1]).split(':');
+                if (app && app.length > 0 && secret && secret.length > 0) {
+                    authentication = { app, secret };
+                }
+            }
+            catch (error) {
+                /* Probably not encoded as base64 */
+                const [app, secret] = meta.headers['authorization'].split(' ')[1].split(':');
+                if (app && app.length > 0 && secret && secret.length > 0) {
+                    authentication = { app, secret };
+                }
+            }
+        }
         /* Send API request */
         const [, method, ...endpoint] = name.split('_');
-        const response = await sendEduBaseApiRequest(method, '/' + endpoint.join(':'), args);
+        const response = await sendEduBaseApiRequest(method, '/' + endpoint.join(':'), args, authentication);
         /* Return response */
         const outputSchemaKey = name;
         if (typeof EDUBASE_API_TOOLS_OUTPUT_SCHEMA[outputSchemaKey] == 'object' && Object.keys(EDUBASE_API_TOOLS_OUTPUT_SCHEMA[outputSchemaKey]).length == 0 && typeof response == 'string' && response.length == 0) {
@@ -159,13 +230,168 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
     }
 });
-/* Start MCP server on stdio */
-async function runMcpServer() {
-    const transport = new StdioServerTransport();
-    await server.connect(transport);
-    console.error("EduBase MCP server is now listening on standard input/output");
+/* Start MCP server */
+if (STREAMABLE_HTTP) {
+    /* Using HTTP with Streamable HTTP transport */
+    const app = express();
+    app.disable('x-powered-by');
+    app.use(bodyParser.json());
+    const transports = {};
+    app.post('/mcp', async (req, res) => {
+        /* Handle POST requests */
+        const sessionId = req.headers['mcp-session-id'];
+        let transport;
+        if (sessionId && transports[sessionId]) {
+            /* Use existing session */
+            transport = transports[sessionId];
+        }
+        else if (!sessionId && isInitializeRequest(req.body)) {
+            /* New session */
+            const eventStore = new InMemoryEventStore();
+            transport = new StreamableHTTPServerTransport({
+                sessionIdGenerator: () => randomUUID(),
+                eventStore,
+                onsessioninitialized: (sessionId) => {
+                    transports[sessionId] = transport;
+                }
+            });
+            transport.onclose = () => {
+                if (transport.sessionId) {
+                    delete transports[transport.sessionId];
+                }
+            };
+            await server.connect(transport);
+        }
+        else {
+            console.error("No session found for request");
+            res.status(400).send();
+            return;
+        }
+        try {
+            const params = req.body?.params || {};
+            params._meta = {
+                ip: getClientIp(req),
+                headers: req.headers,
+            };
+            await transport.handleRequest(req, res, { ...req.body, params });
+        }
+        catch (error) {
+            console.error("Error handling POST request for session (" + sessionId + "): " + error);
+            res.status(500).send();
+        }
+    });
+    app.get('/mcp', async (req, res) => {
+        /* Handle GET requests */
+        const sessionId = req.headers['mcp-session-id'];
+        if (!sessionId || !transports[sessionId]) {
+            res.status(400).send('Invalid session ID');
+            return;
+        }
+        try {
+            const transport = transports[sessionId];
+            await transport.handleRequest(req, res);
+        }
+        catch (error) {
+            console.error("Error handling GET request for session (" + sessionId + "): " + error);
+            res.status(500).send();
+        }
+    });
+    app.delete('/mcp', async (req, res) => {
+        /* Handle DELETE requests */
+        const sessionId = req.headers['mcp-session-id'];
+        if (!sessionId || !transports[sessionId]) {
+            res.status(400).send('Invalid session ID');
+            return;
+        }
+        try {
+            const transport = transports[sessionId];
+            await transport.handleRequest(req, res);
+        }
+        catch (error) {
+            console.error("Error handling DELETE request for session (" + sessionId + "): " + error);
+            res.status(500).send();
+        }
+    });
+    app.get('/health', async (_, res) => {
+        /* Health check endpoint */
+        res.status(200).send();
+    });
+    const EDUBASE_HTTP_PORT = parseInt(process.env.EDUBASE_HTTP_PORT || '3000');
+    app.listen(EDUBASE_HTTP_PORT, () => {
+        console.error("EduBase MCP server is now listening on HTTP port " + EDUBASE_HTTP_PORT + " with Streamable HTTP transport");
+    });
+    process.on('SIGTERM', () => {
+        /* Graceful shutdown */
+        console.error("Received SIGTERM, shutting down EduBase MCP server...");
+        server.close();
+    });
 }
-runMcpServer().catch((error) => {
-    console.error("Cannot start EduBase MCP server:", error);
-    process.exit(1);
-});
+else if (SSE) {
+    /* Using HTTP with SSE transport */
+    const app = express();
+    app.use(bodyParser.json());
+    app.disable('x-powered-by');
+    const transports = {};
+    app.get('/sse', async (_, res) => {
+        /* Handle SSE sessions */
+        const transport = new SSEServerTransport('/messages', res);
+        transports[transport.sessionId] = transport;
+        res.on('close', () => {
+            delete transports[transport.sessionId];
+        });
+        try {
+            await server.connect(transport);
+        }
+        catch (error) {
+            console.error("Error connecting transport to MCP server for session (" + transport.sessionId + "): " + error);
+        }
+    });
+    app.post('/messages', async (req, res) => {
+        /* Handle MCP messages */
+        const sessionId = req.query.sessionId;
+        const transport = transports[sessionId] ?? Object.values(transports)[0];
+        if (transport) {
+            try {
+                const params = req.body?.params || {};
+                params._meta = {
+                    ip: getClientIp(req),
+                    headers: req.headers,
+                };
+                await transport.handlePostMessage(req, res, { ...req.body, params });
+            }
+            catch (error) {
+                console.error("Error handling message for session (" + sessionId + "): " + error);
+                res.status(500).send();
+            }
+        }
+        else {
+            console.error("No transport found for session (" + sessionId + ")");
+            res.status(400).send();
+        }
+    });
+    app.get('/health', async (_, res) => {
+        /* Health check endpoint */
+        res.status(200).send();
+    });
+    const EDUBASE_HTTP_PORT = parseInt(process.env.EDUBASE_HTTP_PORT || '3000');
+    app.listen(EDUBASE_HTTP_PORT, () => {
+        console.error("EduBase MCP server is now listening on HTTP port " + EDUBASE_HTTP_PORT + " with SSE transport");
+    });
+    process.on('SIGTERM', () => {
+        /* Graceful shutdown */
+        console.error("Received SIGTERM, shutting down EduBase MCP server...");
+        server.close();
+    });
+}
+else {
+    /* Using stdio transport */
+    async function runMcpServer() {
+        const transport = new StdioServerTransport();
+        await server.connect(transport);
+        console.error("EduBase MCP server is now listening on standard input/output");
+    }
+    runMcpServer().catch((error) => {
+        console.error("Cannot start EduBase MCP server: ", error);
+        process.exit(1);
+    });
+}
