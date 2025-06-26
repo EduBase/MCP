@@ -19,7 +19,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['class', 'user', 'permission'],
@@ -43,7 +43,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['class', 'user', 'permission'],
@@ -67,7 +67,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['class', 'user', 'permission'],
@@ -91,7 +91,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['course', 'user', 'permission'],
@@ -115,7 +115,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['course', 'user', 'permission'],
@@ -139,7 +139,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['course', 'user', 'permission'],
@@ -163,7 +163,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / finances / grant / admin)'
+					description: 'permission level (view / report / control / modify / finances / grant / admin)'
 				},
 			},
 			required: ['event', 'user', 'permission'],
@@ -187,7 +187,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / finances / grant / admin)'
+					description: 'permission level (view / report / control / modify / finances / grant / admin)'
 				},
 			},
 			required: ['event', 'user', 'permission'],
@@ -211,7 +211,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / finances / grant / admin)'
+					description: 'permission level (view / report / control / modify / finances / grant / admin)'
 				},
 			},
 			required: ['event', 'user', 'permission'],
@@ -235,7 +235,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['exam', 'user', 'permission'],
@@ -259,7 +259,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['exam', 'user', 'permission'],
@@ -283,7 +283,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['exam', 'user', 'permission'],
@@ -307,7 +307,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['integration', 'user', 'permission'],
@@ -331,7 +331,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['integration', 'user', 'permission'],
@@ -355,7 +355,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['integration', 'user', 'permission'],
@@ -379,7 +379,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['organization', 'user', 'permission'],
@@ -403,7 +403,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['organization', 'user', 'permission'],
@@ -427,7 +427,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['organization', 'user', 'permission'],
@@ -451,7 +451,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['quiz', 'user', 'permission'],
@@ -475,7 +475,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['quiz', 'user', 'permission'],
@@ -499,7 +499,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['quiz', 'user', 'permission'],
@@ -523,7 +523,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['scorm', 'user', 'permission'],
@@ -547,7 +547,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['scorm', 'user', 'permission'],
@@ -571,7 +571,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['scorm', 'user', 'permission'],
@@ -595,7 +595,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['tag', 'user', 'permission'],
@@ -619,7 +619,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['tag', 'user', 'permission'],
@@ -643,7 +643,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['tag', 'user', 'permission'],
@@ -667,7 +667,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['video', 'user', 'permission'],
@@ -691,7 +691,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['video', 'user', 'permission'],
@@ -715,7 +715,7 @@ export const EDUBASE_API_TOOLS_PERMISSIONS: Tool[] = [
 				},
 				permission: {
 					type: 'string',
-					description: 'permission level (view / control / modify / grant / admin)'
+					description: 'permission level (view / report / control / modify / grant / admin)'
 				},
 			},
 			required: ['video', 'user', 'permission'],

@@ -74,11 +74,11 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
                 },
                 permission_organization: {
                     type: 'string',
-                    description: 'optional permission level to organization (member / teacher / supervisor / admin) (default: member)'
+                    description: 'optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'
                 },
                 permission_content: {
                     type: 'string',
-                    description: 'optional permission level to contents in organization (none / view / control / modify / grant / admin) (default: none)'
+                    description: 'optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'
                 },
                 notify: {
                     type: 'boolean',
@@ -128,11 +128,11 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
                 },
                 permission_organization: {
                     type: 'string',
-                    description: 'optional permission level to organization (member / teacher / supervisor / admin) (default: member)'
+                    description: 'optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'
                 },
                 permission_content: {
                     type: 'string',
-                    description: 'optional permission level to contents in organization (none / view / control / modify / grant / admin) (default: none)'
+                    description: 'optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'
                 },
                 notify: {
                     type: 'boolean',
@@ -178,11 +178,11 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
                 },
                 permission_organization: {
                     type: 'string',
-                    description: 'optional permission level to organization (member / teacher / supervisor / admin) (default: member)'
+                    description: 'optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'
                 },
                 permission_content: {
                     type: 'string',
-                    description: 'optional permission level to contents in organization (none / view / control / modify / grant / admin) (default: none)'
+                    description: 'optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'
                 },
                 notify: {
                     type: 'boolean',
