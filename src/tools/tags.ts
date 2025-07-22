@@ -11,15 +11,15 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				search: {
 					type: 'string',
-					description: 'search string to filter results'
+					description: 'search string to filter results',
 				},
 				limit: {
 					type: 'number',
-					description: 'limit number of results (default, in search mode: 16)'
+					description: 'limit number of results (default, in search mode: 16)',
 				},
 				page: {
 					type: 'number',
-					description: 'page number (default: 1), not used in search mode!'
+					description: 'page number (default: 1), not used in search mode!',
 				},
 			},
 			required: [],
@@ -35,7 +35,7 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['tag'],
@@ -51,7 +51,7 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				class: {
 					type: 'string',
-					description: 'class identification string'
+					description: 'class identification string',
 				},
 			},
 			required: ['class'],
@@ -67,11 +67,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				class: {
 					type: 'string',
-					description: 'class identification string'
+					description: 'class identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['class', 'tag'],
@@ -87,11 +87,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				class: {
 					type: 'string',
-					description: 'class identification string'
+					description: 'class identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['class', 'tag'],
@@ -107,11 +107,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				class: {
 					type: 'string',
-					description: 'class identification string'
+					description: 'class identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['class', 'tag'],
@@ -127,7 +127,7 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				course: {
 					type: 'string',
-					description: 'course identification string'
+					description: 'course identification string',
 				},
 			},
 			required: ['course'],
@@ -143,11 +143,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				course: {
 					type: 'string',
-					description: 'course identification string'
+					description: 'course identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['course', 'tag'],
@@ -163,11 +163,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				course: {
 					type: 'string',
-					description: 'course identification string'
+					description: 'course identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['course', 'tag'],
@@ -183,11 +183,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				course: {
 					type: 'string',
-					description: 'course identification string'
+					description: 'course identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['course', 'tag'],
@@ -203,7 +203,7 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				event: {
 					type: 'string',
-					description: 'event identification string'
+					description: 'event identification string',
 				},
 			},
 			required: ['event'],
@@ -219,11 +219,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				event: {
 					type: 'string',
-					description: 'event identification string'
+					description: 'event identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['event', 'tag'],
@@ -239,11 +239,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				event: {
 					type: 'string',
-					description: 'event identification string'
+					description: 'event identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['event', 'tag'],
@@ -259,11 +259,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				event: {
 					type: 'string',
-					description: 'event identification string'
+					description: 'event identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['event', 'tag'],
@@ -279,7 +279,7 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				exam: {
 					type: 'string',
-					description: 'exam identification string'
+					description: 'exam identification string',
 				},
 			},
 			required: ['exam'],
@@ -295,11 +295,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				exam: {
 					type: 'string',
-					description: 'exam identification string'
+					description: 'exam identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['exam', 'tag'],
@@ -315,11 +315,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				exam: {
 					type: 'string',
-					description: 'exam identification string'
+					description: 'exam identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['exam', 'tag'],
@@ -335,11 +335,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				exam: {
 					type: 'string',
-					description: 'exam identification string'
+					description: 'exam identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['exam', 'tag'],
@@ -355,7 +355,7 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				integration: {
 					type: 'string',
-					description: 'integration identification string'
+					description: 'integration identification string',
 				},
 			},
 			required: ['integration'],
@@ -371,11 +371,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				integration: {
 					type: 'string',
-					description: 'integration identification string'
+					description: 'integration identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['integration', 'tag'],
@@ -391,11 +391,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				integration: {
 					type: 'string',
-					description: 'integration identification string'
+					description: 'integration identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['integration', 'tag'],
@@ -411,11 +411,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				integration: {
 					type: 'string',
-					description: 'integration identification string'
+					description: 'integration identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['integration', 'tag'],
@@ -431,7 +431,7 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				organization: {
 					type: 'string',
-					description: 'organization identification string'
+					description: 'organization identification string',
 				},
 			},
 			required: ['organization'],
@@ -447,11 +447,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				organization: {
 					type: 'string',
-					description: 'organization identification string'
+					description: 'organization identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['organization', 'tag'],
@@ -467,11 +467,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				organization: {
 					type: 'string',
-					description: 'organization identification string'
+					description: 'organization identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['organization', 'tag'],
@@ -487,11 +487,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				organization: {
 					type: 'string',
-					description: 'organization identification string'
+					description: 'organization identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['organization', 'tag'],
@@ -507,7 +507,7 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				quiz: {
 					type: 'string',
-					description: 'quiz identification string'
+					description: 'quiz identification string',
 				},
 			},
 			required: ['quiz'],
@@ -523,11 +523,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				quiz: {
 					type: 'string',
-					description: 'quiz identification string'
+					description: 'quiz identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['quiz', 'tag'],
@@ -543,11 +543,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				quiz: {
 					type: 'string',
-					description: 'quiz identification string'
+					description: 'quiz identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['quiz', 'tag'],
@@ -563,11 +563,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				quiz: {
 					type: 'string',
-					description: 'quiz identification string'
+					description: 'quiz identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['quiz', 'tag'],
@@ -583,7 +583,7 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				scorm: {
 					type: 'string',
-					description: 'SCORM identification string'
+					description: 'SCORM identification string',
 				},
 			},
 			required: ['scorm'],
@@ -599,11 +599,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				scorm: {
 					type: 'string',
-					description: 'SCORM identification string'
+					description: 'SCORM identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['scorm', 'tag'],
@@ -619,11 +619,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				scorm: {
 					type: 'string',
-					description: 'SCORM identification string'
+					description: 'SCORM identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['scorm', 'tag'],
@@ -639,11 +639,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				scorm: {
 					type: 'string',
-					description: 'SCORM identification string'
+					description: 'SCORM identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['scorm', 'tag'],
@@ -659,7 +659,7 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				video: {
 					type: 'string',
-					description: 'video identification string'
+					description: 'video identification string',
 				},
 			},
 			required: ['video'],
@@ -675,11 +675,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				video: {
 					type: 'string',
-					description: 'video identification string'
+					description: 'video identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['video', 'tag'],
@@ -695,11 +695,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				video: {
 					type: 'string',
-					description: 'video identification string'
+					description: 'video identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['video', 'tag'],
@@ -715,11 +715,11 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 			properties: {
 				video: {
 					type: 'string',
-					description: 'video identification string'
+					description: 'video identification string',
 				},
 				tag: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 			},
 			required: ['video', 'tag'],
@@ -727,7 +727,6 @@ export const EDUBASE_API_TOOLS_TAGS: Tool[] = [
 	},
 ];
 
-/* Output schema definitions */
 /* Output schema definitions */
 export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 	// GET /tags - List owned and managed tags
@@ -738,11 +737,11 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'title of the tag'
+					description: 'title of the tag',
 				},
 			},
 		},
@@ -754,19 +753,19 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'tag identification string'
+				description: 'tag identification string',
 			},
 			name: {
 				type: 'string',
-				description: 'title of the tag'
+				description: 'title of the tag',
 			},
 			color: {
 				type: 'string',
-				description: 'color in HEX format'
+				description: 'color in HEX format',
 			},
 			icon: {
 				type: 'string',
-				description: 'Font Awesome icon class name'
+				description: 'Font Awesome icon class name',
 			},
 		},
 	},
@@ -779,11 +778,11 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'title of the tag'
+					description: 'title of the tag',
 				},
 			},
 		},
@@ -795,24 +794,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "class"'
+						description: 'will be "class"',
 					},
 					code: {
 						type: 'string',
-						description: 'the class identification string'
+						description: 'the class identification string',
 					},
 				},
 			},
 			status: {
 				type: 'boolean',
-				description: 'tag is attached to this class'
+				description: 'tag is attached to this class',
 			},
 		},
 	},
@@ -823,24 +822,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "class"'
+						description: 'will be "class"',
 					},
 					code: {
 						type: 'string',
-						description: 'the class identification string'
+						description: 'the class identification string',
 					},
 				},
 			},
 			success: {
 				type: 'boolean',
-				description: 'operation was successful'
+				description: 'operation was successful',
 			},
 		},
 	},
@@ -856,11 +855,11 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'title of the tag'
+					description: 'title of the tag',
 				},
 			},
 		},
@@ -872,24 +871,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "course"'
+						description: 'will be "course"',
 					},
 					code: {
 						type: 'string',
-						description: 'the course identification string'
+						description: 'the course identification string',
 					},
 				},
 			},
 			status: {
 				type: 'boolean',
-				description: 'tag is attached to this course'
+				description: 'tag is attached to this course',
 			},
 		},
 	},
@@ -900,24 +899,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "course"'
+						description: 'will be "course"',
 					},
 					code: {
 						type: 'string',
-						description: 'the course identification string'
+						description: 'the course identification string',
 					},
 				},
 			},
 			success: {
 				type: 'boolean',
-				description: 'operation was successful'
+				description: 'operation was successful',
 			},
 		},
 	},
@@ -933,11 +932,11 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'title of the tag'
+					description: 'title of the tag',
 				},
 			},
 		},
@@ -949,24 +948,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "event"'
+						description: 'will be "event"',
 					},
 					code: {
 						type: 'string',
-						description: 'the event identification string'
+						description: 'the event identification string',
 					},
 				},
 			},
 			status: {
 				type: 'boolean',
-				description: 'tag is attached to this event'
+				description: 'tag is attached to this event',
 			},
 		},
 	},
@@ -977,24 +976,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "event"'
+						description: 'will be "event"',
 					},
 					code: {
 						type: 'string',
-						description: 'the event identification string'
+						description: 'the event identification string',
 					},
 				},
 			},
 			success: {
 				type: 'boolean',
-				description: 'operation was successful'
+				description: 'operation was successful',
 			},
 		},
 	},
@@ -1010,11 +1009,11 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'title of the tag'
+					description: 'title of the tag',
 				},
 			},
 		},
@@ -1026,24 +1025,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "exam"'
+						description: 'will be "exam"',
 					},
 					code: {
 						type: 'string',
-						description: 'the exam identification string'
+						description: 'the exam identification string',
 					},
 				},
 			},
 			status: {
 				type: 'boolean',
-				description: 'tag is attached to this exam'
+				description: 'tag is attached to this exam',
 			},
 		},
 	},
@@ -1054,24 +1053,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "exam"'
+						description: 'will be "exam"',
 					},
 					code: {
 						type: 'string',
-						description: 'the exam identification string'
+						description: 'the exam identification string',
 					},
 				},
 			},
 			success: {
 				type: 'boolean',
-				description: 'operation was successful'
+				description: 'operation was successful',
 			},
 		},
 	},
@@ -1087,11 +1086,11 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'title of the tag'
+					description: 'title of the tag',
 				},
 			},
 		},
@@ -1103,24 +1102,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "integration"'
+						description: 'will be "integration"',
 					},
 					code: {
 						type: 'string',
-						description: 'the integration identification string'
+						description: 'the integration identification string',
 					},
 				},
 			},
 			status: {
 				type: 'boolean',
-				description: 'tag is attached to this integration'
+				description: 'tag is attached to this integration',
 			},
 		},
 	},
@@ -1131,24 +1130,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "integration"'
+						description: 'will be "integration"',
 					},
 					code: {
 						type: 'string',
-						description: 'the integration identification string'
+						description: 'the integration identification string',
 					},
 				},
 			},
 			success: {
 				type: 'boolean',
-				description: 'operation was successful'
+				description: 'operation was successful',
 			},
 		},
 	},
@@ -1164,11 +1163,11 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'title of the tag'
+					description: 'title of the tag',
 				},
 			},
 		},
@@ -1180,24 +1179,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "organization"'
+						description: 'will be "organization"',
 					},
 					code: {
 						type: 'string',
-						description: 'the organization identification string'
+						description: 'the organization identification string',
 					},
 				},
 			},
 			status: {
 				type: 'boolean',
-				description: 'tag is attached to this organization'
+				description: 'tag is attached to this organization',
 			},
 		},
 	},
@@ -1208,24 +1207,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "organization"'
+						description: 'will be "organization"',
 					},
 					code: {
 						type: 'string',
-						description: 'the organization identification string'
+						description: 'the organization identification string',
 					},
 				},
 			},
 			success: {
 				type: 'boolean',
-				description: 'operation was successful'
+				description: 'operation was successful',
 			},
 		},
 	},
@@ -1241,11 +1240,11 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'title of the tag'
+					description: 'title of the tag',
 				},
 			},
 		},
@@ -1257,24 +1256,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "quiz"'
+						description: 'will be "quiz"',
 					},
 					code: {
 						type: 'string',
-						description: 'the quiz identification string'
+						description: 'the quiz identification string',
 					},
 				},
 			},
 			status: {
 				type: 'boolean',
-				description: 'tag is attached to this quiz'
+				description: 'tag is attached to this quiz',
 			},
 		},
 	},
@@ -1285,24 +1284,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "quiz"'
+						description: 'will be "quiz"',
 					},
 					code: {
 						type: 'string',
-						description: 'the quiz identification string'
+						description: 'the quiz identification string',
 					},
 				},
 			},
 			success: {
 				type: 'boolean',
-				description: 'operation was successful'
+				description: 'operation was successful',
 			},
 		},
 	},
@@ -1318,11 +1317,11 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'title of the tag'
+					description: 'title of the tag',
 				},
 			},
 		},
@@ -1334,24 +1333,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "scorm"'
+						description: 'will be "scorm"',
 					},
 					code: {
 						type: 'string',
-						description: 'the SCORM identification string'
+						description: 'the SCORM identification string',
 					},
 				},
 			},
 			status: {
 				type: 'boolean',
-				description: 'tag is attached to this SCORM learning material'
+				description: 'tag is attached to this SCORM learning material',
 			},
 		},
 	},
@@ -1362,24 +1361,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "scorm"'
+						description: 'will be "scorm"',
 					},
 					code: {
 						type: 'string',
-						description: 'the SCORM identification string'
+						description: 'the SCORM identification string',
 					},
 				},
 			},
 			success: {
 				type: 'boolean',
-				description: 'operation was successful'
+				description: 'operation was successful',
 			},
 		},
 	},
@@ -1395,11 +1394,11 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'tag identification string'
+					description: 'tag identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'title of the tag'
+					description: 'title of the tag',
 				},
 			},
 		},
@@ -1411,24 +1410,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "video"'
+						description: 'will be "video"',
 					},
 					code: {
 						type: 'string',
-						description: 'the video identification string'
+						description: 'the video identification string',
 					},
 				},
 			},
 			status: {
 				type: 'boolean',
-				description: 'tag is attached to this video'
+				description: 'tag is attached to this video',
 			},
 		},
 	},
@@ -1439,24 +1438,24 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA: object = {
 		properties: {
 			tag: {
 				type: 'string',
-				description: 'the tag identification string'
+				description: 'the tag identification string',
 			},
 			content: {
 				type: 'object',
 				properties: {
 					type: {
 						type: 'string',
-						description: 'will be "video"'
+						description: 'will be "video"',
 					},
 					code: {
 						type: 'string',
-						description: 'the video identification string'
+						description: 'the video identification string',
 					},
 				},
 			},
 			success: {
 				type: 'boolean',
-				description: 'operation was successful'
+				description: 'operation was successful',
 			},
 		},
 	},

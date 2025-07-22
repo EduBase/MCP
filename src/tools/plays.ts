@@ -11,7 +11,7 @@ export const EDUBASE_API_TOOLS_PLAYS: Tool[] = [
 			properties: {
 				play: {
 					type: 'string',
-					description: 'Quiz play identification string'
+					description: 'Quiz play identification string',
 				},
 			},
 			required: ['play'],
@@ -27,11 +27,11 @@ export const EDUBASE_API_TOOLS_PLAYS: Tool[] = [
 			properties: {
 				quiz: {
 					type: 'string',
-					description: 'Quiz set identification string'
+					description: 'Quiz set identification string',
 				},
 				user: {
 					type: 'string',
-					description: 'user identification string'
+					description: 'user identification string',
 				},
 			},
 			required: ['quiz', 'user'],
@@ -47,11 +47,11 @@ export const EDUBASE_API_TOOLS_PLAYS: Tool[] = [
 			properties: {
 				exam: {
 					type: 'string',
-					description: 'exam identification string'
+					description: 'exam identification string',
 				},
 				user: {
 					type: 'string',
-					description: 'user identification string'
+					description: 'user identification string',
 				},
 			},
 			required: ['exam', 'user'],
@@ -70,10 +70,50 @@ export const EDUBASE_API_TOOLS_PLAYS: Tool[] = [
 			properties: {
 				exam: {
 					type: 'string',
-					description: 'exam identification string'
+					description: 'exam identification string',
 				},
 			},
 			required: ['exam'],
+		},
+	},
+
+	// GET /exam:certificates:user - Get (the latest) certificate details for a specific exam and user
+	{
+		name: 'edubase_get_exam_certificates_user',
+		description: "Get (the latest) certificate details for a specific exam and user.",
+		inputSchema: {
+			type: 'object',
+			properties: {
+				exam: {
+					type: 'string',
+					description: 'exam identification string',
+				},
+				user: {
+					type: 'string',
+					description: 'user identification string',
+				},
+			},
+			required: ['exam', 'user'],
+		},
+	},
+
+	// POST /exam:certificates:user:download - Generate download link for the latest user exam certificate
+	{
+		name: 'edubase_post_exam_certificates_user_download',
+		description: "Generate download link for the latest user exam certificate. If a previous valid link exists, it will be returned instead.",
+		inputSchema: {
+			type: 'object',
+			properties: {
+				exam: {
+					type: 'string',
+					description: 'exam identification string',
+				},
+				user: {
+					type: 'string',
+					description: 'user identification string',
+				},
+			},
+			required: ['exam', 'user'],
 		},
 	},
 ];
@@ -86,39 +126,39 @@ export const EDUBASE_API_TOOLS_PLAYS_OUTPUT_SCHEMA: object = {
 		properties: {
 			play: {
 				type: 'string',
-				description: 'Quiz play identification string'
+				description: 'Quiz play identification string',
 			},
 			user: {
 				type: 'string',
-				description: 'user identification string'
+				description: 'user identification string',
 			},
 			time_start: {
 				type: 'string',
-				description: 'start time'
+				description: 'start time',
 			},
 			time_end: {
 				type: 'string',
-				description: 'end time'
+				description: 'end time',
 			},
 			questions_total: {
 				type: 'number',
-				description: 'total number of questions asked'
+				description: 'total number of questions asked',
 			},
 			questions_correct: {
 				type: 'number',
-				description: 'number of correctly answered questions'
+				description: 'number of correctly answered questions',
 			},
 			points_total: {
 				type: 'number',
-				description: 'total points'
+				description: 'total points',
 			},
 			points_correct: {
 				type: 'number',
-				description: 'total points scored'
+				description: 'total points scored',
 			},
 			valid: {
 				type: 'boolean',
-				description: 'result is valid'
+				description: 'result is valid',
 			},
 			questions: {
 				type: 'array',
@@ -127,27 +167,27 @@ export const EDUBASE_API_TOOLS_PLAYS_OUTPUT_SCHEMA: object = {
 					properties: {
 						index: {
 							type: 'string',
-							description: 'question index'
+							description: 'question index',
 						},
 						id: {
 							type: 'string',
-							description: 'external unique question identifier (if present)'
+							description: 'external unique question identifier (if present)',
 						},
 						question: {
 							type: 'string',
-							description: 'question identification string'
+							description: 'question identification string',
 						},
 						time_answer: {
 							type: 'number',
-							description: 'number of seconds spent on question (if available)'
+							description: 'number of seconds spent on question (if available)',
 						},
 						points_maximum: {
 							type: 'number',
-							description: 'maximum points'
+							description: 'maximum points',
 						},
 						points: {
 							type: 'number',
-							description: 'points scored'
+							description: 'points scored',
 						},
 					},
 				},
@@ -163,39 +203,39 @@ export const EDUBASE_API_TOOLS_PLAYS_OUTPUT_SCHEMA: object = {
 			properties: {
 				play: {
 					type: 'string',
-					description: 'Quiz play identification string'
+					description: 'Quiz play identification string',
 				},
 				user: {
 					type: 'string',
-					description: 'user identification string'
+					description: 'user identification string',
 				},
 				time_start: {
 					type: 'string',
-					description: 'start time'
+					description: 'start time',
 				},
 				time_end: {
 					type: 'string',
-					description: 'end time'
+					description: 'end time',
 				},
 				questions_total: {
 					type: 'number',
-					description: 'total number of questions asked'
+					description: 'total number of questions asked',
 				},
 				questions_correct: {
 					type: 'number',
-					description: 'number of correctly answered questions'
+					description: 'number of correctly answered questions',
 				},
 				points_total: {
 					type: 'number',
-					description: 'total points'
+					description: 'total points',
 				},
 				points_correct: {
 					type: 'number',
-					description: 'total points scored'
+					description: 'total points scored',
 				},
 				valid: {
 					type: 'boolean',
-					description: 'result is valid'
+					description: 'result is valid',
 				},
 			},
 		},
@@ -209,43 +249,43 @@ export const EDUBASE_API_TOOLS_PLAYS_OUTPUT_SCHEMA: object = {
 			properties: {
 				play: {
 					type: 'string',
-					description: 'Quiz play identification string'
+					description: 'Quiz play identification string',
 				},
 				user: {
 					type: 'string',
-					description: 'user identification string'
+					description: 'user identification string',
 				},
 				time_start: {
 					type: 'string',
-					description: 'start time'
+					description: 'start time',
 				},
 				time_end: {
 					type: 'string',
-					description: 'end time'
+					description: 'end time',
 				},
 				questions_total: {
 					type: 'number',
-					description: 'total number of questions asked'
+					description: 'total number of questions asked',
 				},
 				questions_correct: {
 					type: 'number',
-					description: 'number of correctly answered questions'
+					description: 'number of correctly answered questions',
 				},
 				points_total: {
 					type: 'number',
-					description: 'total points'
+					description: 'total points',
 				},
 				points_correct: {
 					type: 'number',
-					description: 'total points scored'
+					description: 'total points scored',
 				},
 				attempt: {
 					type: 'number',
-					description: 'index of attempt'
+					description: 'index of attempt',
 				},
 				valid: {
 					type: 'boolean',
-					description: 'result is valid'
+					description: 'result is valid',
 				},
 			},
 		},
@@ -257,7 +297,7 @@ export const EDUBASE_API_TOOLS_PLAYS_OUTPUT_SCHEMA: object = {
 		properties: {
 			exam: {
 				type: 'string',
-				description: 'exam identification string'
+				description: 'exam identification string',
 			},
 			users: {
 				type: 'array',
@@ -271,44 +311,98 @@ export const EDUBASE_API_TOOLS_PLAYS_OUTPUT_SCHEMA: object = {
 						},
 						play: {
 							type: 'object',
-							description: 'Quiz play details'
+							description: 'Quiz play details',
 						},
 						ready: {
 							type: 'boolean',
-							description: 'all questions are evaluated, not requiring further review'
+							description: 'all questions are evaluated, not requiring further review',
 						},
 						points: {
 							type: 'object',
 							properties: {
 								correct: {
 									type: 'object',
-									description: 'total points scored'
+									description: 'total points scored',
 								},
 								total: {
 									type: 'object',
-									description: 'maximum points'
+									description: 'maximum points',
 								},
 							},
 						},
 						flow: {
 							type: 'object',
-							description: 'Quiz Flow data, describing detailed user interaction and logs about the test attempt'
+							description: 'Quiz Flow data, describing detailed user interaction and logs about the test attempt',
 						},
 						stats: {
 							type: 'object',
-							description: 'detailed evaluation data'
+							description: 'detailed evaluation data',
 						},
 						time: {
 							type: 'object',
-							description: 'time needed for the test and each question'
+							description: 'time needed for the test and each question',
 						},
 					},
 				},
 			},
 			questions: {
 				type: 'object',
-				description: 'most important details about the questions asked'
+				description: 'most important details about the questions asked',
 			},
 		},
-	}
+	},
+
+	// GET /exam:certificates:user - Get (the latest) certificate details for a specific exam and user
+	edubase_get_exam_certificates_user: {
+		type: 'object',
+		properties: {
+			play: {
+				type: 'string',
+				description: 'Quiz play identification string',
+			},
+			user: {
+				type: 'string',
+				description: 'user identification string',
+			},
+			eligible: {
+				type: 'boolean',
+				description: 'result is eligible for a certificate',
+			},
+			certified: {
+				type: 'boolean',
+				description: 'result is eligible and also certified',
+			},
+			serial: {
+				type: 'string',
+				description: 'serial number of the certificate, only present if the result is certified and serial numbering is enabled',
+			},
+			expires: {
+				type: 'string',
+				description: 'date of expiration, only present if the result is certified and expiration is configured',
+			},
+		},
+	},
+
+	// POST /exam:certificates:user:download - Generate download link for the latest user exam certificate
+	edubase_get_exam_certificates_user_download: {
+		type: 'object',
+		properties: {
+			play: {
+				type: 'string',
+				description: 'Quiz play identification string',
+			},
+			user: {
+				type: 'string',
+				description: 'user identification string',
+			},
+			url: {
+				type: 'string',
+				description: 'download link for the certificate',
+			},
+			valid: {
+				type: 'string',
+				description: 'date of link expiration',
+			},
+		},
+	},
 };

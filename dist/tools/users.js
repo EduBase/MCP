@@ -9,15 +9,15 @@ export const EDUBASE_API_TOOLS_USERS = [
             properties: {
                 search: {
                     type: 'string',
-                    description: 'search string to filter results'
+                    description: 'search string to filter results',
                 },
                 limit: {
                     type: 'number',
-                    description: 'limit number of results (default, in search mode: 16)'
+                    description: 'limit number of results (default, in search mode: 16)',
                 },
                 page: {
                     type: 'number',
-                    description: 'page number (default: 1), not used in search mode!'
+                    description: 'page number (default: 1), not used in search mode!',
                 },
             },
             required: [],
@@ -48,75 +48,75 @@ export const EDUBASE_API_TOOLS_USERS = [
             properties: {
                 username: {
                     type: 'string',
-                    description: 'username (4-64 characters)'
+                    description: 'username (4-64 characters)',
                 },
                 password: {
                     type: 'string',
-                    description: 'password (4-64 characters) (default: initial random password is automatically generated)'
+                    description: 'password (4-64 characters) (default: initial random password is automatically generated)',
                 },
                 first_name: {
                     type: 'string',
-                    description: 'first name (1-64 characters)'
+                    description: 'first name (1-64 characters)',
                 },
                 last_name: {
                     type: 'string',
-                    description: 'last name (1-64 characters)'
+                    description: 'last name (1-64 characters)',
                 },
                 full_name: {
                     type: 'string',
-                    description: 'override automatic full name (1-255 characters)'
+                    description: 'override automatic full name (1-255 characters)',
                 },
                 display_name: {
                     type: 'string',
-                    description: 'override automatic display name (1-255 characters)'
+                    description: 'override automatic display name (1-255 characters)',
                 },
                 email: {
                     type: 'string',
-                    description: 'valid email address'
+                    description: 'valid email address',
                 },
                 phone: {
                     type: 'string',
-                    description: 'valid phone number in format "+prefix number" without special characters'
+                    description: 'valid phone number in format "+prefix number" without special characters',
                 },
                 gender: {
                     type: 'string',
-                    description: 'gender ("male", "female", or "other")'
+                    description: 'gender ("male", "female", or "other")',
                 },
                 birthdate: {
                     type: 'string',
-                    description: 'date of birth'
+                    description: 'date of birth',
                 },
                 exam: {
                     type: 'boolean',
-                    description: 'user is only allowed to login when accessing exams (default: false)'
+                    description: 'user is only allowed to login when accessing exams (default: false)',
                 },
                 group: {
                     type: 'string',
-                    description: 'name of the user group (requires admin permissions)'
+                    description: 'name of the user group (requires admin permissions)',
                 },
                 template: {
                     type: 'string',
-                    description: 'a template ID for the new account (default: none)'
+                    description: 'a template ID for the new account (default: none)',
                 },
                 language: {
                     type: 'string',
-                    description: 'desired account language (default: API application owner\'s language)'
+                    description: 'desired account language (default: API application owner\'s language)',
                 },
                 timezone: {
                     type: 'string',
-                    description: 'desired timezone (default: API application owner\'s timezone)'
+                    description: 'desired timezone (default: API application owner\'s timezone)',
                 },
                 color: {
                     type: 'string',
-                    description: 'desired favorite color (default/branding/red/blue/yellow/green/purple) (default: default)'
+                    description: 'desired favorite color (default/branding/red/blue/yellow/green/purple) (default: default)',
                 },
                 must_change_password: {
                     type: 'boolean',
-                    description: 'user is forced to change password on first login (default: false)'
+                    description: 'user is forced to change password on first login (default: false)',
                 },
                 notify: {
                     type: 'boolean',
-                    description: 'notify user via email (or SMS) (default: false)'
+                    description: 'notify user via email (or SMS) (default: false)',
                 },
             },
             required: ['username', 'first_name', 'last_name', 'email'],
@@ -131,7 +131,7 @@ export const EDUBASE_API_TOOLS_USERS = [
             properties: {
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
             },
             required: ['user'],
@@ -146,7 +146,7 @@ export const EDUBASE_API_TOOLS_USERS = [
             properties: {
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
             },
             required: ['user'],
@@ -161,23 +161,23 @@ export const EDUBASE_API_TOOLS_USERS = [
             properties: {
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 first_name: {
                     type: 'string',
-                    description: 'first name (1-64 characters)'
+                    description: 'first name (1-64 characters)',
                 },
                 last_name: {
                     type: 'string',
-                    description: 'last name (1-64 characters)'
+                    description: 'last name (1-64 characters)',
                 },
                 full_name: {
                     type: 'string',
-                    description: 'full name (1-255 characters)'
+                    description: 'full name (1-255 characters)',
                 },
                 display_name: {
                     type: 'string',
-                    description: 'display name (1-255 characters)'
+                    description: 'display name (1-255 characters)',
                 },
             },
             required: ['user', 'first_name', 'last_name'],
@@ -192,7 +192,7 @@ export const EDUBASE_API_TOOLS_USERS = [
             properties: {
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
             },
             required: ['user'],
@@ -207,11 +207,11 @@ export const EDUBASE_API_TOOLS_USERS = [
             properties: {
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 group: {
                     type: 'string',
-                    description: 'user group code'
+                    description: 'user group code',
                 },
             },
             required: ['user', 'group'],
@@ -226,7 +226,7 @@ export const EDUBASE_API_TOOLS_USERS = [
             properties: {
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
             },
             required: ['user'],
@@ -241,27 +241,27 @@ export const EDUBASE_API_TOOLS_USERS = [
             properties: {
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 redirect: {
                     type: 'string',
-                    description: 'redirect after a successful login (URI path or [{content_type}:{tag}])'
+                    description: 'redirect after a successful login (URI path or [{content_type}:{tag}])',
                 },
                 expires: {
                     type: 'string',
-                    description: 'expiry in days (1-30) or YYYY-MM-DD (default: 1 day)'
+                    description: 'expiry in days (1-30) or YYYY-MM-DD (default: 1 day)',
                 },
                 logins: {
                     type: 'number',
-                    description: 'total count the link can be used to login users (default: 1)'
+                    description: 'total count the link can be used to login users (default: 1)',
                 },
                 template: {
                     type: 'string',
-                    description: 'a template ID for the login link'
+                    description: 'a template ID for the login link',
                 },
                 short: {
                     type: 'boolean',
-                    description: 'generate shortened (eduba.se) link (only if feature is enabled on EduBase) (default: false)'
+                    description: 'generate shortened (eduba.se) link (only if feature is enabled on EduBase) (default: false)',
                 },
             },
             required: ['user'],
@@ -276,11 +276,11 @@ export const EDUBASE_API_TOOLS_USERS = [
             properties: {
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 url: {
                     type: 'string',
-                    description: 'generated login link to be invalidated'
+                    description: 'generated login link to be invalidated',
                 },
             },
             required: ['user', 'url'],
@@ -295,7 +295,7 @@ export const EDUBASE_API_TOOLS_USERS = [
             properties: {
                 query: {
                     type: 'string',
-                    description: 'query string'
+                    description: 'query string',
                 },
             },
             required: ['query'],
@@ -310,11 +310,11 @@ export const EDUBASE_API_TOOLS_USERS = [
             properties: {
                 user: {
                     type: 'string',
-                    description: 'user identification string, username or email address'
+                    description: 'user identification string, username or email address',
                 },
                 password: {
                     type: 'string',
-                    description: 'password or user secret'
+                    description: 'password or user secret',
                 },
             },
             required: ['user'],
@@ -329,7 +329,7 @@ export const EDUBASE_API_TOOLS_USERS = [
             properties: {
                 token: {
                     type: 'string',
-                    description: 'assume token'
+                    description: 'assume token',
                 },
             },
             required: ['token'],
@@ -346,11 +346,11 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA = {
             properties: {
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 name: {
                     type: 'string',
-                    description: 'full name of the user'
+                    description: 'full name of the user',
                 },
             },
         },
@@ -361,19 +361,19 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'user identification string'
+                description: 'user identification string',
             },
             name: {
                 type: 'string',
-                description: 'full name'
+                description: 'full name',
             },
             status: {
                 type: 'boolean',
-                description: 'user is enabled'
+                description: 'user is enabled',
             },
             exam: {
                 type: 'boolean',
-                description: 'exam (generated) account'
+                description: 'exam (generated) account',
             },
         },
     },
@@ -383,15 +383,15 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'user identification string'
+                description: 'user identification string',
             },
             username: {
                 type: 'string',
-                description: 'username, only if exam=false'
+                description: 'username, only if exam=false',
             },
             password: {
                 type: 'string',
-                description: 'password, only if exam=false'
+                description: 'password, only if exam=false',
             },
         },
     },
@@ -403,23 +403,23 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             first_name: {
                 type: 'string',
-                description: 'first name'
+                description: 'first name',
             },
             last_name: {
                 type: 'string',
-                description: 'last name'
+                description: 'last name',
             },
             full_name: {
                 type: 'string',
-                description: 'full name'
+                description: 'full name',
             },
             display_name: {
                 type: 'string',
-                description: 'display name'
+                description: 'display name',
             },
         },
     },
@@ -429,15 +429,15 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             success: {
                 type: 'boolean',
-                description: 'operation is successful'
+                description: 'operation is successful',
             },
             changed: {
                 type: 'boolean',
-                description: 'name has been changed'
+                description: 'name has been changed',
             },
         },
     },
@@ -447,11 +447,11 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             group: {
                 type: 'string',
-                description: 'user group code'
+                description: 'user group code',
             },
         },
     },
@@ -461,15 +461,15 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             success: {
                 type: 'boolean',
-                description: 'operation is successful'
+                description: 'operation is successful',
             },
             changed: {
                 type: 'boolean',
-                description: 'name has been changed'
+                description: 'name has been changed',
             },
         },
     },
@@ -479,15 +479,15 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             url: {
                 type: 'string',
-                description: 'the login link'
+                description: 'the login link',
             },
             valid: {
                 type: 'string',
-                description: 'validity (end of day) of the generated link'
+                description: 'validity (end of day) of the generated link',
             },
         },
     },
@@ -497,19 +497,19 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             url: {
                 type: 'string',
-                description: 'the login link'
+                description: 'the login link',
             },
             valid: {
                 type: 'string',
-                description: 'validity of the generated link'
+                description: 'validity of the generated link',
             },
             count: {
                 type: 'number',
-                description: 'maximum number the link can be used to login'
+                description: 'maximum number the link can be used to login',
             },
         },
     },
@@ -521,11 +521,11 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'user identification string'
+                description: 'user identification string',
             },
             exam: {
                 type: 'boolean',
-                description: 'exam (generated) account'
+                description: 'exam (generated) account',
             },
         },
     },
@@ -535,15 +535,15 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'user identification string'
+                description: 'user identification string',
             },
             token: {
                 type: 'string',
-                description: 'assume token'
+                description: 'assume token',
             },
             valid: {
                 type: 'string',
-                description: 'validity of the generated token'
+                description: 'validity of the generated token',
             },
         },
     },

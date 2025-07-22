@@ -11,11 +11,11 @@ export const EDUBASE_API_TOOLS_METRICS: Tool[] = [
 			properties: {
 				metric: {
 					type: 'string',
-					description: 'metric name'
+					description: 'metric name',
 				},
 				value: {
 					type: 'number',
-					description: 'target value (also accepts increments with a + prefix)'
+					description: 'target value (also accepts increments with a + prefix)',
 				},
 			},
 			required: ['metric', 'value'],
@@ -31,11 +31,11 @@ export const EDUBASE_API_TOOLS_METRICS_OUTPUT_SCHEMA: object = {
 		properties: {
 			metric: {
 				type: 'string',
-				description: 'metric name'
+				description: 'metric name',
 			},
 			value: {
 				type: 'string',
-				description: 'saved value'
+				description: 'saved value',
 			},
 		},
 	},

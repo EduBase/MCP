@@ -9,15 +9,15 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             properties: {
                 search: {
                     type: 'string',
-                    description: 'search string to filter results'
+                    description: 'search string to filter results',
                 },
                 limit: {
                     type: 'number',
-                    description: 'limit number of results (default, in search mode: 16)'
+                    description: 'limit number of results (default, in search mode: 16)',
                 },
                 page: {
                     type: 'number',
-                    description: 'page number (default: 1), not used in search mode!'
+                    description: 'page number (default: 1), not used in search mode!',
                 },
             },
             required: [],
@@ -32,7 +32,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             properties: {
                 organization: {
                     type: 'string',
-                    description: 'organization identification string'
+                    description: 'organization identification string',
                 },
             },
             required: ['organization'],
@@ -47,7 +47,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             properties: {
                 organization: {
                     type: 'string',
-                    description: 'organization identification string'
+                    description: 'organization identification string',
                 },
             },
             required: ['organization'],
@@ -62,27 +62,27 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             properties: {
                 organization: {
                     type: 'string',
-                    description: 'organization identification string'
+                    description: 'organization identification string',
                 },
                 users: {
                     type: 'string',
-                    description: 'comma-separated list of user identification strings'
+                    description: 'comma-separated list of user identification strings',
                 },
                 department: {
                     type: 'string',
-                    description: 'optional name of department'
+                    description: 'optional name of department',
                 },
                 permission_organization: {
                     type: 'string',
-                    description: 'optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'
+                    description: 'optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)',
                 },
                 permission_content: {
                     type: 'string',
-                    description: 'optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'
+                    description: 'optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)',
                 },
                 notify: {
                     type: 'boolean',
-                    description: 'notify users (default: false)'
+                    description: 'notify users (default: false)',
                 },
             },
             required: ['organization', 'users'],
@@ -97,11 +97,11 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             properties: {
                 organization: {
                     type: 'string',
-                    description: 'organization identification string'
+                    description: 'organization identification string',
                 },
                 users: {
                     type: 'string',
-                    description: 'comma-separated list of user identification strings'
+                    description: 'comma-separated list of user identification strings',
                 },
             },
             required: ['organization', 'users'],
@@ -116,27 +116,27 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             properties: {
                 organizations: {
                     type: 'string',
-                    description: 'comma-separated list of organization identification strings'
+                    description: 'comma-separated list of organization identification strings',
                 },
                 users: {
                     type: 'string',
-                    description: 'comma-separated list of user identification strings'
+                    description: 'comma-separated list of user identification strings',
                 },
                 department: {
                     type: 'string',
-                    description: 'optional name of department'
+                    description: 'optional name of department',
                 },
                 permission_organization: {
                     type: 'string',
-                    description: 'optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'
+                    description: 'optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)',
                 },
                 permission_content: {
                     type: 'string',
-                    description: 'optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'
+                    description: 'optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)',
                 },
                 notify: {
                     type: 'boolean',
-                    description: 'notify users (default: false)'
+                    description: 'notify users (default: false)',
                 },
             },
             required: ['organizations', 'users'],
@@ -151,7 +151,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             properties: {
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
             },
             required: ['user'],
@@ -166,27 +166,27 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             properties: {
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 organizations: {
                     type: 'string',
-                    description: 'comma-separated list of organization identification strings'
+                    description: 'comma-separated list of organization identification strings',
                 },
                 department: {
                     type: 'string',
-                    description: 'optional name of department'
+                    description: 'optional name of department',
                 },
                 permission_organization: {
                     type: 'string',
-                    description: 'optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'
+                    description: 'optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)',
                 },
                 permission_content: {
                     type: 'string',
-                    description: 'optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'
+                    description: 'optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)',
                 },
                 notify: {
                     type: 'boolean',
-                    description: 'notify user (default: false)'
+                    description: 'notify user (default: false)',
                 },
             },
             required: ['user', 'organizations'],
@@ -201,11 +201,11 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             properties: {
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 organizations: {
                     type: 'string',
-                    description: 'comma-separated list of organization identification strings'
+                    description: 'comma-separated list of organization identification strings',
                 },
             },
             required: ['user', 'organizations'],
@@ -222,11 +222,11 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS_OUTPUT_SCHEMA = {
             properties: {
                 code: {
                     type: 'string',
-                    description: 'organization identification string'
+                    description: 'organization identification string',
                 },
                 name: {
                     type: 'string',
-                    description: 'title of the organization'
+                    description: 'title of the organization',
                 },
             },
         },
@@ -237,11 +237,11 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS_OUTPUT_SCHEMA = {
         properties: {
             organization: {
                 type: 'string',
-                description: 'organization identification string'
+                description: 'organization identification string',
             },
             name: {
                 type: 'string',
-                description: 'title of the organization'
+                description: 'title of the organization',
             },
         },
     },
@@ -253,26 +253,26 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS_OUTPUT_SCHEMA = {
             properties: {
                 code: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 name: {
                     type: 'string',
-                    description: 'name of the member'
+                    description: 'name of the member',
                 },
                 department: {
                     type: 'string',
-                    description: 'name of the department (if member)'
+                    description: 'name of the department (if member)',
                 },
                 permission: {
                     type: 'array',
                     items: {
                         organization: {
                             type: 'string',
-                            description: 'permission level to organization'
+                            description: 'permission level to organization',
                         },
                         content: {
                             type: 'string',
-                            description: 'permission level to contents in organization'
+                            description: 'permission level to contents in organization',
                         },
                     },
                 },
@@ -293,19 +293,19 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS_OUTPUT_SCHEMA = {
             properties: {
                 code: {
                     type: 'string',
-                    description: 'organization identification string'
+                    description: 'organization identification string',
                 },
                 name: {
                     type: 'string',
-                    description: 'title of the organization'
+                    description: 'title of the organization',
                 },
                 link: {
                     type: 'string',
-                    description: 'link to the organization manager page'
+                    description: 'link to the organization manager page',
                 },
                 department: {
                     type: 'string',
-                    description: 'name of the department (if member)'
+                    description: 'name of the department (if member)',
                 },
                 permission: {
                     type: 'array',
@@ -314,11 +314,11 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS_OUTPUT_SCHEMA = {
                         properties: {
                             organization: {
                                 type: 'string',
-                                description: 'permission level to organization'
+                                description: 'permission level to organization',
                             },
                             content: {
                                 type: 'string',
-                                description: 'permission level to contents in organization'
+                                description: 'permission level to contents in organization',
                             },
                         },
                     },

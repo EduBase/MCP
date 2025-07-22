@@ -26,15 +26,15 @@ export const EDUBASE_API_TOOLS_EXAMS: Tool[] = [
 			properties: {
 				search: {
 					type: 'string',
-					description: 'search string to filter results'
+					description: 'search string to filter results',
 				},
 				limit: {
 					type: 'number',
-					description: 'limit number of results (default, in search mode: 16)'
+					description: 'limit number of results (default, in search mode: 16)',
 				},
 				page: {
 					type: 'number',
-					description: 'page number (default: 1), not used in search mode!'
+					description: 'page number (default: 1), not used in search mode!',
 				},
 			},
 			required: [],
@@ -50,7 +50,7 @@ export const EDUBASE_API_TOOLS_EXAMS: Tool[] = [
 			properties: {
 				exam: {
 					type: 'string',
-					description: 'exam identification string'
+					description: 'exam identification string',
 				},
 			},
 			required: ['exam'],
@@ -66,11 +66,11 @@ export const EDUBASE_API_TOOLS_EXAMS: Tool[] = [
 			properties: {
 				language: {
 					type: 'string',
-					description: 'desired exam language'
+					description: 'desired exam language',
 				},
 				title: {
 					type: 'string',
-					description: 'title of the exam'
+					description: 'title of the exam',
 				},
 				type: {
 					type: 'string',
@@ -83,15 +83,15 @@ export const EDUBASE_API_TOOLS_EXAMS: Tool[] = [
 				},
 				quiz: {
 					type: 'string',
-					description: 'the Quiz set (specified using the quiz identification string) the exam is attached to'
+					description: 'the Quiz set (specified using the quiz identification string) the exam is attached to',
 				},
 				open: {
 					type: 'string',
-					description: 'exam start time (in YYYY-mm-dd HH:ii:ss format)'
+					description: 'exam start time (in YYYY-mm-dd HH:ii:ss format)',
 				},
 				close: {
 					type: 'string',
-					description: 'exam end time (in YYYY-mm-dd HH:ii:ss format)'
+					description: 'exam end time (in YYYY-mm-dd HH:ii:ss format)',
 				},
 			},
 			required: ['title', 'quiz', 'open', 'close'],
@@ -107,7 +107,7 @@ export const EDUBASE_API_TOOLS_EXAMS: Tool[] = [
 			properties: {
 				exam: {
 					type: 'string',
-					description: 'exam identification string'
+					description: 'exam identification string',
 				},
 			},
 			required: ['exam'],
@@ -123,7 +123,7 @@ export const EDUBASE_API_TOOLS_EXAMS: Tool[] = [
 			properties: {
 				exam: {
 					type: 'string',
-					description: 'exam identification string'
+					description: 'exam identification string',
 				},
 			},
 			required: ['exam'],
@@ -139,11 +139,11 @@ export const EDUBASE_API_TOOLS_EXAMS: Tool[] = [
 			properties: {
 				exam: {
 					type: 'string',
-					description: 'exam identification string'
+					description: 'exam identification string',
 				},
 				users: {
 					type: 'string',
-					description: 'comma-separated list of user identification strings'
+					description: 'comma-separated list of user identification strings',
 				},
 			},
 			required: ['exam', 'users'],
@@ -159,11 +159,11 @@ export const EDUBASE_API_TOOLS_EXAMS: Tool[] = [
 			properties: {
 				exam: {
 					type: 'string',
-					description: 'exam identification string'
+					description: 'exam identification string',
 				},
 				users: {
 					type: 'string',
-					description: 'comma-separated list of user identification strings'
+					description: 'comma-separated list of user identification strings',
 				},
 			},
 			required: ['exam', 'users'],
@@ -179,11 +179,11 @@ export const EDUBASE_API_TOOLS_EXAMS: Tool[] = [
 			properties: {
 				exam: {
 					type: 'string',
-					description: 'exam identification string'
+					description: 'exam identification string',
 				},
 				language: {
 					type: 'string',
-					description: 'summary language'
+					description: 'summary language',
 				},
 				type: {
 					type: 'string',
@@ -207,7 +207,7 @@ export const EDUBASE_API_TOOLS_EXAMS: Tool[] = [
 				},
 				model: {
 					type: 'string',
-					description: 'Exact LLM model name used to generate the summary'
+					description: 'Exact LLM model name used to generate the summary',
 				},
 			},
 			required: ['exam', 'type', 'summary', 'llm', 'model'],
@@ -225,15 +225,15 @@ export const EDUBASE_API_TOOLS_EXAMS_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'exam identification string'
+					description: 'exam identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'title of the exam'
+					description: 'title of the exam',
 				},
 				active: {
 					type: 'boolean',
-					description: 'exam is active'
+					description: 'exam is active',
 				},
 			},
 		},
@@ -245,11 +245,11 @@ export const EDUBASE_API_TOOLS_EXAMS_OUTPUT_SCHEMA: object = {
 		properties: {
 			exam: {
 				type: 'string',
-				description: 'exam identification string'
+				description: 'exam identification string',
 			},
 			name: {
 				type: 'string',
-				description: 'title of the exam'
+				description: 'title of the exam',
 			},
 			quiz: {
 				type: 'string',
@@ -259,19 +259,19 @@ export const EDUBASE_API_TOOLS_EXAMS_OUTPUT_SCHEMA: object = {
 			},
 			active: {
 				type: 'boolean',
-				description: 'exam is active'
+				description: 'exam is active',
 			},
 			status: {
 				type: 'string',
-				description: 'exam status (INACTIVE, ACTIVE, PAUSED, REVIEW, EXPIRED)'
+				description: 'exam status (INACTIVE, ACTIVE, PAUSED, REVIEW, EXPIRED)',
 			},
 			start: {
 				type: 'string',
-				description: 'start date and time'
+				description: 'start date and time',
 			},
 			end: {
 				type: 'string',
-				description: 'end date and time'
+				description: 'end date and time',
 			},
 		},
 	},
@@ -282,7 +282,7 @@ export const EDUBASE_API_TOOLS_EXAMS_OUTPUT_SCHEMA: object = {
 		properties: {
 			exam: {
 				type: 'string',
-				description: 'exam identification string'
+				description: 'exam identification string',
 			},
 		},
 	},
@@ -298,11 +298,11 @@ export const EDUBASE_API_TOOLS_EXAMS_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'user identification string'
+					description: 'user identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'name of the examinee'
+					description: 'name of the examinee',
 				},
 			},
 		},

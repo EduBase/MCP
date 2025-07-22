@@ -21,15 +21,15 @@ export const EDUBASE_API_TOOLS_QUIZES = [
             properties: {
                 search: {
                     type: 'string',
-                    description: 'search string to filter results'
+                    description: 'search string to filter results',
                 },
                 limit: {
                     type: 'number',
-                    description: 'limit number of results (default, in search mode: 16)'
+                    description: 'limit number of results (default, in search mode: 16)',
                 },
                 page: {
                     type: 'number',
-                    description: 'page number (default: 1), not used in search mode!'
+                    description: 'page number (default: 1), not used in search mode!',
                 },
             },
             required: [],
@@ -44,7 +44,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
             properties: {
                 quiz: {
                     type: 'string',
-                    description: 'quiz identification string'
+                    description: 'quiz identification string',
                 },
             },
             required: ['quiz'],
@@ -59,15 +59,15 @@ export const EDUBASE_API_TOOLS_QUIZES = [
             properties: {
                 language: {
                     type: 'string',
-                    description: 'desired Quiz set language'
+                    description: 'desired Quiz set language',
                 },
                 title: {
                     type: 'string',
-                    description: 'title of the Quiz set'
+                    description: 'title of the Quiz set',
                 },
                 description: {
                     type: 'string',
-                    description: 'short description'
+                    description: 'short description',
                 },
                 mode: {
                     type: 'string',
@@ -95,7 +95,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
             properties: {
                 quiz: {
                     type: 'string',
-                    description: 'quiz identification string'
+                    description: 'quiz identification string',
                 },
             },
             required: ['quiz'],
@@ -110,7 +110,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
             properties: {
                 quiz: {
                     type: 'string',
-                    description: 'quiz identification string'
+                    description: 'quiz identification string',
                 },
             },
             required: ['quiz'],
@@ -125,15 +125,15 @@ export const EDUBASE_API_TOOLS_QUIZES = [
             properties: {
                 quiz: {
                     type: 'string',
-                    description: 'quiz identification string'
+                    description: 'quiz identification string',
                 },
                 group: {
                     type: 'string',
-                    description: 'question group title'
+                    description: 'question group title',
                 },
                 questions: {
                     type: 'string',
-                    description: 'comma-separated list of question identification strings'
+                    description: 'comma-separated list of question identification strings',
                 },
             },
             required: ['quiz', 'questions'],
@@ -148,15 +148,15 @@ export const EDUBASE_API_TOOLS_QUIZES = [
             properties: {
                 quiz: {
                     type: 'string',
-                    description: 'quiz identification string'
+                    description: 'quiz identification string',
                 },
                 group: {
                     type: 'string',
-                    description: 'question group title'
+                    description: 'question group title',
                 },
                 questions: {
                     type: 'string',
-                    description: 'comma-separated list of question identification strings'
+                    description: 'comma-separated list of question identification strings',
                 },
             },
             required: ['quiz', 'questions'],
@@ -173,11 +173,11 @@ export const EDUBASE_API_TOOLS_QUIZES_OUTPUT_SCHEMA = {
             properties: {
                 code: {
                     type: 'string',
-                    description: 'quiz identification string'
+                    description: 'quiz identification string',
                 },
                 name: {
                     type: 'string',
-                    description: 'title of the Quiz set'
+                    description: 'title of the Quiz set',
                 },
             },
         },
@@ -188,11 +188,11 @@ export const EDUBASE_API_TOOLS_QUIZES_OUTPUT_SCHEMA = {
         properties: {
             quiz: {
                 type: 'string',
-                description: 'quiz identification string'
+                description: 'quiz identification string',
             },
             name: {
                 type: 'string',
-                description: 'title of the Quiz set'
+                description: 'title of the Quiz set',
             },
         },
     },
@@ -202,7 +202,7 @@ export const EDUBASE_API_TOOLS_QUIZES_OUTPUT_SCHEMA = {
         properties: {
             quiz: {
                 type: 'string',
-                description: 'quiz identification string'
+                description: 'quiz identification string',
             },
         },
     },
@@ -216,19 +216,19 @@ export const EDUBASE_API_TOOLS_QUIZES_OUTPUT_SCHEMA = {
             properties: {
                 id: {
                     type: 'string',
-                    description: 'external unique question identifier (if present)'
+                    description: 'external unique question identifier (if present)',
                 },
                 question: {
                     type: 'string',
-                    description: 'question identification string (if question)'
+                    description: 'question identification string (if question)',
                 },
                 group: {
                     type: 'string',
-                    description: 'question group title (if group)'
+                    description: 'question group title (if group)',
                 },
                 active: {
                     type: 'boolean',
-                    description: 'active item'
+                    description: 'active item',
                 },
             },
         },

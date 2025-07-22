@@ -19,13 +19,13 @@ export const EDUBASE_API_TOOLS_QUESTIONS: Tool[] = [
 	// GET /question - Check existing question
 	{
 		name: 'edubase_get_question',
-		description: "Check existing question. Questions are the lowest level in the EduBase hierarchy, serving as the building blocks for Quiz sets.",
+		description: "Check existing question. Questions are the lowest level in the EduBase hierarchy, serving as the building blocks for Quiz sets. To get question details, use the question export function!",
 		inputSchema: {
 			type: 'object',
 			properties: {
 				id: {
 					type: 'string',
-					description: 'external unique question identifier'
+					description: 'external unique question identifier',
 				},
 			},
 			required: ['id'],
@@ -276,7 +276,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS: Tool[] = [
 				},
 				category: {
 					type: 'string',
-					description: 'Category, another layer of organization as seen in SUBJECT'
+					description: 'Category, another layer of organization as seen in SUBJECT',
 				},
 				path: {
 					type: 'string',
@@ -993,7 +993,23 @@ export const EDUBASE_API_TOOLS_QUESTIONS: Tool[] = [
 			properties: {
 				id: {
 					type: 'string',
-					description: 'external unique question identifier'
+					description: 'external unique question identifier',
+				},
+			},
+			required: ['id'],
+		},
+	},
+
+	// POST /question:export - Generate download link for exporting the question (in JSON format)
+	{
+		name: 'edubase_post_question_export',
+		description: "Generate download link for exporting the question (in JSON format). If a previous valid link exists, it will be returned instead.",
+		inputSchema: {
+			type: 'object',
+			properties: {
+				id: {
+					type: 'string',
+					description: 'external unique question identifier',
 				},
 			},
 			required: ['id'],
@@ -1009,15 +1025,15 @@ export const EDUBASE_API_TOOLS_QUESTIONS_OUTPUT_SCHEMA: object = {
 		properties: {
 			id: {
 				type: 'string',
-				description: 'external unique question identifier'
+				description: 'external unique question identifier',
 			},
 			code: {
 				type: 'string',
-				description: 'question identification string'
+				description: 'question identification string',
 			},
 			active: {
 				type: 'boolean',
-				description: 'question is active'
+				description: 'question is active',
 			},
 		},
 	},
@@ -1028,11 +1044,34 @@ export const EDUBASE_API_TOOLS_QUESTIONS_OUTPUT_SCHEMA: object = {
 		properties: {
 			code: {
 				type: 'string',
-				description: 'question identification string'
+				description: 'question identification string',
 			},
 		},
 	},
 
 	// DELETE /question - Permanently delete a question
 	edubase_delete_question: {},
+
+	// POST /question:export - Generate download link for exporting the question (in JSON format)
+	edubase_post_question_export: {
+		type: 'object',
+		properties: {
+			id: {
+				type: 'string',
+				description: 'external unique question identifier',
+			},
+			code: {
+				type: 'string',
+				description: 'question identification string',
+			},
+			url: {
+				type: 'string',
+				description: 'download link for the question',
+			},
+			valid: {
+				type: 'string',
+				description: 'date of link expiration',
+			},
+		},
+	},
 };

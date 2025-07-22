@@ -9,15 +9,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 class: {
                     type: 'string',
-                    description: 'class identification string'
+                    description: 'class identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['class', 'user', 'permission'],
@@ -32,15 +32,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 class: {
                     type: 'string',
-                    description: 'class identification string'
+                    description: 'class identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['class', 'user', 'permission'],
@@ -55,18 +55,37 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 class: {
                     type: 'string',
-                    description: 'class identification string'
+                    description: 'class identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['class', 'user', 'permission'],
+        },
+    },
+    // POST /class:transfer - Transfer class to user
+    {
+        name: 'edubase_post_class_transfer',
+        description: "Transfer class to user.",
+        inputSchema: {
+            type: 'object',
+            properties: {
+                class: {
+                    type: 'string',
+                    description: 'class identification string',
+                },
+                user: {
+                    type: 'string',
+                    description: 'user identification string',
+                },
+            },
+            required: ['class', 'user'],
         },
     },
     // GET /course:permission - Check if a user has permission on a course
@@ -78,15 +97,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 course: {
                     type: 'string',
-                    description: 'course identification string'
+                    description: 'course identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['course', 'user', 'permission'],
@@ -101,15 +120,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 course: {
                     type: 'string',
-                    description: 'course identification string'
+                    description: 'course identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['course', 'user', 'permission'],
@@ -124,18 +143,37 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 course: {
                     type: 'string',
-                    description: 'course identification string'
+                    description: 'course identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['course', 'user', 'permission'],
+        },
+    },
+    // POST /course:transfer - Transfer course to user
+    {
+        name: 'edubase_delete_course_transfer',
+        description: "Transfer course to user.",
+        inputSchema: {
+            type: 'object',
+            properties: {
+                course: {
+                    type: 'string',
+                    description: 'course identification string',
+                },
+                user: {
+                    type: 'string',
+                    description: 'user identification string',
+                },
+            },
+            required: ['course', 'user'],
         },
     },
     // GET /event:permission - Check if a user has permission on an event
@@ -147,15 +185,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 event: {
                     type: 'string',
-                    description: 'event identification string'
+                    description: 'event identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / finances / grant / admin)'
+                    description: 'permission level (view / report / control / modify / finances / grant / admin)',
                 },
             },
             required: ['event', 'user', 'permission'],
@@ -170,15 +208,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 event: {
                     type: 'string',
-                    description: 'event identification string'
+                    description: 'event identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / finances / grant / admin)'
+                    description: 'permission level (view / report / control / modify / finances / grant / admin)',
                 },
             },
             required: ['event', 'user', 'permission'],
@@ -193,18 +231,37 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 event: {
                     type: 'string',
-                    description: 'event identification string'
+                    description: 'event identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / finances / grant / admin)'
+                    description: 'permission level (view / report / control / modify / finances / grant / admin)',
                 },
             },
             required: ['event', 'user', 'permission'],
+        },
+    },
+    // POST /event:transfer - Transfer event to user
+    {
+        name: 'edubase_post_event_transfer',
+        description: "Transfer event to user.",
+        inputSchema: {
+            type: 'object',
+            properties: {
+                event: {
+                    type: 'string',
+                    description: 'event identification string',
+                },
+                user: {
+                    type: 'string',
+                    description: 'user identification string',
+                },
+            },
+            required: ['event', 'user'],
         },
     },
     // GET /exam:permission - Check if a user has permission on an exam
@@ -216,15 +273,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 exam: {
                     type: 'string',
-                    description: 'exam identification string'
+                    description: 'exam identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['exam', 'user', 'permission'],
@@ -239,15 +296,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 exam: {
                     type: 'string',
-                    description: 'exam identification string'
+                    description: 'exam identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['exam', 'user', 'permission'],
@@ -262,18 +319,37 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 exam: {
                     type: 'string',
-                    description: 'exam identification string'
+                    description: 'exam identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['exam', 'user', 'permission'],
+        },
+    },
+    // POST /exam:transfer - Transfer exam to user
+    {
+        name: 'edubase_post_exam_transfer',
+        description: "Transfer exam to user.",
+        inputSchema: {
+            type: 'object',
+            properties: {
+                exam: {
+                    type: 'string',
+                    description: 'exam identification string',
+                },
+                user: {
+                    type: 'string',
+                    description: 'user identification string',
+                },
+            },
+            required: ['exam', 'user'],
         },
     },
     // GET /integration:permission - Check if a user has permission on an integration
@@ -285,15 +361,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 integration: {
                     type: 'string',
-                    description: 'integration identification string'
+                    description: 'integration identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['integration', 'user', 'permission'],
@@ -308,15 +384,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 integration: {
                     type: 'string',
-                    description: 'integration identification string'
+                    description: 'integration identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['integration', 'user', 'permission'],
@@ -331,18 +407,37 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 integration: {
                     type: 'string',
-                    description: 'integration identification string'
+                    description: 'integration identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['integration', 'user', 'permission'],
+        },
+    },
+    // POST /integration:transfer - Transfer integration to user
+    {
+        name: 'edubase_post_integration_transfer',
+        description: "Transfer integration to user.",
+        inputSchema: {
+            type: 'object',
+            properties: {
+                integration: {
+                    type: 'string',
+                    description: 'integration identification string',
+                },
+                user: {
+                    type: 'string',
+                    description: 'user identification string',
+                },
+            },
+            required: ['integration', 'user'],
         },
     },
     // GET /organization:permission - Check if a user has permission on an organization
@@ -354,15 +449,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 organization: {
                     type: 'string',
-                    description: 'organization identification string'
+                    description: 'organization identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['organization', 'user', 'permission'],
@@ -377,15 +472,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 organization: {
                     type: 'string',
-                    description: 'organization identification string'
+                    description: 'organization identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['organization', 'user', 'permission'],
@@ -400,18 +495,37 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 organization: {
                     type: 'string',
-                    description: 'organization identification string'
+                    description: 'organization identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['organization', 'user', 'permission'],
+        },
+    },
+    // POST /organization:transfer - Transfer organization to user
+    {
+        name: 'edubase_post_organization_transfer',
+        description: "Transfer organization to user.",
+        inputSchema: {
+            type: 'object',
+            properties: {
+                organization: {
+                    type: 'string',
+                    description: 'organization identification string',
+                },
+                user: {
+                    type: 'string',
+                    description: 'user identification string',
+                },
+            },
+            required: ['organization', 'user'],
         },
     },
     // GET /quiz:permission - Check if a user has permission on a quiz
@@ -423,15 +537,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 quiz: {
                     type: 'string',
-                    description: 'quiz identification string'
+                    description: 'quiz identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['quiz', 'user', 'permission'],
@@ -446,15 +560,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 quiz: {
                     type: 'string',
-                    description: 'quiz identification string'
+                    description: 'quiz identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['quiz', 'user', 'permission'],
@@ -469,18 +583,37 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 quiz: {
                     type: 'string',
-                    description: 'quiz identification string'
+                    description: 'quiz identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['quiz', 'user', 'permission'],
+        },
+    },
+    // POST /quiz:transfer - Transfer Quiz to user
+    {
+        name: 'edubase_post_quiz_transfer',
+        description: "Transfer Quiz to user.",
+        inputSchema: {
+            type: 'object',
+            properties: {
+                quiz: {
+                    type: 'string',
+                    description: 'quiz identification string',
+                },
+                user: {
+                    type: 'string',
+                    description: 'user identification string',
+                },
+            },
+            required: ['quiz', 'user'],
         },
     },
     // GET /scorm:permission - Check if a user has permission on a SCORM
@@ -492,15 +625,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 scorm: {
                     type: 'string',
-                    description: 'SCORM identification string'
+                    description: 'SCORM identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['scorm', 'user', 'permission'],
@@ -515,15 +648,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 scorm: {
                     type: 'string',
-                    description: 'SCORM identification string'
+                    description: 'SCORM identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['scorm', 'user', 'permission'],
@@ -538,18 +671,37 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 scorm: {
                     type: 'string',
-                    description: 'SCORM identification string'
+                    description: 'SCORM identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['scorm', 'user', 'permission'],
+        },
+    },
+    // POST /scorm:transfer - Transfer SCORM to user
+    {
+        name: 'edubase_post_scorm_transfer',
+        description: "Transfer SCORM to user.",
+        inputSchema: {
+            type: 'object',
+            properties: {
+                scorm: {
+                    type: 'string',
+                    description: 'SCORM identification string',
+                },
+                user: {
+                    type: 'string',
+                    description: 'user identification string',
+                },
+            },
+            required: ['scorm', 'user'],
         },
     },
     // GET /tag:permission - Check if a user has permission on a tag
@@ -561,15 +713,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 tag: {
                     type: 'string',
-                    description: 'tag identification string'
+                    description: 'tag identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['tag', 'user', 'permission'],
@@ -584,15 +736,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 tag: {
                     type: 'string',
-                    description: 'tag identification string'
+                    description: 'tag identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['tag', 'user', 'permission'],
@@ -607,18 +759,37 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 tag: {
                     type: 'string',
-                    description: 'tag identification string'
+                    description: 'tag identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['tag', 'user', 'permission'],
+        },
+    },
+    // POST /tag:transfer - Transfer tag to user
+    {
+        name: 'edubase_post_tag_transfer',
+        description: "Transfer tag to user.",
+        inputSchema: {
+            type: 'object',
+            properties: {
+                tag: {
+                    type: 'string',
+                    description: 'tag identification string',
+                },
+                user: {
+                    type: 'string',
+                    description: 'user identification string',
+                },
+            },
+            required: ['tag', 'user'],
         },
     },
     // GET /video:permission - Check if a user has permission on a video
@@ -630,15 +801,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 video: {
                     type: 'string',
-                    description: 'video identification string'
+                    description: 'video identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['video', 'user', 'permission'],
@@ -653,15 +824,15 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 video: {
                     type: 'string',
-                    description: 'video identification string'
+                    description: 'video identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['video', 'user', 'permission'],
@@ -676,22 +847,40 @@ export const EDUBASE_API_TOOLS_PERMISSIONS = [
             properties: {
                 video: {
                     type: 'string',
-                    description: 'video identification string'
+                    description: 'video identification string',
                 },
                 user: {
                     type: 'string',
-                    description: 'user identification string'
+                    description: 'user identification string',
                 },
                 permission: {
                     type: 'string',
-                    description: 'permission level (view / report / control / modify / grant / admin)'
+                    description: 'permission level (view / report / control / modify / grant / admin)',
                 },
             },
             required: ['video', 'user', 'permission'],
         },
     },
+    // POST /video:transfer - Transfer video to user
+    {
+        name: 'edubase_post_video_transfer',
+        description: "Transfer video to user.",
+        inputSchema: {
+            type: 'object',
+            properties: {
+                video: {
+                    type: 'string',
+                    description: 'video identification string',
+                },
+                user: {
+                    type: 'string',
+                    description: 'user identification string',
+                },
+            },
+            required: ['video', 'user'],
+        },
+    },
 ];
-/* Output schema definitions */
 /* Output schema definitions */
 export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
     // GET /class:permission - Check if a user has permission on a class
@@ -700,18 +889,18 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "class"'
+                        description: 'will be "class"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the class identification string'
+                        description: 'the class identification string',
                     },
                 },
             },
@@ -720,11 +909,11 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
                 properties: {
                     permission: {
                         type: 'boolean',
-                        description: 'the user has permission on this class'
+                        description: 'the user has permission on this class',
                     },
                     rule: {
                         type: 'boolean',
-                        description: 'there is a permission rule with these parameters'
+                        description: 'there is a permission rule with these parameters',
                     },
                 },
             },
@@ -736,47 +925,99 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "class"'
+                        description: 'will be "class"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the class identification string'
+                        description: 'the class identification string',
                     },
                 },
             },
             success: {
                 type: 'boolean',
-                description: 'operation was successful'
+                description: 'operation was successful',
             },
         },
     },
     // DELETE /class:permission - Remove a user permission
-    edubase_delete_class_permission: {},
+    edubase_delete_class_permission: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "class"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the class identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
+    // POST /class:transfer - Transfer class to user
+    edubase_post_class_transfer: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "class"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the class identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
     // GET /course:permission - Check if a user has permission on a course
     edubase_get_course_permission: {
         type: 'object',
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "course"'
+                        description: 'will be "course"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the course identification string'
+                        description: 'the course identification string',
                     },
                 },
             },
@@ -785,11 +1026,11 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
                 properties: {
                     permission: {
                         type: 'boolean',
-                        description: 'the user has permission on this course'
+                        description: 'the user has permission on this course',
                     },
                     rule: {
                         type: 'boolean',
-                        description: 'there is a permission rule with these parameters'
+                        description: 'there is a permission rule with these parameters',
                     },
                 },
             },
@@ -801,47 +1042,99 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "course"'
+                        description: 'will be "course"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the course identification string'
+                        description: 'the course identification string',
                     },
                 },
             },
             success: {
                 type: 'boolean',
-                description: 'operation was successful'
+                description: 'operation was successful',
             },
         },
     },
     // DELETE /course:permission - Remove a user permission
-    edubase_delete_course_permission: {},
+    edubase_delete_course_permission: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "course"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the course identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
+    // POST /course:transfer - Transfer course to user
+    edubase_post_course_transfer: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "course"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the course identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
     // GET /event:permission - Check if a user has permission on an event
     edubase_get_event_permission: {
         type: 'object',
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "event"'
+                        description: 'will be "event"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the event identification string'
+                        description: 'the event identification string',
                     },
                 },
             },
@@ -850,11 +1143,11 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
                 properties: {
                     permission: {
                         type: 'boolean',
-                        description: 'the user has permission on this event'
+                        description: 'the user has permission on this event',
                     },
                     rule: {
                         type: 'boolean',
-                        description: 'there is a permission rule with these parameters'
+                        description: 'there is a permission rule with these parameters',
                     },
                 },
             },
@@ -866,47 +1159,99 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "event"'
+                        description: 'will be "event"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the event identification string'
+                        description: 'the event identification string',
                     },
                 },
             },
             success: {
                 type: 'boolean',
-                description: 'operation was successful'
+                description: 'operation was successful',
             },
         },
     },
     // DELETE /event:permission - Remove a user permission
-    edubase_delete_event_permission: {},
+    edubase_delete_event_permission: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "event"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the event identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
+    // POST /event:transfer - Transfer event to user
+    edubase_post_event_transfer: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "event"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the event identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
     // GET /exam:permission - Check if a user has permission on an exam
     edubase_get_exam_permission: {
         type: 'object',
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "exam"'
+                        description: 'will be "exam"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the exam identification string'
+                        description: 'the exam identification string',
                     },
                 },
             },
@@ -915,11 +1260,11 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
                 properties: {
                     permission: {
                         type: 'boolean',
-                        description: 'the user has permission on this exam'
+                        description: 'the user has permission on this exam',
                     },
                     rule: {
                         type: 'boolean',
-                        description: 'there is a permission rule with these parameters'
+                        description: 'there is a permission rule with these parameters',
                     },
                 },
             },
@@ -931,47 +1276,99 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "exam"'
+                        description: 'will be "exam"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the exam identification string'
+                        description: 'the exam identification string',
                     },
                 },
             },
             success: {
                 type: 'boolean',
-                description: 'operation was successful'
+                description: 'operation was successful',
             },
         },
     },
     // DELETE /exam:permission - Remove a user permission
-    edubase_delete_exam_permission: {},
+    edubase_delete_exam_permission: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "exam"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the exam identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
+    // POST /exam:transfer - Transfer exam to user
+    edubase_post_exam_transfer: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "exam"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the exam identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
     // GET /integration:permission - Check if a user has permission on an integration
     edubase_get_integration_permission: {
         type: 'object',
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "integration"'
+                        description: 'will be "integration"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the integration identification string'
+                        description: 'the integration identification string',
                     },
                 },
             },
@@ -980,11 +1377,11 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
                 properties: {
                     permission: {
                         type: 'boolean',
-                        description: 'the user has permission on this integration'
+                        description: 'the user has permission on this integration',
                     },
                     rule: {
                         type: 'boolean',
-                        description: 'there is a permission rule with these parameters'
+                        description: 'there is a permission rule with these parameters',
                     },
                 },
             },
@@ -996,47 +1393,99 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "integration"'
+                        description: 'will be "integration"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the integration identification string'
+                        description: 'the integration identification string',
                     },
                 },
             },
             success: {
                 type: 'boolean',
-                description: 'operation was successful'
+                description: 'operation was successful',
             },
         },
     },
     // DELETE /integration:permission - Remove a user permission
-    edubase_delete_integration_permission: {},
+    edubase_delete_integration_permission: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "integration"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the integration identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
+    // POST /integration:transfer - Transfer integration to user
+    edubase_post_integration_transfer: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "integration"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the integration identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
     // GET /organization:permission - Check if a user has permission on an organization
     edubase_get_organization_permission: {
         type: 'object',
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "organization"'
+                        description: 'will be "organization"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the organization identification string'
+                        description: 'the organization identification string',
                     },
                 },
             },
@@ -1045,11 +1494,11 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
                 properties: {
                     permission: {
                         type: 'boolean',
-                        description: 'the user has permission on this organization'
+                        description: 'the user has permission on this organization',
                     },
                     rule: {
                         type: 'boolean',
-                        description: 'there is a permission rule with these parameters'
+                        description: 'there is a permission rule with these parameters',
                     },
                 },
             },
@@ -1061,47 +1510,99 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "organization"'
+                        description: 'will be "organization"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the organization identification string'
+                        description: 'the organization identification string',
                     },
                 },
             },
             success: {
                 type: 'boolean',
-                description: 'operation was successful'
+                description: 'operation was successful',
             },
         },
     },
     // DELETE /organization:permission - Remove a user permission
-    edubase_delete_organization_permission: {},
+    edubase_delete_organization_permission: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "organization"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the organization identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
+    // POST /organization:transfer - Transfer organization to user
+    edubase_post_organization_transfer: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "organization"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the organization identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
     // GET /quiz:permission - Check if a user has permission on a quiz
     edubase_get_quiz_permission: {
         type: 'object',
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "quiz"'
+                        description: 'will be "quiz"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the quiz identification string'
+                        description: 'the quiz identification string',
                     },
                 },
             },
@@ -1110,11 +1611,11 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
                 properties: {
                     permission: {
                         type: 'boolean',
-                        description: 'the user has permission on this quiz'
+                        description: 'the user has permission on this quiz',
                     },
                     rule: {
                         type: 'boolean',
-                        description: 'there is a permission rule with these parameters'
+                        description: 'there is a permission rule with these parameters',
                     },
                 },
             },
@@ -1126,47 +1627,99 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "quiz"'
+                        description: 'will be "quiz"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the quiz identification string'
+                        description: 'the quiz identification string',
                     },
                 },
             },
             success: {
                 type: 'boolean',
-                description: 'operation was successful'
+                description: 'operation was successful',
             },
         },
     },
     // DELETE /quiz:permission - Remove a user permission
-    edubase_delete_quiz_permission: {},
+    edubase_delete_quiz_permission: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "quiz"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the quiz identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
+    // POST /quiz:transfer - Transfer quiz to user
+    edubase_post_quiz_transfer: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "quiz"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the quiz identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
     // GET /scorm:permission - Check if a user has permission on a SCORM learning material
     edubase_get_scorm_permission: {
         type: 'object',
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "scorm"'
+                        description: 'will be "scorm"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the SCORM identification string'
+                        description: 'the SCORM identification string',
                     },
                 },
             },
@@ -1175,11 +1728,11 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
                 properties: {
                     permission: {
                         type: 'boolean',
-                        description: 'the user has permission on this SCORM learning material'
+                        description: 'the user has permission on this SCORM learning material',
                     },
                     rule: {
                         type: 'boolean',
-                        description: 'there is a permission rule with these parameters'
+                        description: 'there is a permission rule with these parameters',
                     },
                 },
             },
@@ -1191,47 +1744,99 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "scorm"'
+                        description: 'will be "scorm"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the SCORM identification string'
+                        description: 'the SCORM identification string',
                     },
                 },
             },
             success: {
                 type: 'boolean',
-                description: 'operation was successful'
+                description: 'operation was successful',
             },
         },
     },
     // DELETE /scorm:permission - Remove a user permission
-    edubase_delete_scorm_permission: {},
+    edubase_delete_scorm_permission: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "scorm"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the SCORM identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
+    // POST /scorm:transfer - Transfer SCORM to user
+    edubase_post_scorm_transfer: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "scorm"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the SCORM identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
     // GET /tag:permission - Check if a user has permission on a tag
     edubase_get_tag_permission: {
         type: 'object',
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "tag"'
+                        description: 'will be "tag"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the tag identification string'
+                        description: 'the tag identification string',
                     },
                 },
             },
@@ -1240,11 +1845,11 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
                 properties: {
                     permission: {
                         type: 'boolean',
-                        description: 'the user has permission on this tag'
+                        description: 'the user has permission on this tag',
                     },
                     rule: {
                         type: 'boolean',
-                        description: 'there is a permission rule with these parameters'
+                        description: 'there is a permission rule with these parameters',
                     },
                 },
             },
@@ -1256,47 +1861,99 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "tag"'
+                        description: 'will be "tag"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the tag identification string'
+                        description: 'the tag identification string',
                     },
                 },
             },
             success: {
                 type: 'boolean',
-                description: 'operation was successful'
+                description: 'operation was successful',
             },
         },
     },
     // DELETE /tag:permission - Remove a user permission
-    edubase_delete_tag_permission: {},
+    edubase_delete_tag_permission: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "tag"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the tag identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
+    // POST /tag:transfer - Transfer tag to user
+    edubase_post_tag_transfer: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "tag"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the tag identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
     // GET /video:permission - Check if a user has permission on a video
     edubase_get_video_permission: {
         type: 'object',
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "video"'
+                        description: 'will be "video"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the video identification string'
+                        description: 'the video identification string',
                     },
                 },
             },
@@ -1305,11 +1962,11 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
                 properties: {
                     permission: {
                         type: 'boolean',
-                        description: 'the user has permission on this video'
+                        description: 'the user has permission on this video',
                     },
                     rule: {
                         type: 'boolean',
-                        description: 'there is a permission rule with these parameters'
+                        description: 'there is a permission rule with these parameters',
                     },
                 },
             },
@@ -1321,27 +1978,79 @@ export const EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA = {
         properties: {
             user: {
                 type: 'string',
-                description: 'the user identification string'
+                description: 'the user identification string',
             },
             content: {
                 type: 'object',
                 properties: {
                     type: {
                         type: 'string',
-                        description: 'will be "video"'
+                        description: 'will be "video"',
                     },
                     code: {
                         type: 'string',
-                        description: 'the video identification string'
+                        description: 'the video identification string',
                     },
                 },
             },
             success: {
                 type: 'boolean',
-                description: 'operation was successful'
+                description: 'operation was successful',
             },
         },
     },
     // DELETE /video:permission - Remove a user permission
-    edubase_delete_video_permission: {},
+    edubase_delete_video_permission: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "video"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the video identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
+    // POST /video:transfer - Transfer video to user
+    edubase_post_video_transfer: {
+        type: 'object',
+        properties: {
+            user: {
+                type: 'string',
+                description: 'the user identification string',
+            },
+            content: {
+                type: 'object',
+                properties: {
+                    type: {
+                        type: 'string',
+                        description: 'will be "video"',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'the video identification string',
+                    },
+                },
+            },
+            success: {
+                type: 'boolean',
+                description: 'operation was successful',
+            },
+        },
+    },
 };

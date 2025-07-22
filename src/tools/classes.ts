@@ -11,15 +11,15 @@ export const EDUBASE_API_TOOLS_CLASSES: Tool[] = [
 			properties: {
 				search: {
 					type: 'string',
-					description: 'search string to filter results'
+					description: 'search string to filter results',
 				},
 				limit: {
 					type: 'number',
-					description: 'limit number of results (default, in search mode: 16)'
+					description: 'limit number of results (default, in search mode: 16)',
 				},
 				page: {
 					type: 'number',
-					description: 'page number (default: 1), not used in search mode!'
+					description: 'page number (default: 1), not used in search mode!',
 				},
 			},
 			required: [],
@@ -35,7 +35,7 @@ export const EDUBASE_API_TOOLS_CLASSES: Tool[] = [
 			properties: {
 				class: {
 					type: 'string',
-					description: 'class identification string'
+					description: 'class identification string',
 				},
 			},
 			required: ['class'],
@@ -51,7 +51,7 @@ export const EDUBASE_API_TOOLS_CLASSES: Tool[] = [
 			properties: {
 				class: {
 					type: 'string',
-					description: 'class identification string'
+					description: 'class identification string',
 				},
 			},
 			required: ['class'],
@@ -67,7 +67,7 @@ export const EDUBASE_API_TOOLS_CLASSES: Tool[] = [
 			properties: {
 				class: {
 					type: 'string',
-					description: 'class identification string'
+					description: 'class identification string',
 				},
 			},
 			required: ['class'],
@@ -83,19 +83,19 @@ export const EDUBASE_API_TOOLS_CLASSES: Tool[] = [
 			properties: {
 				class: {
 					type: 'string',
-					description: 'class identification string'
+					description: 'class identification string',
 				},
 				users: {
 					type: 'string',
-					description: 'comma-separated list of user identification strings'
+					description: 'comma-separated list of user identification strings',
 				},
 				expires: {
 					type: 'string',
-					description: 'expiry in days or YYYY-MM-DD HH:ii:ss'
+					description: 'expiry in days or YYYY-MM-DD HH:ii:ss',
 				},
 				notify: {
 					type: 'boolean',
-					description: 'notify users (default: false)'
+					description: 'notify users (default: false)',
 				},
 			},
 			required: ['class', 'users'],
@@ -111,11 +111,11 @@ export const EDUBASE_API_TOOLS_CLASSES: Tool[] = [
 			properties: {
 				class: {
 					type: 'string',
-					description: 'class identification string'
+					description: 'class identification string',
 				},
 				users: {
 					type: 'string',
-					description: 'comma-separated list of user identification strings'
+					description: 'comma-separated list of user identification strings',
 				},
 			},
 			required: ['class', 'users'],
@@ -131,19 +131,19 @@ export const EDUBASE_API_TOOLS_CLASSES: Tool[] = [
 			properties: {
 				classes: {
 					type: 'string',
-					description: 'comma-separated list of class identification strings'
+					description: 'comma-separated list of class identification strings',
 				},
 				users: {
 					type: 'string',
-					description: 'comma-separated list of user identification strings'
+					description: 'comma-separated list of user identification strings',
 				},
 				expires: {
 					type: 'string',
-					description: 'expiry in days or YYYY-MM-DD HH:ii:ss'
+					description: 'expiry in days or YYYY-MM-DD HH:ii:ss',
 				},
 				notify: {
 					type: 'boolean',
-					description: 'notify users (default: false)'
+					description: 'notify users (default: false)',
 				},
 			},
 			required: ['classes', 'users'],
@@ -159,7 +159,7 @@ export const EDUBASE_API_TOOLS_CLASSES: Tool[] = [
 			properties: {
 				user: {
 					type: 'string',
-					description: 'user identification string'
+					description: 'user identification string',
 				},
 			},
 			required: ['user'],
@@ -175,19 +175,19 @@ export const EDUBASE_API_TOOLS_CLASSES: Tool[] = [
 			properties: {
 				user: {
 					type: 'string',
-					description: 'user identification string'
+					description: 'user identification string',
 				},
 				classes: {
 					type: 'string',
-					description: 'comma-separated list of class identification strings'
+					description: 'comma-separated list of class identification strings',
 				},
 				expires: {
 					type: 'string',
-					description: 'expiry in days or YYYY-MM-DD HH:ii:ss'
+					description: 'expiry in days or YYYY-MM-DD HH:ii:ss',
 				},
 				notify: {
 					type: 'boolean',
-					description: 'notify user (default: false)'
+					description: 'notify user (default: false)',
 				},
 			},
 			required: ['user', 'classes'],
@@ -203,11 +203,11 @@ export const EDUBASE_API_TOOLS_CLASSES: Tool[] = [
 			properties: {
 				user: {
 					type: 'string',
-					description: 'user identification string'
+					description: 'user identification string',
 				},
 				classes: {
 					type: 'string',
-					description: 'comma-separated list of class identification strings'
+					description: 'comma-separated list of class identification strings',
 				},
 			},
 			required: ['user', 'classes'],
@@ -225,11 +225,11 @@ export const EDUBASE_API_TOOLS_CLASSES_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'class identification string'
+					description: 'class identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'title of the class'
+					description: 'title of the class',
 				},
 			},
 		},
@@ -241,19 +241,19 @@ export const EDUBASE_API_TOOLS_CLASSES_OUTPUT_SCHEMA: object = {
 		properties: {
 			class: {
 				type: 'string',
-				description: 'class identification string'
+				description: 'class identification string',
 			},
 			name: {
 				type: 'string',
-				description: 'title of the class'
+				description: 'title of the class',
 			},
 			start: {
 				type: 'string',
-				description: 'start date and time (if set)'
+				description: 'start date and time (if set)',
 			},
 			end: {
 				type: 'string',
-				description: 'end date and time (if set)'
+				description: 'end date and time (if set)',
 			},
 		},
 	},
@@ -266,27 +266,27 @@ export const EDUBASE_API_TOOLS_CLASSES_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'assignment identification string'
+					description: 'assignment identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'title of the assignment'
+					description: 'title of the assignment',
 				},
 				link: {
 					type: 'string',
-					description: 'link to the assignment page'
+					description: 'link to the assignment page',
 				},
 				status: {
 					type: 'string',
-					description: 'assignment and submission state (INACTIVE, ACTIVE, STARTED, SUBMITTED, GRADED)'
+					description: 'assignment and submission state (INACTIVE, ACTIVE, STARTED, SUBMITTED, GRADED)',
 				},
 				starts: {
 					type: 'string',
-					description: 'when the assignment submission starts'
+					description: 'when the assignment submission starts',
 				},
 				ends: {
 					type: 'string',
-					description: 'when the assignment submission ends'
+					description: 'when the assignment submission ends',
 				},
 			},
 		},
@@ -300,15 +300,15 @@ export const EDUBASE_API_TOOLS_CLASSES_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'user identification string'
+					description: 'user identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'name of the member'
+					description: 'name of the member',
 				},
 				active: {
 					type: 'boolean',
-					description: 'active membership (approved and not expired)'
+					description: 'active membership (approved and not expired)',
 				},
 			},
 		},
@@ -331,19 +331,19 @@ export const EDUBASE_API_TOOLS_CLASSES_OUTPUT_SCHEMA: object = {
 			properties: {
 				code: {
 					type: 'string',
-					description: 'class identification string'
+					description: 'class identification string',
 				},
 				name: {
 					type: 'string',
-					description: 'title of the class'
+					description: 'title of the class',
 				},
 				link: {
 					type: 'string',
-					description: 'link to the class page'
+					description: 'link to the class page',
 				},
 				active: {
 					type: 'boolean',
-					description: 'active membership (approved and not expired)'
+					description: 'active membership (approved and not expired)',
 				},
 			},
 		},
