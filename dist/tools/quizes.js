@@ -25,7 +25,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
                 },
                 limit: {
                     type: 'number',
-                    description: 'limit number of results (default, in search mode: 16)',
+                    description: 'limit number of results (default: 16)',
                 },
                 page: {
                     type: 'number',

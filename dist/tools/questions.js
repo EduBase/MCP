@@ -13,6 +13,29 @@ Key characteristics:
 */
 /* Tool definitions */
 export const EDUBASE_API_TOOLS_QUESTIONS = [
+    // GET /questions - List owned and managed Quiz questions
+    {
+        name: 'edubase_get_questions',
+        description: "List owned and managed Quiz questions.",
+        inputSchema: {
+            type: 'object',
+            properties: {
+                search: {
+                    type: 'string',
+                    description: 'search string to filter results',
+                },
+                limit: {
+                    type: 'number',
+                    description: 'limit number of results (default: 16)',
+                },
+                page: {
+                    type: 'number',
+                    description: 'page number (default: 1), not used in search mode!',
+                },
+            },
+            required: [],
+        },
+    },
     // GET /question - Check existing question
     {
         name: 'edubase_get_question',
@@ -944,9 +967,60 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
             required: ['id'],
         },
     },
+    // GET /question:id - Get external unique question identifier by question identification string
+    {
+        name: 'edubase_get_question_id',
+        description: "Get external unique question identifier by question identification string.",
+        inputSchema: {
+            type: 'object',
+            properties: {
+                code: {
+                    type: 'string',
+                    description: 'question identification string',
+                },
+            },
+            required: ['code'],
+        },
+    },
+    // POST /question:id - Set external unique question identifier for question identified by a question identification string
+    {
+        name: 'edubase_post_question_id',
+        description: "Set external unique question identifier for question identified by a question identification string.",
+        inputSchema: {
+            type: 'object',
+            properties: {
+                code: {
+                    type: 'string',
+                    description: 'question identification string',
+                },
+                id: {
+                    type: 'string',
+                    description: 'external unique question identifier',
+                },
+            },
+            required: ['code', 'id'],
+        },
+    },
 ];
 /* Output schema definitions */
 export const EDUBASE_API_TOOLS_QUESTIONS_OUTPUT_SCHEMA = {
+    // GET /questions - List owned and managed Quiz questions
+    edubase_get_questions: {
+        type: 'array',
+        items: {
+            type: 'object',
+            properties: {
+                id: {
+                    type: 'string',
+                    description: 'external unique question identifier (if set for the question)',
+                },
+                code: {
+                    type: 'string',
+                    description: 'question identification string',
+                },
+            },
+        },
+    },
     // GET /question - Check existing question
     edubase_get_question: {
         type: 'object',
@@ -999,4 +1073,20 @@ export const EDUBASE_API_TOOLS_QUESTIONS_OUTPUT_SCHEMA = {
             },
         },
     },
+    // GET /question:id - Get external unique question identifier by question identification string
+    edubase_get_question_id: {
+        type: 'object',
+        properties: {
+            code: {
+                type: 'string',
+                description: 'question identification string',
+            },
+            id: {
+                type: 'string',
+                description: 'external unique question identifier (if set for the question)',
+            },
+        },
+    },
+    // POST /question:id - Set external unique question identifier for question identified by a question identification string
+    edubase_post_question_id: {},
 };

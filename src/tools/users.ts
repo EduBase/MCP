@@ -15,7 +15,7 @@ export const EDUBASE_API_TOOLS_USERS: Tool[] = [
 				},
 				limit: {
 					type: 'number',
-					description: 'limit number of results (default, in search mode: 16)',
+					description: 'limit number of results (default: 16)',
 				},
 				page: {
 					type: 'number',
@@ -97,7 +97,7 @@ export const EDUBASE_API_TOOLS_USERS: Tool[] = [
 				},
 				group: {
 					type: 'string',
-					description: 'name of the user group (requires admin permissions)',
+					description: 'name of the user group',
 				},
 				template: {
 					type: 'string',
@@ -125,6 +125,26 @@ export const EDUBASE_API_TOOLS_USERS: Tool[] = [
 				},
 			},
 			required: ['username', 'first_name', 'last_name', 'email'],
+		},
+	},
+
+	// PATCH /user - Update user
+	{
+		name: 'edubase_patch_user',
+		description: "Update user.",
+		inputSchema: {
+			type: 'object',
+			properties: {
+				user: {
+					type: 'string',
+					description: 'user identification string',
+				},
+				active: {
+					type: 'boolean',
+					description: 'enable or disable user',
+				},
+			},
+			required: ['user'],
 		},
 	},
 
@@ -415,8 +435,11 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA: object = {
 		},
 	},
 
+	// PATCH /user - Update user
+	edubase_patch_user: {},
+
 	// DELETE /user - Delete user
-	edubase_delete_user:{},
+	edubase_delete_user: {},
 
 	// GET /user:name - Get user's name
 	edubase_get_user_name: {
@@ -541,7 +564,7 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA: object = {
 	},
 
 	// DELETE /user:login - Delete a previously generated login link
-	edubase_delete_user_login:{},
+	edubase_delete_user_login: {},
 
 	// GET /user:search - Lookup user by email, username or code
 	edubase_get_user_search: {
@@ -578,5 +601,5 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA: object = {
 	},
 
 	// DELETE /user:assume - Revoke assume token
-	edubase_delete_user_assume:{},
+	edubase_delete_user_assume: {},
 };

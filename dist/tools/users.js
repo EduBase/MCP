@@ -13,7 +13,7 @@ export const EDUBASE_API_TOOLS_USERS = [
                 },
                 limit: {
                     type: 'number',
-                    description: 'limit number of results (default, in search mode: 16)',
+                    description: 'limit number of results (default: 16)',
                 },
                 page: {
                     type: 'number',
@@ -92,7 +92,7 @@ export const EDUBASE_API_TOOLS_USERS = [
                 },
                 group: {
                     type: 'string',
-                    description: 'name of the user group (requires admin permissions)',
+                    description: 'name of the user group',
                 },
                 template: {
                     type: 'string',
@@ -120,6 +120,25 @@ export const EDUBASE_API_TOOLS_USERS = [
                 },
             },
             required: ['username', 'first_name', 'last_name', 'email'],
+        },
+    },
+    // PATCH /user - Update user
+    {
+        name: 'edubase_patch_user',
+        description: "Update user.",
+        inputSchema: {
+            type: 'object',
+            properties: {
+                user: {
+                    type: 'string',
+                    description: 'user identification string',
+                },
+                active: {
+                    type: 'boolean',
+                    description: 'enable or disable user',
+                },
+            },
+            required: ['user'],
         },
     },
     // DELETE /user - Delete user
@@ -395,6 +414,8 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA = {
             },
         },
     },
+    // PATCH /user - Update user
+    edubase_patch_user: {},
     // DELETE /user - Delete user
     edubase_delete_user: {},
     // GET /user:name - Get user's name
