@@ -15,16 +15,16 @@ const SSE = ((process.env.EDUBASE_SSE_MODE || 'false') == 'true');
 const STREAMABLE_HTTP = ((process.env.EDUBASE_STREAMABLE_HTTP_MODE || 'false') == 'true');
 /* Check required EduBase environment variables */
 const EDUBASE_API_URL = process.env.EDUBASE_API_URL || 'https://www.edubase.net/api';
-if (!EDUBASE_API_URL || EDUBASE_API_URL.length == 0) {
-    console.error('Error: EDUBASE_API_URL environment variable is required');
+if (!SSE && !STREAMABLE_HTTP && EDUBASE_API_URL.length == 0) {
+    console.error('Error: EDUBASE_API_URL environment variable is required with this transport mode');
     process.exit(1);
 }
-var EDUBASE_API_APP = process.env.EDUBASE_API_APP || '';
+const EDUBASE_API_APP = process.env.EDUBASE_API_APP || '';
 if (!SSE && !STREAMABLE_HTTP && EDUBASE_API_APP.length == 0) {
     console.error('Error: EDUBASE_API_APP environment variable is required with this transport mode');
     process.exit(1);
 }
-var EDUBASE_API_KEY = process.env.EDUBASE_API_KEY || '';
+const EDUBASE_API_KEY = process.env.EDUBASE_API_KEY || '';
 if (!SSE && !STREAMABLE_HTTP && EDUBASE_API_KEY.length == 0) {
     console.error('Error: EDUBASE_API_KEY environment variable is required with this transport mode');
     process.exit(1);
@@ -35,7 +35,7 @@ import { EDUBASE_API_PROMPTS, EDUBASE_API_PROMPTS_HANDLERS } from "./prompts.js"
 /* Create MCP server */
 const server = new Server({
     name: '@edubase/mcp',
-    version: '1.0.14',
+    version: '1.0.15',
 }, {
     capabilities: {
         prompts: {},
@@ -90,9 +90,6 @@ async function sendEduBaseApiRequest(method, endpoint, data, authentication) {
     if (endpoint.length == 0) {
         throw new Error('Invalid endpoint');
     }
-    if (endpoint[0] != '/') {
-        endpoint = '/' + endpoint;
-    }
     /* Check rate limit */
     checkRateLimit();
     /* Prepare authentication (prefer EDUBASE_API_APP and EDUBASE_API_KEY environment variables) */
@@ -116,7 +113,7 @@ async function sendEduBaseApiRequest(method, endpoint, data, authentication) {
         'EduBase-API-App': authentication.app,
         'EduBase-API-Secret': authentication.secret
     };
-    const response = await fetch(EDUBASE_API_URL + endpoint + (method == 'GET' ? '?' + queryString.stringify(data) : ''), {
+    const response = await fetch(endpoint + (method == 'GET' ? '?' + queryString.stringify(data) : ''), {
         method: method,
         body: (method != 'GET' ? JSON.stringify(data) : undefined),
         headers: headers
@@ -135,7 +132,6 @@ async function sendEduBaseApiRequest(method, endpoint, data, authentication) {
         return await clonedResponse.text();
     }
 }
-/* Configure request handlers */
 server.setRequestHandler(ListPromptsRequestSchema, async () => ({
     prompts: Object.values(EDUBASE_API_PROMPTS),
 }));
@@ -171,7 +167,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const meta = request.params._meta || {};
         /* Prepare authentication */
         let authentication = null;
-        if (meta && meta.headers && meta.headers['edubase-api-app'] && meta.headers['edubase-api-secret']) {
+        if (meta && meta.override && meta.override.EDUBASE_API_APP && meta.override.EDUBASE_API_KEY) {
+            /* Use authentication from custom configuration */
+            authentication = {
+                app: meta.override.EDUBASE_API_APP,
+                secret: meta.override.EDUBASE_API_KEY
+            };
+        }
+        else if (meta && meta.headers && meta.headers['edubase-api-app'] && meta.headers['edubase-api-secret']) {
             /* Use authentication from request headers */
             authentication = {
                 app: meta.headers['edubase-api-app'],
@@ -195,9 +198,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 }
             }
         }
-        /* Send API request */
+        /* Prepare and send API request */
         const [, method, ...endpoint] = name.split('_');
-        const response = await sendEduBaseApiRequest(method, '/' + endpoint.join(':'), args, authentication);
+        const response = await sendEduBaseApiRequest(method, (meta?.override?.EDUBASE_API_URL || EDUBASE_API_URL) + '/' + endpoint.join(':'), args, authentication);
         /* Return response */
         const outputSchemaKey = name;
         if (typeof EDUBASE_API_TOOLS_OUTPUT_SCHEMA[outputSchemaKey] == 'object' && Object.keys(EDUBASE_API_TOOLS_OUTPUT_SCHEMA[outputSchemaKey]).length == 0 && typeof response == 'string' && response.length == 0) {
@@ -268,10 +271,25 @@ if (STREAMABLE_HTTP) {
             return;
         }
         try {
+            let override = { EDUBASE_API_URL: null, EDUBASE_API_APP: null, EDUBASE_API_KEY: null };
+            if (req.query?.config && typeof req.query.config == 'string') {
+                /* Apply Smithery configuration */
+                const smitheryConfig = JSON.parse(Buffer.from(req.query.config, 'base64').toString());
+                if (smitheryConfig.edubaseApiUrl && typeof smitheryConfig.edubaseApiUrl == 'string' && smitheryConfig.edubaseApiUrl.length > 0) {
+                    override.EDUBASE_API_URL = smitheryConfig.edubaseApiUrl;
+                }
+                if (smitheryConfig.edubaseApiApp && typeof smitheryConfig.edubaseApiApp == 'string' && smitheryConfig.edubaseApiApp.length > 0) {
+                    override.EDUBASE_API_APP = smitheryConfig.edubaseApiApp;
+                }
+                if (smitheryConfig.edubaseApiKey && typeof smitheryConfig.edubaseApiKey == 'string' && smitheryConfig.edubaseApiKey.length > 0) {
+                    override.EDUBASE_API_KEY = smitheryConfig.edubaseApiKey;
+                }
+            }
             const params = req.body?.params || {};
             params._meta = {
                 ip: getClientIp(req),
                 headers: req.headers,
+                override: override,
             };
             await transport.handleRequest(req, res, { ...req.body, params });
         }
@@ -352,10 +370,25 @@ else if (SSE) {
         const transport = transports[sessionId] ?? Object.values(transports)[0];
         if (transport) {
             try {
+                let override = { EDUBASE_API_URL: null, EDUBASE_API_APP: null, EDUBASE_API_KEY: null };
+                if (req.query?.config && typeof req.query.config == 'string') {
+                    /* Apply Smithery configuration */
+                    const smitheryConfig = JSON.parse(Buffer.from(req.query.config, 'base64').toString());
+                    if (smitheryConfig.edubaseApiUrl && typeof smitheryConfig.edubaseApiUrl == 'string' && smitheryConfig.edubaseApiUrl.length > 0) {
+                        override.EDUBASE_API_URL = smitheryConfig.edubaseApiUrl;
+                    }
+                    if (smitheryConfig.edubaseApiApp && typeof smitheryConfig.edubaseApiApp == 'string' && smitheryConfig.edubaseApiApp.length > 0) {
+                        override.EDUBASE_API_APP = smitheryConfig.edubaseApiApp;
+                    }
+                    if (smitheryConfig.edubaseApiKey && typeof smitheryConfig.edubaseApiKey == 'string' && smitheryConfig.edubaseApiKey.length > 0) {
+                        override.EDUBASE_API_KEY = smitheryConfig.edubaseApiKey;
+                    }
+                }
                 const params = req.body?.params || {};
                 params._meta = {
                     ip: getClientIp(req),
                     headers: req.headers,
+                    override: override,
                 };
                 await transport.handlePostMessage(req, res, { ...req.body, params });
             }
