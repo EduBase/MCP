@@ -42,7 +42,7 @@ import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
 const server = new Server(
 	{
 		name: '@edubase/mcp',
-		version: '1.0.15',
+		version: '1.0.16',
 	},
 	{
 		capabilities: {
@@ -348,7 +348,7 @@ if (STREAMABLE_HTTP) {
 		/* Health check endpoint */
 		res.status(200).send();
 	});
-	const EDUBASE_HTTP_PORT = parseInt(process.env.EDUBASE_HTTP_PORT || '3000');
+	const EDUBASE_HTTP_PORT = parseInt(process.env.EDUBASE_HTTP_PORT || process.env.PORT || '3000');
 	app.listen(EDUBASE_HTTP_PORT, () => {
 		console.error("EduBase MCP server is now listening on HTTP port " + EDUBASE_HTTP_PORT + " with Streamable HTTP transport");
 	});
@@ -416,7 +416,7 @@ if (STREAMABLE_HTTP) {
 		/* Health check endpoint */
 		res.status(200).send();
 	});
-	const EDUBASE_HTTP_PORT = parseInt(process.env.EDUBASE_HTTP_PORT || '3000');
+	const EDUBASE_HTTP_PORT = parseInt(process.env.EDUBASE_HTTP_PORT || process.env.PORT || '3000');
 	app.listen(EDUBASE_HTTP_PORT, () => {
 		console.error("EduBase MCP server is now listening on HTTP port " + EDUBASE_HTTP_PORT + " with SSE transport");
 	});
