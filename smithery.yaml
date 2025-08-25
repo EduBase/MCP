@@ -29,4 +29,4 @@ build:
   dockerfile: Dockerfile
   dockerBuildPath: .
 env:
-  EDUBASE_STREAMABLE_HTTP_MODE: true
+  EDUBASE_STREAMABLE_HTTP_MODE: 'true'
