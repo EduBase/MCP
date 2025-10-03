@@ -42,7 +42,7 @@ import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
 const server = new Server(
 	{
 		name: '@edubase/mcp',
-		version: '1.0.16',
+		version: '1.0.17',
 	},
 	{
 		capabilities: {

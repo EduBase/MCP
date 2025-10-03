@@ -61,6 +61,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                 id: {
                     type: 'string',
                     description: "External unique question identifier for question management.\n" +
+                        "Should be maximum 64 characters long!\n" +
                         "On repeated uploads, the questions are updated (rather then added) based on this value, which can be an arbitrary text.\n" +
                         "If the question already exists at upload time with the same external identifier (in the given folder or Quiz set), the existing question will be updated instead of being added as a new one.\n" +
                         "- Use cases:\n" +
@@ -75,7 +76,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "Example:\n" +
                         "- id=MATHEMATICS_ARITHMETIC_BASIC_ADDITION_STATIC_001\n" +
                         "- type=numerical\n" +
-                        "- question=What is 2+2?\n" +
+                        "- content=What is 2+2?\n" +
                         "- answer=4"
                 },
                 type: {
@@ -103,7 +104,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "Example:\n" +
                         "type=numerical"
                 },
-                question: {
+                content: {
                     type: 'string',
                     description: "The main question text that will be displayed to the test taker.\n" +
                         "Supports rich formatting options:\n" +
@@ -124,7 +125,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "- Tables: Use [[..]] format with semicolons for columns, vertical bars for rows, e.g., [[Header 1; Header 2 | Data 1; Data 2]]\n" +
                         "- Answer placeholders: [[___]] (3 underscores), for fill-in-the-gaps\n" +
                         "Example:\n" +
-                        "question=Calculate the area of a circle with radius {r} using $$A = \\pi r^2$$"
+                        "content=Calculate the area of a circle with radius {r} using $$A = \\pi r^2$$"
                 },
                 question_format: {
                     type: 'string',
@@ -183,7 +184,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "Example API call:\n" +
                         "id=europe_cities_population\n" +
                         "type=text\n" +
-                        "question=List the following European cities in descending order by population (largest first)\n" +
+                        "content=List the following European cities in descending order by population (largest first)\n" +
                         "answer=London &&& Madrid &&& Paris\n" +
                         "answer_order=+"
                 },
@@ -199,7 +200,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "Example API call:\n" +
                         "id=basic_math\n" +
                         "type=numerical\n" +
-                        "question=Given the number 16:\\n\\na) What is double this number?\\n\\nb) What is half of this number?\\n\\nc) What is this number plus 10?\n" +
+                        "content=Given the number 16:\\n\\na) What is double this number?\\n\\nb) What is half of this number?\\n\\nc) What is this number plus 10?\n" +
                         "answer=32 &&& 8 &&& 26\n" +
                         "answer_label=a) Double &&& b) Half &&& c) Plus 10\n" +
                         "points=3"
@@ -216,7 +217,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "Example API call:\n" +
                         "id=uk_countries\n" +
                         "type=text\n" +
-                        "question=Name any of the countries within the United Kingdom!\n" +
+                        "content=Name any of the countries within the United Kingdom!\n" +
                         "answer=England &&& Northern Ireland &&& Scotland &&& Wales\n" +
                         "answer_require=1\n" +
                         "answer_hide=+"
@@ -233,7 +234,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "Example API call:\n" +
                         "id=name_countries\n" +
                         "type=text\n" +
-                        "question=Name as many European countries as you can think of.\n" +
+                        "content=Name as many European countries as you can think of.\n" +
                         "answer=France &&& Germany &&& Italy &&& Spain &&& United Kingdom &&& ...\n" +
                         "answer_indefinite=+"
                 },
@@ -251,7 +252,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "Example API call:\n" +
                         "id=sql_basics\n" +
                         "type=free-text\n" +
-                        "question=Write a SQL query to select all columns from the \"users\" table where the age is greater than 18.\n" +
+                        "content=Write a SQL query to select all columns from the \"users\" table where the age is greater than 18.\n" +
                         "answer=SELECT * FROM users WHERE age > 18\n" +
                         "answer_format=code:sql"
                 },
@@ -266,7 +267,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "Example API call:\n" +
                         "id=uk_countries\n" +
                         "type=text\n" +
-                        "question=Name any one of the countries within the United Kingdom!\n" +
+                        "content=Name any one of the countries within the United Kingdom!\n" +
                         "answer=England &&& Northern Ireland &&& Scotland &&& Wales\n" +
                         "answer_require=1"
                 },
@@ -309,7 +310,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "Example API call:\n" +
                         "id=capital_france\n" +
                         "type=choice\n" +
-                        "question=What is the capital of France?\n" +
+                        "content=What is the capital of France?\n" +
                         "answer=Paris\n" +
                         "options=London &&& Berlin &&& Madrid"
                 },
@@ -339,14 +340,14 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "Example API call:\n" +
                         "id=fruit_types\n" +
                         "type=multiple-choice\n" +
-                        "question=Which of these are citrus fruits?\n" +
+                        "content=Which of these are citrus fruits?\n" +
                         "answer=Lemon &&& Orange\n" +
                         "options=Apple &&& Banana &&& Grape\n" +
                         "options_fix=abc\n" +
                         "Example API call:\n" +
                         "id=vocab_synonyms\n" +
                         "type=multiple-choice\n" +
-                        "question=Select all words that mean \"happy\":\n" +
+                        "content=Select all words that mean \"happy\":\n" +
                         "answer=b) Joyful &&& d) Merry\n" +
                         "options=a) Angry &&& c) Sleepy &&& e) Tired\n" +
                         "options_fix=abc"
@@ -364,7 +365,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "Example API call to create a chronologically ordered timeline\n" +
                         "id=historical_chronology\n" +
                         "type=multiple-choice\n" +
-                        "question=Which of these events occurred during the Industrial Revolution (1760-1840)?\n" +
+                        "content=Which of these events occurred during the Industrial Revolution (1760-1840)?\n" +
                         "answer=Invention of the Steam Engine &&& First Steam Locomotive &&& First Commercial Railway\n" +
                         "options=Printing Press Invented &&& First Electric Light Bulb &&& First Powered Flight\n" +
                         "options_order=OPTION:0 &&& ANSWER:0 &&& ANSWER:1 &&& ANSWER:2 &&& OPTION:1 &&& OPTION:2"
@@ -391,7 +392,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "Example API call:\n" +
                         "id=math_problem\n" +
                         "type=numerical\n" +
-                        "question=What is the sum and product of {a} and {b}?\n" +
+                        "content=What is the sum and product of {a} and {b}?\n" +
                         "answer={a}+{b} &&& {a}*{b}\n" +
                         "parameters={a; INTEGER; 1; 100} &&& {b; INTEGER; 1; 100}\n" +
                         "points=4\n" +
@@ -433,7 +434,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "Example API call with penalties:\n" +
                         "id=physics_multiple_choice\n" +
                         "type=multiple-choice\n" +
-                        "question=Which of the following are forms of energy? Select all that apply.\n" +
+                        "content=Which of the following are forms of energy? Select all that apply.\n" +
                         "answer=Kinetic &&& Potential &&& Thermal\n" +
                         "options=Velocity &&& Acceleration\n" +
                         "points=3\n" +
@@ -456,7 +457,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "Example API call with comprehensive penalty system:\n" +
                         "id=area_circle_parametric\n" +
                         "type=expression\n" +
-                        "question=Find an expression for the area of a circle with radius {r}.\n" +
+                        "content=Find an expression for the area of a circle with radius {r}.\n" +
                         "answer=pi*{r}^2\n" +
                         "parameters={r; INTEGER; 2; 10}\n" +
                         "points=10\n" +
@@ -583,7 +584,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                         "Example API call:\n" +
                         "id=capital_city\n" +
                         "type=text\n" +
-                        "question=What is the capital city of {country}?\n" +
+                        "content=What is the capital city of {country}?\n" +
                         "answer={capital}\n" +
                         "parameters={country; LIST; France; Germany; Italy} &&& {capital; LIST; Paris; Berlin; Rome}\n" +
                         "parameters_sync=+"
@@ -974,12 +975,12 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
         inputSchema: {
             type: 'object',
             properties: {
-                code: {
+                question: {
                     type: 'string',
                     description: 'question identification string',
                 },
             },
-            required: ['code'],
+            required: ['question'],
         },
     },
     // POST /question:id - Set external unique question identifier for question identified by a question identification string
@@ -989,7 +990,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
         inputSchema: {
             type: 'object',
             properties: {
-                code: {
+                question: {
                     type: 'string',
                     description: 'question identification string',
                 },
@@ -998,7 +999,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
                     description: 'external unique question identifier',
                 },
             },
-            required: ['code', 'id'],
+            required: ['question', 'id'],
         },
     },
 ];
@@ -1010,13 +1011,13 @@ export const EDUBASE_API_TOOLS_QUESTIONS_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
+                question: {
+                    type: 'string',
+                    description: 'question identification string',
+                },
                 id: {
                     type: 'string',
                     description: 'external unique question identifier (if set for the question)',
-                },
-                code: {
-                    type: 'string',
-                    description: 'question identification string',
                 },
             },
         },
@@ -1025,13 +1026,13 @@ export const EDUBASE_API_TOOLS_QUESTIONS_OUTPUT_SCHEMA = {
     edubase_get_question: {
         type: 'object',
         properties: {
-            id: {
-                type: 'string',
-                description: 'external unique question identifier',
-            },
-            code: {
+            question: {
                 type: 'string',
                 description: 'question identification string',
+            },
+            id: {
+                type: 'string',
+                description: 'external unique question identifier (if set for the question)',
             },
             active: {
                 type: 'boolean',
@@ -1043,7 +1044,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS_OUTPUT_SCHEMA = {
     edubase_post_question: {
         type: 'object',
         properties: {
-            code: {
+            question: {
                 type: 'string',
                 description: 'question identification string',
             },
@@ -1059,7 +1060,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS_OUTPUT_SCHEMA = {
                 type: 'string',
                 description: 'external unique question identifier',
             },
-            code: {
+            question: {
                 type: 'string',
                 description: 'question identification string',
             },
@@ -1077,7 +1078,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS_OUTPUT_SCHEMA = {
     edubase_get_question_id: {
         type: 'object',
         properties: {
-            code: {
+            question: {
                 type: 'string',
                 description: 'question identification string',
             },

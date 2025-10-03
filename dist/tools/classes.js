@@ -211,9 +211,13 @@ export const EDUBASE_API_TOOLS_CLASSES_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                class: {
                     type: 'string',
                     description: 'class identification string',
+                },
+                id: {
+                    type: 'string',
+                    description: 'external unique class identifier (if set for the class)',
                 },
                 name: {
                     type: 'string',
@@ -229,6 +233,10 @@ export const EDUBASE_API_TOOLS_CLASSES_OUTPUT_SCHEMA = {
             class: {
                 type: 'string',
                 description: 'class identification string',
+            },
+            id: {
+                type: 'string',
+                description: 'external unique class identifier (if set for the class)',
             },
             name: {
                 type: 'string',
@@ -250,7 +258,7 @@ export const EDUBASE_API_TOOLS_CLASSES_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                assignment: {
                     type: 'string',
                     description: 'assignment identification string',
                 },
@@ -283,7 +291,7 @@ export const EDUBASE_API_TOOLS_CLASSES_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                user: {
                     type: 'string',
                     description: 'user identification string',
                 },
@@ -310,9 +318,13 @@ export const EDUBASE_API_TOOLS_CLASSES_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                class: {
                     type: 'string',
                     description: 'class identification string',
+                },
+                id: {
+                    type: 'string',
+                    description: 'external unique class identifier (if set for the class)',
                 },
                 name: {
                     type: 'string',

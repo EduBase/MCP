@@ -479,7 +479,7 @@ export const EDUBASE_API_TOOLS_TAGS = [
             properties: {
                 quiz: {
                     type: 'string',
-                    description: 'quiz identification string',
+                    description: 'Quiz identification string',
                 },
             },
             required: ['quiz'],
@@ -494,7 +494,7 @@ export const EDUBASE_API_TOOLS_TAGS = [
             properties: {
                 quiz: {
                     type: 'string',
-                    description: 'quiz identification string',
+                    description: 'Quiz identification string',
                 },
                 tag: {
                     type: 'string',
@@ -513,7 +513,7 @@ export const EDUBASE_API_TOOLS_TAGS = [
             properties: {
                 quiz: {
                     type: 'string',
-                    description: 'quiz identification string',
+                    description: 'Quiz identification string',
                 },
                 tag: {
                     type: 'string',
@@ -532,7 +532,7 @@ export const EDUBASE_API_TOOLS_TAGS = [
             properties: {
                 quiz: {
                     type: 'string',
-                    description: 'quiz identification string',
+                    description: 'Quiz identification string',
                 },
                 tag: {
                     type: 'string',
@@ -699,6 +699,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                     type: 'string',
                     description: 'tag identification string',
                 },
+                id: {
+                    type: 'string',
+                    description: 'external unique tag identifier (if set for the tag)',
+                },
                 name: {
                     type: 'string',
                     description: 'title of the tag',
@@ -713,6 +717,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
             tag: {
                 type: 'string',
                 description: 'tag identification string',
+            },
+            id: {
+                type: 'string',
+                description: 'external unique tag identifier (if set for the tag)',
             },
             name: {
                 type: 'string',
@@ -734,9 +742,13 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                tag: {
                     type: 'string',
                     description: 'tag identification string',
+                },
+                id: {
+                    type: 'string',
+                    description: 'external unique tag identifier (if set for the tag)',
                 },
                 name: {
                     type: 'string',
@@ -763,6 +775,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                     code: {
                         type: 'string',
                         description: 'the class identification string',
+                    },
+                    id: {
+                        type: 'string',
+                        description: 'external unique class identifier (if set for the class)',
                     },
                 },
             },
@@ -791,6 +807,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                         type: 'string',
                         description: 'the class identification string',
                     },
+                    id: {
+                        type: 'string',
+                        description: 'external unique class identifier (if set for the class)',
+                    },
                 },
             },
             success: {
@@ -807,9 +827,13 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                tag: {
                     type: 'string',
                     description: 'tag identification string',
+                },
+                id: {
+                    type: 'string',
+                    description: 'external unique tag identifier (if set for the tag)',
                 },
                 name: {
                     type: 'string',
@@ -836,6 +860,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                     code: {
                         type: 'string',
                         description: 'the course identification string',
+                    },
+                    id: {
+                        type: 'string',
+                        description: 'external unique course identifier (if set for the course)',
                     },
                 },
             },
@@ -864,6 +892,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                         type: 'string',
                         description: 'the course identification string',
                     },
+                    id: {
+                        type: 'string',
+                        description: 'external unique course identifier (if set for the course)',
+                    },
                 },
             },
             success: {
@@ -880,9 +912,13 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                tag: {
                     type: 'string',
                     description: 'tag identification string',
+                },
+                id: {
+                    type: 'string',
+                    description: 'external unique tag identifier (if set for the tag)',
                 },
                 name: {
                     type: 'string',
@@ -909,6 +945,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                     code: {
                         type: 'string',
                         description: 'the event identification string',
+                    },
+                    id: {
+                        type: 'string',
+                        description: 'external unique event identifier (if set for the event)',
                     },
                 },
             },
@@ -937,6 +977,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                         type: 'string',
                         description: 'the event identification string',
                     },
+                    id: {
+                        type: 'string',
+                        description: 'external unique event identifier (if set for the event)',
+                    },
                 },
             },
             success: {
@@ -953,9 +997,13 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                tag: {
                     type: 'string',
                     description: 'tag identification string',
+                },
+                id: {
+                    type: 'string',
+                    description: 'external unique tag identifier (if set for the tag)',
                 },
                 name: {
                     type: 'string',
@@ -982,6 +1030,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                     code: {
                         type: 'string',
                         description: 'the exam identification string',
+                    },
+                    id: {
+                        type: 'string',
+                        description: 'external unique exam identifier (if set for the exam)',
                     },
                 },
             },
@@ -1010,6 +1062,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                         type: 'string',
                         description: 'the exam identification string',
                     },
+                    id: {
+                        type: 'string',
+                        description: 'external unique exam identifier (if set for the exam)',
+                    },
                 },
             },
             success: {
@@ -1026,9 +1082,13 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                tag: {
                     type: 'string',
                     description: 'tag identification string',
+                },
+                id: {
+                    type: 'string',
+                    description: 'external unique tag identifier (if set for the tag)',
                 },
                 name: {
                     type: 'string',
@@ -1055,6 +1115,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                     code: {
                         type: 'string',
                         description: 'the integration identification string',
+                    },
+                    id: {
+                        type: 'string',
+                        description: 'external unique integration identifier (if set for the integration)',
                     },
                 },
             },
@@ -1083,6 +1147,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                         type: 'string',
                         description: 'the integration identification string',
                     },
+                    id: {
+                        type: 'string',
+                        description: 'external unique integration identifier (if set for the integration)',
+                    },
                 },
             },
             success: {
@@ -1099,9 +1167,13 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                tag: {
                     type: 'string',
                     description: 'tag identification string',
+                },
+                id: {
+                    type: 'string',
+                    description: 'external unique tag identifier (if set for the tag)',
                 },
                 name: {
                     type: 'string',
@@ -1128,6 +1200,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                     code: {
                         type: 'string',
                         description: 'the organization identification string',
+                    },
+                    id: {
+                        type: 'string',
+                        description: 'external unique organization identifier (if set for the organization)',
                     },
                 },
             },
@@ -1156,6 +1232,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                         type: 'string',
                         description: 'the organization identification string',
                     },
+                    id: {
+                        type: 'string',
+                        description: 'external unique organization identifier (if set for the organization)',
+                    },
                 },
             },
             success: {
@@ -1172,9 +1252,13 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                tag: {
                     type: 'string',
                     description: 'tag identification string',
+                },
+                id: {
+                    type: 'string',
+                    description: 'external unique tag identifier (if set for the tag)',
                 },
                 name: {
                     type: 'string',
@@ -1200,7 +1284,11 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                     },
                     code: {
                         type: 'string',
-                        description: 'the quiz identification string',
+                        description: 'the Quiz identification string',
+                    },
+                    id: {
+                        type: 'string',
+                        description: 'external unique Quiz identifier (if set for the Quiz)',
                     },
                 },
             },
@@ -1227,7 +1315,11 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                     },
                     code: {
                         type: 'string',
-                        description: 'the quiz identification string',
+                        description: 'the Quiz identification string',
+                    },
+                    id: {
+                        type: 'string',
+                        description: 'external unique Quiz identifier (if set for the Quiz)',
                     },
                 },
             },
@@ -1245,9 +1337,13 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                tag: {
                     type: 'string',
                     description: 'tag identification string',
+                },
+                id: {
+                    type: 'string',
+                    description: 'external unique tag identifier (if set for the tag)',
                 },
                 name: {
                     type: 'string',
@@ -1274,6 +1370,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                     code: {
                         type: 'string',
                         description: 'the SCORM identification string',
+                    },
+                    id: {
+                        type: 'string',
+                        description: 'external unique SCORM identifier (if set for the SCORM)',
                     },
                 },
             },
@@ -1302,6 +1402,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                         type: 'string',
                         description: 'the SCORM identification string',
                     },
+                    id: {
+                        type: 'string',
+                        description: 'external unique SCORM identifier (if set for the SCORM)',
+                    },
                 },
             },
             success: {
@@ -1318,9 +1422,13 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                tag: {
                     type: 'string',
                     description: 'tag identification string',
+                },
+                id: {
+                    type: 'string',
+                    description: 'external unique tag identifier (if set for the tag)',
                 },
                 name: {
                     type: 'string',
@@ -1348,6 +1456,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                         type: 'string',
                         description: 'the video identification string',
                     },
+                    id: {
+                        type: 'string',
+                        description: 'external unique video identifier (if set for the video)',
+                    },
                 },
             },
             status: {
@@ -1374,6 +1486,10 @@ export const EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA = {
                     code: {
                         type: 'string',
                         description: 'the video identification string',
+                    },
+                    id: {
+                        type: 'string',
+                        description: 'external unique video identifier (if set for the video)',
                     },
                 },
             },

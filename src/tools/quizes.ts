@@ -48,7 +48,7 @@ export const EDUBASE_API_TOOLS_QUIZES: Tool[] = [
 			properties: {
 				quiz: {
 					type: 'string',
-					description: 'quiz identification string',
+					description: 'Quiz identification string',
 				},
 			},
 			required: ['quiz'],
@@ -69,6 +69,12 @@ export const EDUBASE_API_TOOLS_QUIZES: Tool[] = [
 				title: {
 					type: 'string',
 					description: 'title of the Quiz set',
+				},
+				id: {
+					type: 'string',
+					description:
+						"External unique Quiz identifier.\n" +
+						"Should be maximum 64 characters long!"
 				},
 				description: {
 					type: 'string',
@@ -103,7 +109,7 @@ export const EDUBASE_API_TOOLS_QUIZES: Tool[] = [
 			properties: {
 				quiz: {
 					type: 'string',
-					description: 'quiz identification string',
+					description: 'Quiz identification string',
 				},
 			},
 			required: ['quiz'],
@@ -119,7 +125,7 @@ export const EDUBASE_API_TOOLS_QUIZES: Tool[] = [
 			properties: {
 				quiz: {
 					type: 'string',
-					description: 'quiz identification string',
+					description: 'Quiz identification string',
 				},
 			},
 			required: ['quiz'],
@@ -135,7 +141,7 @@ export const EDUBASE_API_TOOLS_QUIZES: Tool[] = [
 			properties: {
 				quiz: {
 					type: 'string',
-					description: 'quiz identification string',
+					description: 'Quiz identification string',
 				},
 				group: {
 					type: 'string',
@@ -159,7 +165,7 @@ export const EDUBASE_API_TOOLS_QUIZES: Tool[] = [
 			properties: {
 				quiz: {
 					type: 'string',
-					description: 'quiz identification string',
+					description: 'Quiz identification string',
 				},
 				group: {
 					type: 'string',
@@ -183,9 +189,13 @@ export const EDUBASE_API_TOOLS_QUIZES_OUTPUT_SCHEMA: object = {
 		items: {
 			type: 'object',
 			properties: {
-				code: {
+				quiz: {
 					type: 'string',
-					description: 'quiz identification string',
+					description: 'Quiz identification string',
+				},
+				id: {
+					type: 'string',
+					description: 'external unique Quiz identifier (if set for the Quiz)',
 				},
 				name: {
 					type: 'string',
@@ -201,7 +211,11 @@ export const EDUBASE_API_TOOLS_QUIZES_OUTPUT_SCHEMA: object = {
 		properties: {
 			quiz: {
 				type: 'string',
-				description: 'quiz identification string',
+				description: 'Quiz identification string',
+			},
+			id: {
+				type: 'string',
+				description: 'external unique Quiz identifier (if set for the Quiz)',
 			},
 			name: {
 				type: 'string',
@@ -216,7 +230,7 @@ export const EDUBASE_API_TOOLS_QUIZES_OUTPUT_SCHEMA: object = {
 		properties: {
 			quiz: {
 				type: 'string',
-				description: 'quiz identification string',
+				description: 'Quiz identification string',
 			},
 		},
 	},

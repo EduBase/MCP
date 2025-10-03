@@ -151,9 +151,13 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS_OUTPUT_SCHEMA: object = {
 		items: {
 			type: 'object',
 			properties: {
-				code: {
+				integration: {
 					type: 'string',
 					description: 'integration identification string',
+				},
+				id: {
+					type: 'string',
+					description: 'external unique integration identifier (if set for the integration)',
 				},
 				name: {
 					type: 'string',
@@ -170,6 +174,10 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS_OUTPUT_SCHEMA: object = {
 			integration: {
 				type: 'string',
 				description: 'integration identification string',
+			},
+			id: {
+				type: 'string',
+				description: 'external unique integration identifier (if set for the integration)',
 			},
 			name: {
 				type: 'string',

@@ -72,6 +72,12 @@ export const EDUBASE_API_TOOLS_EXAMS: Tool[] = [
 					type: 'string',
 					description: 'title of the exam',
 				},
+				id: {
+					type: 'string',
+					description:
+						"External unique exam identifier.\n" +
+						"Should be maximum 64 characters long!"
+				},
 				type: {
 					type: 'string',
 					description:
@@ -223,9 +229,13 @@ export const EDUBASE_API_TOOLS_EXAMS_OUTPUT_SCHEMA: object = {
 		items: {
 			type: 'object',
 			properties: {
-				code: {
+				exam: {
 					type: 'string',
 					description: 'exam identification string',
+				},
+				id: {
+					type: 'string',
+					description: 'external unique exam identifier (if set for the exam)',
 				},
 				name: {
 					type: 'string',
@@ -246,6 +256,10 @@ export const EDUBASE_API_TOOLS_EXAMS_OUTPUT_SCHEMA: object = {
 			exam: {
 				type: 'string',
 				description: 'exam identification string',
+			},
+			id: {
+				type: 'string',
+				description: 'external unique exam identifier (if set for the exam)',
 			},
 			name: {
 				type: 'string',
@@ -296,7 +310,7 @@ export const EDUBASE_API_TOOLS_EXAMS_OUTPUT_SCHEMA: object = {
 		items: {
 			type: 'object',
 			properties: {
-				code: {
+				user: {
 					type: 'string',
 					description: 'user identification string',
 				},

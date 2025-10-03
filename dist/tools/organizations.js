@@ -444,9 +444,13 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                organization: {
                     type: 'string',
                     description: 'organization identification string',
+                },
+                id: {
+                    type: 'string',
+                    description: 'external unique organization identifier (if set for the organization)',
                 },
                 name: {
                     type: 'string',
@@ -462,6 +466,10 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS_OUTPUT_SCHEMA = {
             organization: {
                 type: 'string',
                 description: 'organization identification string',
+            },
+            id: {
+                type: 'string',
+                description: 'external unique organization identifier (if set for the organization)',
             },
             name: {
                 type: 'string',
@@ -489,7 +497,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                user: {
                     type: 'string',
                     description: 'user identification string',
                 },
@@ -529,9 +537,13 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS_OUTPUT_SCHEMA = {
         items: {
             type: 'object',
             properties: {
-                code: {
+                organization: {
                     type: 'string',
                     description: 'organization identification string',
+                },
+                id: {
+                    type: 'string',
+                    description: 'external unique organization identifier (if set for the organization)',
                 },
                 name: {
                     type: 'string',
