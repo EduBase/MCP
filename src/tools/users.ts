@@ -26,10 +26,10 @@ export const EDUBASE_API_TOOLS_USERS: Tool[] = [
 		},
 	},
 
-	// GET /user - Get/check user
+	// GET /user:me - Get/check current user
 	{
-		name: 'edubase_get_user',
-		description: "Get/check user. Can be used to retrieve the caller user's ID by using 'me' as the user identification string.",
+		name: 'edubase_get_user_me',
+		description: "Get/check current user.",
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -38,6 +38,24 @@ export const EDUBASE_API_TOOLS_USERS: Tool[] = [
 					description:
 						"User identification string.\n" +
 						"- Use 'me' to get the current user."
+				},
+			},
+			required: ['user'],
+		},
+	},
+
+	// GET /user - Get/check user
+	{
+		name: 'edubase_get_user',
+		description: "Get/check user.",
+		inputSchema: {
+			type: 'object',
+			properties: {
+				user: {
+					type: 'string',
+					description:
+						"User identification string.\n" +
+						"- Use 'me' to get the current user, but prefer /user:me endpoint instead."
 				},
 			},
 			required: ['user'],
@@ -389,6 +407,29 @@ export const EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA: object = {
 					type: 'string',
 					description: 'full name of the user',
 				},
+			},
+		},
+	},
+
+	// GET /user:me - Get/check current user
+	edubase_get_user_me: {
+		type: 'object',
+		properties: {
+			user: {
+				type: 'string',
+				description: 'user identification string',
+			},
+			name: {
+				type: 'string',
+				description: 'full name',
+			},
+			status: {
+				type: 'boolean',
+				description: 'user is enabled',
+			},
+			exam: {
+				type: 'boolean',
+				description: 'exam (generated) account',
 			},
 		},
 	},

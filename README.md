@@ -43,7 +43,7 @@ Once logged in, on your Dashboard, search for the Integrations menu, click "add 
 
 ## Tools
 
-Each documented API endpoint is available as a separate tool, named `edubase_<method>_<endpoint>`. For example, the tool for the `GET /user` endpoint is named `edubase_get_user`. See our [developer documentation](https://developer.edubase.net) for more information.
+Each documented API endpoint is available as a separate tool, named `edubase_<method>_<endpoint>`. For example, the tool for the `GET /user:me` endpoint is named `edubase_get_user_me`. See our [developer documentation](https://developer.edubase.net) for more information.
 
 ## Configuration
 
