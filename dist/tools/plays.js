@@ -151,6 +151,10 @@ export const EDUBASE_API_TOOLS_PLAYS_OUTPUT_SCHEMA = {
                 type: 'boolean',
                 description: 'result is valid',
             },
+            successful: {
+                type: 'boolean',
+                description: 'attempt passed grading threshold (if applicable)',
+            },
             questions: {
                 type: 'array',
                 items: {
@@ -227,6 +231,10 @@ export const EDUBASE_API_TOOLS_PLAYS_OUTPUT_SCHEMA = {
                     type: 'boolean',
                     description: 'result is valid',
                 },
+                successful: {
+                    type: 'boolean',
+                    description: 'attempt passed grading threshold (if applicable)',
+                },
             },
         },
     },
@@ -275,6 +283,10 @@ export const EDUBASE_API_TOOLS_PLAYS_OUTPUT_SCHEMA = {
                 valid: {
                     type: 'boolean',
                     description: 'result is valid',
+                },
+                successful: {
+                    type: 'boolean',
+                    description: 'attempt passed grading threshold (if applicable)',
                 },
             },
         },

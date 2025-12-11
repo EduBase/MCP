@@ -35,7 +35,7 @@ import { EDUBASE_API_PROMPTS, EDUBASE_API_PROMPTS_HANDLERS } from "./prompts.js"
 /* Create MCP server */
 const server = new Server({
     name: '@edubase/mcp',
-    version: '1.0.20',
+    version: '1.0.21',
 }, {
     capabilities: {
         prompts: {},
