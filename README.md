@@ -9,6 +9,10 @@ This repository contains the **implementation of the Model Context Protocol** (M
 
 ![EduBase MCP demo GIF: Claude uploads math questions](https://shared.edubase.net/mcp/EduBaseMCPdemomath.gif)
 
+<a href="https://glama.ai/mcp/servers/@EduBase/MCP">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@EduBase/MCP/badge" alt="EduBase Server MCP server" />
+</a>
+
 ## What is EduBase?
 
 EduBase is an innovative, modular, online educational platform that makes learning more enjoyable, simpler and interactive, suitable for educational institutions or enterprises.
