@@ -1,6 +1,6 @@
 {
   "name": "@edubase/mcp",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "EduBase MCP server",
   "license": "MIT",
   "author": "EduBase, LLC (https://www.edubase.net)",
@@ -17,13 +17,13 @@
     "watch": "tsc --watch"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.24.3",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "query-string": "^9.3.1",
     "@types/express": "^5.0.6",
     "express": "^5.2.1"
   },
   "devDependencies": {
-    "@types/node": "^22",
+    "@types/node": "^24",
     "shx": "^0.4.0",
     "typescript": "^5.9.3"
   }
