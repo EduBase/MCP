@@ -59,7 +59,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS: Tool[] = [
 	// POST /question - Publish or update a question
 	{
 		name: 'edubase_post_question',
-		description: "Publish or update a question. Questions are the atomic building blocks of the EduBase Quiz system and represent the lowest level in the hierarchy (Questions -> Quiz sets -> Exams).",
+		description: "Publish or update a question. Questions are the atomic building blocks of the EduBase Quiz system and represent the lowest level in the hierarchy (Questions -> Quiz sets -> Exams). Always check what the fields named like the type of the question do and consider using them, for example if creating a HOTSPOT question, both hotspot_zones and hotspot_image will be required!",
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -100,6 +100,9 @@ export const EDUBASE_API_TOOLS_QUESTIONS: Tool[] = [
 						" - MULTIPLE-CHOICE: Multiple correct answers\n" +
 						" - ORDER: Sequence arrangement (arrange items in correct order)\n" +
 						" - TRUE/FALSE: Statement evaluation (true statements in ANSWER, false in OPTIONS)\n" +
+						"- Grouping Types:\n" +
+						" - GROUPING: Assigning elements to predefined groups\n" +
+						" - PAIRING: Matching elements to their pairs\n" +
 						"- Numerical Types:\n" +
 						" - NUMERIC: Numerical value validation with fractions, constants, intervals\n" +
 						" - DATE/TIME: Calendar date validation with adjustable precision\n" +
@@ -107,6 +110,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS: Tool[] = [
 						"- Advanced Types:\n" +
 						" - MATRIX/MATRIX:EXPRESSION: Matrix evaluation (format: [a;b|c;d] for 2x2)\n" +
 						" - SET/SET:TEXT: Unordered collection validation\n" +
+						" - HOTSPOT: Marking specific areas on an image\n" +
 						" - FILE: File submission evaluation\n" +
 						"Example:\n" +
 						"type=numerical"
@@ -150,6 +154,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS: Tool[] = [
 					description:
 						"The correct answer(s) for the question.\n" +
 						"- For multiple answers, separate with triple-and operator (\"&&&\")\n" +
+                        "- The solution and the corresponding label can also be specified together using the triple arrow (\">>>\") operator\n" +
 						"- Parameters can be used in curly braces {param_name}\n" +
 						"- LaTeX Support (requires QUESTION_FORMAT=LATEX):\n" +
 						" - Inline: $$...$$\n" +
@@ -182,7 +187,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS: Tool[] = [
 					description:
 						"Attach an image to the question.\n" +
 						"Supported formats: PNG, JPEG, WebP\n" +
-						"Format: filename=data, where data is either a base64-encoded image or a URL"
+						"Format: filename=data, where data is either a base64-encoded image (whole data string) or a URL"
 				},
 				answer_order: {
 					type: 'string',
@@ -208,7 +213,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS: Tool[] = [
 						"- Separate multiple labels with triple-and operators (\"&&&\")\n" +
 						"- Automatically activates the answer_order function\n" +
 						"- Perfect for multi-part questions where each part needs clear labeling\n" +
-						"- Useful for creating pairing/matching questions\n" +
+						"- Useful for creating pairing/matching questions, provide elements in this field!\n" +
 						"Example:\n" +
 						"answer_label=a) Distance (km) &&& b) Time (hours) &&& c) Speed (km/h)\n" +
 						"Example API call:\n" +
@@ -511,7 +516,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS: Tool[] = [
 					description:
 						"Attach an image to the solution steps.\n" +
 						"Supported formats: PNG, JPEG, WebP\n" +
-						"Format: filename=data, where data is either a base64-encoded image or a URL"
+						"Format: filename=data, where data is either a base64-encoded image (whole data string) or a URL"
 				},
 				video_penalty: {
 					type: 'string',
@@ -754,14 +759,14 @@ export const EDUBASE_API_TOOLS_QUESTIONS: Tool[] = [
 					type: 'string',
 					description:
 						"Attach a file to the question.\n" +
-						"Format: filename=data, where data is either a base64-encoded image or a URL"
+						"Format: filename=data, where data is either a base64-encoded file (whole data string) or a URL"
 				},
 				media_audio: {
 					type: 'string',
 					description:
 						"Attach an audio file to the question.\n" +
 						"Supported formats: MP3, AAC, M4A\n" +
-						"Format: filename=data, where data is either a base64-encoded image or a URL"
+						"Format: filename=data, where data is either a base64-encoded audio file (whole data string) or a URL"
 				},
 				ai: {
 					type: 'string',
@@ -953,6 +958,54 @@ export const EDUBASE_API_TOOLS_QUESTIONS: Tool[] = [
 						"- Keywords: comma-separated list (must not contain semicolons!)\n" +
 						"Example:\n" +
 						"freetext_rules={1; mitochondria, ATP, cellular respiration}"
+				},
+				file_count: {
+					type: 'string',
+					description:
+						"Limit the number of files that can be uploaded.\n" +
+						"- Applicable only for FILE questions\n" +
+						"- Integer between 1-25\n" +
+						"Example:\n" +
+						"file_count=1"
+				},
+				file_types: {
+					type: 'string',
+					description:
+						"Limit the filetypes that can be uploaded.\n" +
+						"- Applicable only for FILE questions\n" +
+						"- File extensions separated by triple-and operators (&&&)\n" +
+						"Example:\n" +
+						"file_types=zip &&& rar"
+				},
+				hotspot_image: {
+					type: 'string',
+					description:
+						"The image on which the points must be marked.\n" +
+						"Supported formats: PNG, JPEG, WebP\n" +
+						"Format: filename=data, where data is either a base64-encoded image (whole data string) or a URL"
+				},
+				hotspot_zones: {
+					type: 'string',
+					description:
+						"Zones accepted as answers.\n" +
+						"- Applicable only for HOTSPOT questions\n" +
+						"- All numerical values must be entered as percentages!\n" +
+						"- In case of coordinates, (0; 0) is the upper left corner of the image, while (100; 100) is the lower right corner\n" +
+						"- Zones separated by triple-and operators (&&&)\n" +
+						"Accepted values:\n" +
+						"- Circular zone:\n" +
+						" - Notation: {circle; X; Y; R}\n" +
+						" - X: X (horizontal) coordinate of the center of the circle\n" +
+						" - Y: Y (vertical) coordinate of the center of the circle\n" +
+						" - R: radius of the circle (proportional to the width of the image)\n" +
+						" - Example: {circle; 50; 50; 10}\n" +
+						"- Rectangular zone:\n" +
+						" - Notation: {rectangle; X1; Y1; X2; Y2}\n" +
+						" - X1: X (horizontal) coordinate of the upper left corner of the rectangle\n" +
+						" - Y1: Y (vertical) coordinate of the upper left corner of the rectangle\n" +
+						" - X2: X (horizontal) coordinate of the lower right corner of the rectangle\n" +
+						" - Y2: Y (vertical) coordinate of the lower right corner of the rectangle\n" +
+						" - Example: {rectangle; 25; 25; 50; 50}"
 				},
 				main_category: {
 					type: 'string',
