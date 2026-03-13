@@ -40,6 +40,56 @@ The relationship is strictly hierarchical: Exams contain Quiz sets, which contai
 When generating content for EduBase, maintain awareness of which level you're operating at and respect the constraints of each level in the hierarchy.
 */
 
+/* Dynamic tool annotations (based on HTTP methods) */
+type EduBaseToolAnnotations = {
+   title?: string;
+   readOnlyHint?: boolean;
+   destructiveHint?: boolean;
+   idempotentHint?: boolean;
+   openWorldHint?: boolean;
+};
+export type EduBaseApiTool = {
+   name: string;
+   description?: string;
+   inputSchema?: unknown;
+   outputSchema?: unknown;
+   annotations?: EduBaseToolAnnotations;
+};
+function getToolMethod(name: string): string {
+   return name.split('_')[1] || '';
+}
+function getToolTitle(tool: EduBaseApiTool): string | undefined {
+   if (!tool.description || tool.description.length === 0) {
+      return undefined;
+   }
+
+   const firstSentence = tool.description.split('.')[0]?.trim();
+   return firstSentence && firstSentence.length > 0 ? firstSentence : undefined;
+}
+function inferToolAnnotations(tool: EduBaseApiTool): EduBaseToolAnnotations {
+   const method = getToolMethod(tool.name);
+   const readOnly = method === 'get';
+   const destructive = method === 'delete';
+   const idempotent = method === 'get' || method === 'delete';
+
+   return {
+      title: getToolTitle(tool),
+      readOnlyHint: readOnly,
+      destructiveHint: readOnly ? false : destructive,
+      idempotentHint: idempotent,
+      openWorldHint: false,
+   };
+}
+function withToolAnnotations(tools: EduBaseApiTool[]): EduBaseApiTool[] {
+   return tools.map((tool) => ({
+      ...tool,
+      annotations: {
+         ...inferToolAnnotations(tool),
+         ...(tool.annotations || {}),
+      },
+   }));
+}
+
 /* Tool definitions */
 export const EDUBASE_API_TOOLS = [
 	...EDUBASE_API_TOOLS_QUESTIONS,
@@ -53,4 +103,5 @@ export const EDUBASE_API_TOOLS = [
 	...EDUBASE_API_TOOLS_TAGS,
 	...EDUBASE_API_TOOLS_PERMISSIONS,
 	...EDUBASE_API_TOOLS_METRICS
-];
+] as EduBaseApiTool[];
+export const EDUBASE_API_TOOLS_ANNOTATED = withToolAnnotations(EDUBASE_API_TOOLS);

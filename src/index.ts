@@ -39,7 +39,7 @@ if (!SSE && !STREAMABLE_HTTP && EDUBASE_API_KEY.length == 0) {
 }
 
 /* Supported tools and prompts */
-import { EDUBASE_API_TOOLS } from "./tools.js";
+import { EDUBASE_API_TOOLS_ANNOTATED } from "./tools.js";
 import { EDUBASE_API_PROMPTS } from "./prompts.js";
 
 /* Create MCP server with appropriate EduBase configuration */
@@ -118,7 +118,16 @@ function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAu
 		/* Register prompts */
 		server.registerPrompt(prompt.name, {description: prompt.description, argsSchema: prompt.argsSchema}, prompt.handler);
 	});
-	server.registerTool('edubase_mcp_server_version', {description: 'Get the MCP server version (only use for debugging)'}, async (): Promise<CallToolResult> => {
+	server.registerTool('edubase_mcp_server_version', {
+		description: 'Get the MCP server version (only use for debugging)',
+		annotations: {
+			title: 'Get MCP Server Version',
+			readOnlyHint: true,
+			destructiveHint: false,
+			idempotentHint: true,
+			openWorldHint: false,
+		},
+	}, async (): Promise<CallToolResult> => {
 		/* Static response with server version, useful for testing connectivity and authentication */
 		return {
 			content: [{ type: 'text', text: VERSION }],
@@ -126,7 +135,16 @@ function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAu
 		};
 	});
 	if((!apiUrl && !EDUBASE_API_URL.match(/dockerhost/)) || (apiUrl && !apiUrl.match(/dockerhost/))) {
-		server.registerTool('edubase_mcp_server_api', {description: 'Get the MCP server API URL (only use for debugging)'}, async (): Promise<CallToolResult> => {
+		server.registerTool('edubase_mcp_server_api', {
+			description: 'Get the MCP server API URL (only use for debugging)',
+			annotations: {
+				title: 'Get MCP Server API URL',
+				readOnlyHint: true,
+				destructiveHint: false,
+				idempotentHint: true,
+				openWorldHint: false,
+			},
+		}, async (): Promise<CallToolResult> => {
 			/* Static response with server API URL, useful for testing connectivity and authentication */
 			return {
 				content: [{ type: 'text', text: apiUrl || EDUBASE_API_URL }],
@@ -134,9 +152,14 @@ function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAu
 			};
 		});
 	}
-	Object.values(EDUBASE_API_TOOLS).forEach((tool) => {
+	Object.values(EDUBASE_API_TOOLS_ANNOTATED).forEach((tool) => {
 		/* Register tools */
-		server.registerTool(tool.name, {description: tool.description, inputSchema: tool.inputSchema, outputSchema: tool.outputSchema}, async (args: any, ctx: any): Promise<CallToolResult> => {
+		server.registerTool(tool.name, {
+			description: tool.description,
+			inputSchema: tool.inputSchema as any,
+			outputSchema: tool.outputSchema as any,
+			annotations: tool.annotations,
+		}, async (args: any, ctx: any): Promise<CallToolResult> => {
 			try {
 				const name = tool.name;
 				/* Decompose request and check arguments */
