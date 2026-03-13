@@ -22,13 +22,15 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
 		description: "List owned and managed Quiz questions.",
 		inputSchema: z.object({
 			search: z.string().describe('search string to filter results'),
-			limit: z.number().describe('limit number of results (default: 16)'),
-			page: z.number().describe('page number (default: 1), not used in search mode!'),
+			limit: z.number().int().describe('limit number of results (default: 16)'),
+			page: z.number().int().describe('page number (default: 1), not used in search mode!'),
 		}).partial(),
-		outputSchema: z.array(z.object({
-			question: z.string().describe('question identification string'),
-			id: z.string().describe('external unique question identifier (if set for the question)').optional(),
-		})),
+		outputSchema: z.object({
+			questions: z.array(z.object({
+				question: z.string().describe('question identification string'),
+				id: z.string().nullable().optional().describe('external unique question identifier (if set for the question)'),
+			})),
+		}),
 	},
 
 	// GET /question - Check existing question
@@ -40,7 +42,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
 		}),
 		outputSchema: z.object({
 			question: z.string().describe('question identification string'),
-			id: z.string().describe('external unique question identifier (if set for the question)').optional(),
+			id: z.string().nullable().optional().describe('external unique question identifier (if set for the question)'),
 			active: z.boolean().describe('question is active'),
 		}),
 	},
@@ -909,7 +911,6 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
 			content: true,
 			answer: true,
 			ai: true,
-			language: true,
 		}),
 		outputSchema: z.object({
 			question: z.string().describe('question identification string'),
@@ -934,9 +935,9 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
 			id: z.string().describe('external unique question identifier'),
 		}),
 		outputSchema: z.object({
-			id: z.string().describe('external unique question identifier'),
+			id: z.string().nullable().optional().describe('external unique question identifier (if set for the question)'),
 			question: z.string().describe('question identification string'),
-			url: z.string().describe('download link for the question'),
+			url: z.url().describe('download link for the question'),
 			valid: z.string().describe('date of link expiration'),
 		}),
 	},
@@ -950,7 +951,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
 		}),
 		outputSchema: z.object({
 			question: z.string().describe('question identification string'),
-			id: z.string().describe('external unique question identifier (if set for the question)').optional(),
+			id: z.string().nullable().optional().describe('external unique question identifier (if set for the question)'),
 		}),
 	},
 

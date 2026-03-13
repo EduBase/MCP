@@ -13,9 +13,9 @@ type TagEntityConfig = {
 	statusDescription: string;
 };
 const tagRelationContentSchema = (entity: TagEntityConfig) => z.object({
-	type: z.string().describe(`will be "${entity.contentType}"`),
+	type: z.literal(entity.contentType).describe(`will be "${entity.contentType}"`),
 	code: z.string().describe(entity.contentCodeDescription),
-	id: z.string().describe(entity.contentIdDescription),
+	id: z.string().nullable().describe(entity.contentIdDescription),
 });
 const createEntityTagTools = (entity: TagEntityConfig) => [
 	{
@@ -24,11 +24,12 @@ const createEntityTagTools = (entity: TagEntityConfig) => [
 		inputSchema: z.object({
 			[entity.key]: z.string().describe(entity.paramDescription),
 		}),
-		outputSchema: z.array(z.object({
-			tag: z.string().describe('tag identification string'),
-			id: z.string().describe('external unique tag identifier (if set for the tag)'),
-			name: z.string().describe('title of the tag'),
-		})),
+		outputSchema: z.object({
+			tags: z.array(z.object({
+				tag: z.string().describe('tag identification string'),
+				name: z.string().describe('title of the tag'),
+			})),
+		}),
 	},
 	{
 		name: `edubase_get_${entity.key}_tag`,
@@ -63,7 +64,11 @@ const createEntityTagTools = (entity: TagEntityConfig) => [
 			[entity.key]: z.string().describe(entity.paramDescription),
 			tag: z.string().describe('tag identification string'),
 		}),
-		outputSchema: z.object({}).optional(),
+		outputSchema: z.object({
+			tag: z.string().describe('the tag identification string'),
+			content: tagRelationContentSchema(entity),
+			success: z.boolean().describe('operation was successful'),
+		}),
 	},
 ];
 const TAG_ENTITIES: TagEntityConfig[] = [
@@ -185,14 +190,16 @@ export const EDUBASE_API_TOOLS_TAGS = [
 		description: 'List owned and managed tags.',
 		inputSchema: z.object({
 			search: z.string().describe('search string to filter results').optional(),
-			limit: z.number().describe('limit number of results (default: 16)').optional(),
-			page: z.number().describe('page number (default: 1), not used in search mode!').optional(),
+			limit: z.number().int().describe('limit number of results (default: 16)').optional(),
+			page: z.number().int().describe('page number (default: 1), not used in search mode!').optional(),
 		}),
-		outputSchema: z.array(z.object({
-			code: z.string().describe('tag identification string'),
-			id: z.string().describe('external unique tag identifier (if set for the tag)'),
-			name: z.string().describe('title of the tag'),
-		})),
+		outputSchema: z.object({
+			tags: z.array(z.object({
+				tag: z.string().describe('tag identification string'),
+				id: z.string().nullable().optional().describe('external unique tag identifier (if set for the tag)'),
+				name: z.string().describe('title of the tag'),
+			})),
+		}),
 	},
 
 	// GET /tag - Get/check tag
@@ -204,7 +211,7 @@ export const EDUBASE_API_TOOLS_TAGS = [
 		}),
 		outputSchema: z.object({
 			tag: z.string().describe('tag identification string'),
-			id: z.string().describe('external unique tag identifier (if set for the tag)'),
+			id: z.string().nullable().optional().describe('external unique tag identifier (if set for the tag)'),
 			name: z.string().describe('title of the tag'),
 			color: z.string().describe('color in HEX format'),
 			icon: z.string().describe('Font Awesome icon class name'),

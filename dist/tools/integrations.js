@@ -6,14 +6,16 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
         description: "List owned and managed integrations.",
         inputSchema: z.object({
             search: z.string().optional().describe('search string to filter results'),
-            limit: z.number().optional().describe('limit number of results (default: 16)'),
-            page: z.number().optional().describe('page number (default: 1), not used in search mode!'),
+            limit: z.number().int().optional().describe('limit number of results (default: 16)'),
+            page: z.number().int().optional().describe('page number (default: 1), not used in search mode!'),
         }),
-        outputSchema: z.array(z.object({
-            integration: z.string().describe('integration identification string'),
-            id: z.string().optional().describe('external unique integration identifier (if set for the integration)'),
-            name: z.string().describe('title of the integration'),
-        })),
+        outputSchema: z.object({
+            integrations: z.array(z.object({
+                integration: z.string().describe('integration identification string'),
+                id: z.string().nullable().optional().describe('external unique integration identifier (if set for the integration)'),
+                name: z.string().describe('title of the integration'),
+            })),
+        }),
     },
     // GET /integration - Get/check integration
     {
@@ -24,11 +26,11 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
         }),
         outputSchema: z.object({
             integration: z.string().describe('integration identification string'),
-            id: z.string().optional().describe('external unique integration identifier (if set for the integration)'),
+            id: z.string().nullable().optional().describe('external unique integration identifier (if set for the integration)'),
             name: z.string().describe('title of the integration'),
-            type: z.string().describe('type of the integration'),
+            type: z.enum(['api', 'moodle', 'canvas', 'd2l', 'schoology', 'lms']).describe('type of the integration'),
             active: z.boolean().describe('integration is active'),
-            lti: z.string().describe('LTI version, only present if the integration is an LMS').optional(),
+            lti: z.boolean().describe('LTI version, only present if the integration is an LMS').optional(),
         }),
     },
     // POST /integration - Create a new API or LMS integration
@@ -38,11 +40,30 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
         inputSchema: z.object({
             title: z.string().describe('title of the integration'),
             description: z.string().optional().describe('optional short description'),
-            type: z.string().optional().describe('type of the integration (api / moodle / canvas / d2l / schoology / lms)'),
-            lti: z.string().optional().describe('LTI version (1.0/1.1 / 1.3), only necessary for LMS integrations!'),
+            type: z.enum(['api', 'moodle', 'canvas', 'd2l', 'schoology', 'lms']).optional().describe('type of the integration (default: api)'),
+            lti: z.enum(['1.0/1.1', '1.3']).optional().describe('LTI version, required for LMS integrations'),
             platform: z.string().optional().describe('LMS platform URL, only necessary for LMS integrations!'),
+        }).superRefine((data, ctx) => {
+            if (data.type && data.type !== 'api') {
+                if (!data.lti) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'lti is required for LMS integrations',
+                        path: ['lti'],
+                    });
+                }
+                if (!data.platform) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'platform is required for LMS integrations',
+                        path: ['platform'],
+                    });
+                }
+            }
         }),
-        outputSchema: z.object({}).optional(),
+        outputSchema: z.object({
+            integration: z.string().describe('integration identification string'),
+        }),
     },
     // PATCH /integration - Update integration
     {

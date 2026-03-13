@@ -6,14 +6,16 @@ export const EDUBASE_API_TOOLS_QUIZES = [
         description: 'List owned and managed Quiz sets. Quiz sets are named collections of questions that sit at the middle level of the EduBase Quiz hierarchy.',
         inputSchema: z.object({
             search: z.string().describe('search string to filter results').optional(),
-            limit: z.number().describe('limit number of results (default: 16)').optional(),
-            page: z.number().describe('page number (default: 1), not used in search mode!').optional(),
+            limit: z.number().int().describe('limit number of results (default: 16)').optional(),
+            page: z.number().int().describe('page number (default: 1), not used in search mode!').optional(),
         }),
-        outputSchema: z.array(z.object({
-            quiz: z.string().describe('Quiz identification string'),
-            id: z.string().describe('external unique Quiz identifier (if set for the Quiz)').optional(),
-            name: z.string().describe('title of the Quiz set'),
-        })),
+        outputSchema: z.object({
+            quizes: z.array(z.object({
+                quiz: z.string().describe('Quiz identification string'),
+                id: z.string().nullable().optional().describe('external unique Quiz identifier (if set for the Quiz)'),
+                name: z.string().describe('title of the Quiz set'),
+            })),
+        }),
     },
     // GET /quiz - Get/check Quiz set
     {
@@ -24,7 +26,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
         }),
         outputSchema: z.object({
             quiz: z.string().describe('Quiz identification string'),
-            id: z.string().describe('external unique Quiz identifier (if set for the Quiz)').optional(),
+            id: z.string().nullable().optional().describe('external unique Quiz identifier (if set for the Quiz)'),
             name: z.string().describe('title of the Quiz set'),
         }),
     },
@@ -35,10 +37,12 @@ export const EDUBASE_API_TOOLS_QUIZES = [
         inputSchema: z.object({
             language: z.string().describe('desired Quiz set language').optional(),
             title: z.string().describe('title of the Quiz set'),
-            id: z.string().describe('External unique Quiz identifier. Should be maximum 64 characters long!').optional(),
+            id: z.string().min(1).max(64).describe('External unique Quiz identifier. Should be maximum 64 characters long!').optional(),
             description: z.string().describe('short description').optional(),
-            mode: z.string().describe('Sets how questions are displayed during the Quiz. (default: TEST) - TEST: all questions are displayed at once, user can answer them in any order and switch between them - TURNS: questions are displayed one by one, only one question is visible at a time and the user must answer it before moving to the next question').optional(),
-            type: z.string().describe('Type of the Quiz set. (default: set) - set: for practice purposes - exam: for exam purposes - private: for private purposes (e.g testing)').optional(),
+            copy_settings: z.string().describe('optional Quiz set identification string to copy settings from').optional(),
+            copy_questions: z.string().describe('optional Quiz set identification string to copy questions from').optional(),
+            mode: z.enum(['TEST', 'TURNS']).describe('Sets how questions are displayed during the Quiz. (default: TEST) - TEST: all questions are displayed at once, user can answer them in any order and switch between them - TURNS: questions are displayed one by one, only one question is visible at a time and the user must answer it before moving to the next question').optional(),
+            type: z.enum(['set', 'exam', 'private']).describe('Type of the Quiz set. (default: set) - set: for practice purposes - exam: for exam purposes - private: for private purposes (e.g testing)').optional(),
         }),
         outputSchema: z.object({
             quiz: z.string().describe('Quiz identification string'),
@@ -60,18 +64,14 @@ export const EDUBASE_API_TOOLS_QUIZES = [
         inputSchema: z.object({
             quiz: z.string().describe('Quiz identification string'),
         }),
-        outputSchema: z.array(z.union([
-            z.object({
-                id: z.string().describe('external unique question identifier (if present)').optional(),
-                question: z.string().describe('question identification string (if question)'),
+        outputSchema: z.object({
+            items: z.array(z.object({
+                question: z.string().describe('question identification string (if question)').optional(),
+                id: z.string().describe('external unique question identifier (if question and present)').optional(),
+                group: z.string().describe('question group title (if group)').optional(),
                 active: z.boolean().describe('active item'),
-            }).strict(),
-            z.object({
-                id: z.string().describe('external unique question identifier (if present)').optional(),
-                group: z.string().describe('question group title (if group)'),
-                active: z.boolean().describe('active item'),
-            }).strict(),
-        ])),
+            })),
+        }),
     },
     // POST /quiz:questions - Assign question(s) to a Quiz set, or one of its question group
     {

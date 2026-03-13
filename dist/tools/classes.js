@@ -7,14 +7,16 @@ export const EDUBASE_API_TOOLS_CLASSES = [
         description: "List owned and managed classes.",
         inputSchema: z.object({
             search: z.string().optional().describe('search string to filter results'),
-            limit: z.number().optional().describe('limit number of results (default: 16)'),
-            page: z.number().optional().describe('page number (default: 1), not used in search mode!'),
+            limit: z.number().int().optional().describe('limit number of results (default: 16)'),
+            page: z.number().int().optional().describe('page number (default: 1), not used in search mode!'),
         }),
-        outputSchema: z.array(z.object({
-            class: z.string().describe('class identification string'),
-            id: z.string().optional().describe('external unique class identifier (if set for the class)'),
-            name: z.string().describe('title of the class'),
-        })),
+        outputSchema: z.object({
+            classes: z.array(z.object({
+                class: z.string().describe('class identification string'),
+                id: z.string().nullable().optional().describe('external unique class identifier (if set for the class)'),
+                name: z.string().describe('title of the class'),
+            })),
+        }),
     },
     // GET /class - Get/check class
     {
@@ -25,10 +27,10 @@ export const EDUBASE_API_TOOLS_CLASSES = [
         }),
         outputSchema: z.object({
             class: z.string().describe('class identification string'),
-            id: z.string().optional().describe('external unique class identifier (if set for the class)'),
+            id: z.string().nullable().optional().describe('external unique class identifier (if set for the class)'),
             name: z.string().describe('title of the class'),
-            start: z.string().optional().describe('start date and time (if set)'),
-            end: z.string().optional().describe('end date and time (if set)'),
+            start: z.string().nullable().optional().describe('start date and time (if set)'),
+            end: z.string().nullable().optional().describe('end date and time (if set)'),
         }),
     },
     // GET /class:assignments - List all assignments in a class
@@ -38,14 +40,16 @@ export const EDUBASE_API_TOOLS_CLASSES = [
         inputSchema: z.object({
             class: z.string().describe('class identification string'),
         }),
-        outputSchema: z.array(z.object({
-            assignment: z.string().describe('assignment identification string'),
-            name: z.string().describe('title of the assignment'),
-            link: z.string().describe('link to the assignment page'),
-            status: z.string().describe('assignment and submission state (INACTIVE, ACTIVE, STARTED, SUBMITTED, GRADED)'),
-            starts: z.string().describe('when the assignment submission starts'),
-            ends: z.string().describe('when the assignment submission ends'),
-        })),
+        outputSchema: z.object({
+            assignments: z.array(z.object({
+                assignment: z.string().describe('assignment identification string'),
+                name: z.string().describe('title of the assignment'),
+                link: z.string().describe('link to the assignment page'),
+                status: z.enum(['INACTIVE', 'ACTIVE', 'STARTED', 'SUBMITTED', 'GRADED']).describe('assignment and submission state (INACTIVE, ACTIVE, STARTED, SUBMITTED, GRADED)'),
+                starts: z.string().describe('when the assignment submission starts'),
+                ends: z.string().describe('when the assignment submission ends'),
+            })),
+        }),
     },
     // GET /class:members - List all members in a class
     {
@@ -54,11 +58,13 @@ export const EDUBASE_API_TOOLS_CLASSES = [
         inputSchema: z.object({
             class: z.string().describe('class identification string'),
         }),
-        outputSchema: z.array(z.object({
-            user: z.string().describe('user identification string'),
-            name: z.string().describe('name of the member'),
-            active: z.boolean().describe('active membership (approved and not expired)'),
-        })),
+        outputSchema: z.object({
+            members: z.array(z.object({
+                user: z.string().describe('user identification string'),
+                name: z.string().describe('name of the member'),
+                active: z.boolean().describe('active membership (approved and not expired)'),
+            })),
+        }),
     },
     // POST /class:members - Assign user(s) to a class
     {
@@ -67,7 +73,7 @@ export const EDUBASE_API_TOOLS_CLASSES = [
         inputSchema: z.object({
             class: z.string().describe('class identification string'),
             users: z.string().describe('comma-separated list of user identification strings'),
-            expires: z.string().optional().describe('expiry in days or YYYY-MM-DD HH:ii:ss'),
+            expires: z.union([z.number().int(), z.string()]).optional().describe('expiry in days or YYYY-MM-DD HH:ii:ss'),
             notify: z.boolean().optional().describe('notify users (default: false)'),
         }),
         outputSchema: z.object({}).optional(),
@@ -89,7 +95,7 @@ export const EDUBASE_API_TOOLS_CLASSES = [
         inputSchema: z.object({
             classes: z.string().describe('comma-separated list of class identification strings'),
             users: z.string().describe('comma-separated list of user identification strings'),
-            expires: z.string().optional().describe('expiry in days or YYYY-MM-DD HH:ii:ss'),
+            expires: z.union([z.number().int(), z.string()]).optional().describe('expiry in days or YYYY-MM-DD HH:ii:ss'),
             notify: z.boolean().optional().describe('notify users (default: false)'),
         }),
         outputSchema: z.object({}).optional(),
@@ -101,13 +107,15 @@ export const EDUBASE_API_TOOLS_CLASSES = [
         inputSchema: z.object({
             user: z.string().describe('user identification string'),
         }),
-        outputSchema: z.array(z.object({
-            class: z.string().describe('class identification string'),
-            id: z.string().optional().describe('external unique class identifier (if set for the class)'),
-            name: z.string().describe('title of the class'),
-            link: z.string().describe('link to the class page'),
-            active: z.boolean().describe('active membership (approved and not expired)'),
-        })),
+        outputSchema: z.object({
+            classes: z.array(z.object({
+                class: z.string().describe('class identification string'),
+                id: z.string().nullable().optional().describe('external unique class identifier (if set for the class)'),
+                name: z.string().describe('title of the class'),
+                link: z.string().describe('link to the class page'),
+                active: z.boolean().describe('active membership (approved and not expired)'),
+            })),
+        }),
     },
     // POST /user:classes - Assign user to class(es)
     {
@@ -116,7 +124,7 @@ export const EDUBASE_API_TOOLS_CLASSES = [
         inputSchema: z.object({
             user: z.string().describe('user identification string'),
             classes: z.string().describe('comma-separated list of class identification strings'),
-            expires: z.string().optional().describe('expiry in days or YYYY-MM-DD HH:ii:ss'),
+            expires: z.union([z.number().int(), z.string()]).optional().describe('expiry in days or YYYY-MM-DD HH:ii:ss'),
             notify: z.boolean().optional().describe('notify user (default: false)'),
         }),
         outputSchema: z.object({}).optional(),

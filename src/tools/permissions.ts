@@ -2,6 +2,7 @@ import * as z from 'zod/v4';
 
 type PermissionEntityConfig = {
 	key: string;
+	permissionValues: [string, ...string[]];
 	permissionLevels: string;
 	contentType: string;
 	inputIdDescription: string;
@@ -16,6 +17,7 @@ type PermissionEntityConfig = {
 const PERMISSION_ENTITIES: PermissionEntityConfig[] = [
 	{
 		key: 'class',
+		permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
 		permissionLevels: 'view / report / control / modify / grant / admin',
 		contentType: 'class',
 		inputIdDescription: 'class identification string',
@@ -28,6 +30,7 @@ const PERMISSION_ENTITIES: PermissionEntityConfig[] = [
 	},
 	{
 		key: 'course',
+		permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
 		permissionLevels: 'view / report / control / modify / grant / admin',
 		contentType: 'course',
 		inputIdDescription: 'course identification string',
@@ -37,10 +40,11 @@ const PERMISSION_ENTITIES: PermissionEntityConfig[] = [
 		postDescription: 'Create new permission for a user on a course.',
 		deleteDescription: 'Remove a user permission from a course.',
 		transferDescription: 'Transfer course to user.',
-		transferToolName: 'edubase_delete_course_transfer',
+		transferToolName: 'edubase_post_course_transfer',
 	},
 	{
 		key: 'event',
+		permissionValues: ['view', 'report', 'control', 'modify', 'finances', 'grant', 'admin'],
 		permissionLevels: 'view / report / control / modify / finances / grant / admin',
 		contentType: 'event',
 		inputIdDescription: 'event identification string',
@@ -53,6 +57,7 @@ const PERMISSION_ENTITIES: PermissionEntityConfig[] = [
 	},
 	{
 		key: 'exam',
+		permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
 		permissionLevels: 'view / report / control / modify / grant / admin',
 		contentType: 'exam',
 		inputIdDescription: 'exam identification string',
@@ -65,6 +70,7 @@ const PERMISSION_ENTITIES: PermissionEntityConfig[] = [
 	},
 	{
 		key: 'integration',
+		permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
 		permissionLevels: 'view / report / control / modify / grant / admin',
 		contentType: 'integration',
 		inputIdDescription: 'integration identification string',
@@ -77,6 +83,7 @@ const PERMISSION_ENTITIES: PermissionEntityConfig[] = [
 	},
 	{
 		key: 'organization',
+		permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
 		permissionLevels: 'view / report / control / modify / grant / admin',
 		contentType: 'organization',
 		inputIdDescription: 'organization identification string',
@@ -89,6 +96,7 @@ const PERMISSION_ENTITIES: PermissionEntityConfig[] = [
 	},
 	{
 		key: 'quiz',
+		permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
 		permissionLevels: 'view / report / control / modify / grant / admin',
 		contentType: 'quiz',
 		inputIdDescription: 'Quiz identification string',
@@ -101,6 +109,7 @@ const PERMISSION_ENTITIES: PermissionEntityConfig[] = [
 	},
 	{
 		key: 'scorm',
+		permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
 		permissionLevels: 'view / report / control / modify / grant / admin',
 		contentType: 'scorm',
 		inputIdDescription: 'SCORM identification string',
@@ -113,6 +122,7 @@ const PERMISSION_ENTITIES: PermissionEntityConfig[] = [
 	},
 	{
 		key: 'tag',
+		permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
 		permissionLevels: 'view / report / control / modify / grant / admin',
 		contentType: 'tag',
 		inputIdDescription: 'tag identification string',
@@ -125,6 +135,7 @@ const PERMISSION_ENTITIES: PermissionEntityConfig[] = [
 	},
 	{
 		key: 'video',
+		permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
 		permissionLevels: 'view / report / control / modify / grant / admin',
 		contentType: 'video',
 		inputIdDescription: 'video identification string',
@@ -137,9 +148,9 @@ const PERMISSION_ENTITIES: PermissionEntityConfig[] = [
 	},
 ];
 const createPermissionContentSchema = (entity: PermissionEntityConfig) => z.object({
-	type: z.string().describe(`will be "${entity.contentType}"`),
+	type: z.literal(entity.contentType).describe(`will be "${entity.contentType}"`),
 	code: z.string().describe(entity.contentCodeDescription),
-	id: z.string().optional().describe(entity.contentIdDescription),
+	id: z.string().nullable().optional().describe(entity.contentIdDescription),
 });
 const createPermissionTools = (entity: PermissionEntityConfig) => {
 	const permissionDescription = `permission level (${entity.permissionLevels})`;
@@ -164,7 +175,7 @@ const createPermissionTools = (entity: PermissionEntityConfig) => {
 			inputSchema: z.object({
 				[entity.key]: z.string().describe(entity.inputIdDescription),
 				user: z.string().describe('user identification string'),
-				permission: z.string().describe(permissionDescription),
+				permission: z.enum(entity.permissionValues).describe(permissionDescription),
 			}),
 			outputSchema: checkOutputSchema,
 		},
@@ -174,7 +185,7 @@ const createPermissionTools = (entity: PermissionEntityConfig) => {
 			inputSchema: z.object({
 				[entity.key]: z.string().describe(entity.inputIdDescription),
 				user: z.string().describe('user identification string'),
-				permission: z.string().describe(permissionDescription),
+				permission: z.enum(entity.permissionValues).describe(permissionDescription),
 			}),
 			outputSchema: actionOutputSchema,
 		},
@@ -184,7 +195,7 @@ const createPermissionTools = (entity: PermissionEntityConfig) => {
 			inputSchema: z.object({
 				[entity.key]: z.string().describe(entity.inputIdDescription),
 				user: z.string().describe('user identification string'),
-				permission: z.string().describe(permissionDescription),
+				permission: z.enum(entity.permissionValues).describe(permissionDescription),
 			}),
 			outputSchema: actionOutputSchema,
 		},

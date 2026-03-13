@@ -94,10 +94,16 @@ function createMcpServer(apiUrl = null, authentication = null) {
     const server = new McpServer({
         name: '@edubase/mcp',
         version: VERSION,
+        icons: [{ src: 'https://static.edubase.net/media/brand/favicon/favicon.svg', sizes: ['any'], mimeType: 'image/svg+xml' }],
+        websiteUrl: 'https://github.com/EduBase/MCP'
     }, {
         capabilities: {
-            prompts: {},
-            tools: {},
+            prompts: {
+                listChanged: true
+            },
+            tools: {
+                listChanged: true
+            },
         },
     });
     /* Configure request handlers */
@@ -112,13 +118,15 @@ function createMcpServer(apiUrl = null, authentication = null) {
             isError: false,
         };
     });
-    server.registerTool('edubase_mcp_server_api', { description: 'Get the MCP server API URL (only use for debugging)' }, async () => {
-        /* Static response with server API URL, useful for testing connectivity and authentication */
-        return {
-            content: [{ type: 'text', text: apiUrl || EDUBASE_API_URL }],
-            isError: false,
-        };
-    });
+    if ((!apiUrl && !EDUBASE_API_URL.match(/dockerhost/)) || (apiUrl && !apiUrl.match(/dockerhost/))) {
+        server.registerTool('edubase_mcp_server_api', { description: 'Get the MCP server API URL (only use for debugging)' }, async () => {
+            /* Static response with server API URL, useful for testing connectivity and authentication */
+            return {
+                content: [{ type: 'text', text: apiUrl || EDUBASE_API_URL }],
+                isError: false,
+            };
+        });
+    }
     Object.values(EDUBASE_API_TOOLS).forEach((tool) => {
         /* Register tools */
         server.registerTool(tool.name, { description: tool.description, inputSchema: tool.inputSchema, outputSchema: tool.outputSchema }, async (args, ctx) => {
@@ -135,19 +143,27 @@ function createMcpServer(apiUrl = null, authentication = null) {
                 const [, method, ...endpoint] = name.split('_');
                 const response = await sendEduBaseApiRequest(method, (apiUrl || EDUBASE_API_URL) + '/' + endpoint.join(':'), args, authentication);
                 /* Return response */
-                if (response.length == 0 || tool.outputSchema === z.object({}).optional()) {
+                if (response.length == 0) {
                     /* Endpoint without response */
                     return {
                         content: [{ type: 'text', text: 'Success.' }],
                         isError: false,
                     };
                 }
+                else if (z.object({}).strict().safeParse(tool.outputSchema).success) {
+                    /* Endpoint with empty output schema */
+                    return {
+                        content: [{ type: 'text', text: 'Success.' }],
+                        structuredContent: {},
+                        isError: false,
+                    };
+                }
                 else if (typeof response != 'object') {
-                    /* Response should be an object at this point */
+                    /* Response should be an object (hash or list) at this point */
                     throw new Error('Invalid response');
                 }
                 else {
-                    /* Return response with schema */
+                    /* Return response (schema will be validated automatically) */
                     return {
                         content: [{ type: 'text', text: JSON.stringify(response) }],
                         structuredContent: response,
@@ -326,20 +342,8 @@ if (STREAMABLE_HTTP) {
         }
     });
     app.get('/mcp', async (req, res) => {
-        /* Handle GET requests */
-        const sessionId = req.headers['mcp-session-id'];
-        if (!sessionId || !transports[sessionId]) {
-            res.status(400).send('Invalid session ID');
-            return;
-        }
-        try {
-            const transport = transports[sessionId];
-            await transport.handleRequest(req, res);
-        }
-        catch (error) {
-            console.error("Error handling GET request for session (" + sessionId + "): " + error);
-            res.status(500).send();
-        }
+        /* GET requests should not be supported in stateless mode according to specification */
+        res.status(405).set('Allow', 'POST').send('Method Not Allowed');
     });
     app.delete('/mcp', async (req, res) => {
         /* Handle DELETE requests */

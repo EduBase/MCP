@@ -5,10 +5,10 @@ export const EDUBASE_API_PROMPTS_QUESTIONS = [
     {
         name: 'edubase_prompt_create_question',
         description: 'Create a new question with the given subject and content.',
-        argsSchema: z.object({
+        argsSchema: {
             type: z.string().describe('The type of the question, use the EduBase question types!'),
             subject: z.string().describe('The subject of the question, e.g. "Mathematics", "History", etc.')
-        }),
+        },
         handler: async (args) => {
             return {
                 messages: [{

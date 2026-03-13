@@ -7,14 +7,16 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 		description: "List owned and managed organizations.",
 		inputSchema: z.object({
 			search: z.string().optional().describe('search string to filter results'),
-			limit: z.number().optional().describe('limit number of results (default: 16)'),
-			page: z.number().optional().describe('page number (default: 1), not used in search mode!'),
+			limit: z.number().int().optional().describe('limit number of results (default: 16)'),
+			page: z.number().int().optional().describe('page number (default: 1), not used in search mode!'),
 		}),
-		outputSchema: z.array(z.object({
-			organization: z.string().describe('organization identification string'),
-			id: z.string().optional().describe('external unique organization identifier (if set for the organization)'),
-			name: z.string().describe('title of the organization'),
-		})),
+		outputSchema: z.object({
+			organizations: z.array(z.object({
+				organization: z.string().describe('organization identification string'),
+				id: z.string().nullable().optional().describe('external unique organization identifier (if set for the organization)'),
+				name: z.string().describe('title of the organization'),
+			})),
+		}),
 	},
 
 	// GET /organization - Get/check organization
@@ -26,7 +28,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 		}),
 		outputSchema: z.object({
 			organization: z.string().describe('organization identification string'),
-			id: z.string().optional().describe('external unique organization identifier (if set for the organization)'),
+			id: z.string().nullable().optional().describe('external unique organization identifier (if set for the organization)'),
 			name: z.string().describe('title of the organization'),
 		}),
 	},
@@ -39,8 +41,8 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 			name: z.string().describe('title of the organization'),
 			description: z.string().optional().describe('optional short description'),
 			domain: z.string().optional().describe('domain name (FQDN) for the organization without www prefix, needs special privileges to set!'),
-			website: z.string().optional().describe('homepage URL'),
-			email: z.string().optional().describe('contact email address'),
+			website: z.url().optional().describe('homepage URL'),
+			email: z.email().optional().describe('contact email address'),
 			phone: z.string().optional().describe('contact phone number'),
 		}),
 		outputSchema: z.object({
@@ -75,15 +77,17 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 		inputSchema: z.object({
 			organization: z.string().describe('organization identification string'),
 		}),
-		outputSchema: z.array(z.object({
-			user: z.string().describe('user identification string'),
-			name: z.string().describe('name of the member'),
-			department: z.string().optional().describe('name of the department (if member)'),
-			permission: z.array(z.object({
-				organization: z.string().describe('permission level to organization'),
-				content: z.string().describe('permission level to contents in organization'),
-			})).optional().describe('permissions'),
-		})),
+		outputSchema: z.object({
+			members: z.array(z.object({
+				user: z.string().describe('user identification string'),
+				name: z.string().describe('name of the member'),
+				department: z.string().nullable().optional().describe('name of the department (if member)'),
+				permission: z.object({
+					organization: z.string().describe('permission level to organization'),
+					content: z.string().describe('permission level to contents in organization'),
+				}).describe('permissions'),
+			})),
+		}),
 	},
 
 	// POST /organization:members - Assign user(s) to an organization
@@ -94,8 +98,8 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 			organization: z.string().describe('organization identification string'),
 			users: z.string().describe('comma-separated list of user identification strings'),
 			department: z.string().optional().describe('optional name of department'),
-			permission_organization: z.string().optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
-			permission_content: z.string().optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
+			permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
+			permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
 			notify: z.boolean().optional().describe('notify users (default: false)'),
 		}),
 		outputSchema: z.object({}).optional(),
@@ -120,8 +124,8 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 			organizations: z.string().describe('comma-separated list of organization identification strings'),
 			users: z.string().describe('comma-separated list of user identification strings'),
 			department: z.string().optional().describe('optional name of department'),
-			permission_organization: z.string().optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
-			permission_content: z.string().optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
+			permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
+			permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
 			notify: z.boolean().optional().describe('notify users (default: false)'),
 		}),
 		outputSchema: z.object({}).optional(),
@@ -134,17 +138,19 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 		inputSchema: z.object({
 			user: z.string().describe('user identification string'),
 		}),
-		outputSchema: z.array(z.object({
-			organization: z.string().describe('organization identification string'),
-			id: z.string().optional().describe('external unique organization identifier (if set for the organization)'),
-			name: z.string().describe('title of the organization'),
-			link: z.string().optional().describe('link to the organization manager page'),
-			department: z.string().optional().describe('name of the department (if member)'),
-			permission: z.array(z.object({
-				organization: z.string().describe('permission level to organization'),
-				content: z.string().describe('permission level to contents in organization'),
-			})).optional().describe('permissions'),
-		})),
+		outputSchema: z.object({
+			organizations: z.array(z.object({
+				organization: z.string().describe('organization identification string'),
+				id: z.string().nullable().optional().describe('external unique organization identifier (if set for the organization)'),
+				name: z.string().describe('title of the organization'),
+				link: z.string().describe('link to the organization manager page'),
+				department: z.string().nullable().optional().describe('name of the department (if member)'),
+				permission: z.object({
+					organization: z.string().describe('permission level to organization'),
+					content: z.string().describe('permission level to contents in organization'),
+				}).describe('permissions'),
+			})),
+		}),
 	},
 
 	// POST /user:organizations - Assign user to organization(s)
@@ -155,8 +161,8 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 			user: z.string().describe('user identification string'),
 			organizations: z.string().describe('comma-separated list of organization identification strings'),
 			department: z.string().optional().describe('optional name of department'),
-			permission_organization: z.string().optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
-			permission_content: z.string().optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
+			permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
+			permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
 			notify: z.boolean().optional().describe('notify user (default: false)'),
 		}),
 		outputSchema: z.object({}).optional(),
@@ -196,17 +202,17 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 		inputSchema: z.object({
 			organization: z.string().describe('organization identification string'),
 			name: z.string().describe('title of the webhook'),
-			trigger_event: z.string().describe('Type of event to trigger webhook: - exam-play-result: triggers when a user (must be member of the organization) completes an exam in the organization - quiz-play-result: triggers when a user (must be member of the organization) completes a quiz in practice mode in the organization - api: triggers when a manual API call is made (useful for testing and debugging)'),
-			endpoint: z.string().describe('URL to send webhook notifications to'),
-			method: z.string().optional().describe('HTTP method to use for webhook notifications (default: POST) - POST - GET'),
-			authentication: z.string().optional().describe('Type of authentication (default: none): - none: no authentication - key: use a secret key (or password) for authentication'),
-			authentication_send: z.string().optional().describe('How to send authentication data (default: data): - header: as header field - bearer: as Bearer token in Authorization header - data: as data field (in body or query string)'),
+			trigger_event: z.enum(['exam-play-result', 'quiz-play-result', 'api']).describe('Type of event to trigger webhook: - exam-play-result: triggers when a user (must be member of the organization) completes an exam in the organization - quiz-play-result: triggers when a user (must be member of the organization) completes a quiz in practice mode in the organization - api: triggers when a manual API call is made (useful for testing and debugging)'),
+			endpoint: z.url().describe('URL to send webhook notifications to'),
+			method: z.enum(['POST', 'GET']).optional().describe('HTTP method to use for webhook notifications (default: POST) - POST - GET'),
+			authentication: z.enum(['none', 'key']).optional().describe('Type of authentication (default: none): - none: no authentication - key: use a secret key (or password) for authentication'),
+			authentication_send: z.enum(['header', 'bearer', 'data']).optional().describe('How to send authentication data (default: data): - header: as header field - bearer: as Bearer token in Authorization header - data: as data field (in body or query string)'),
 			authentication_send_header: z.string().optional().describe('name of header field to send authentication data in, required if authentication is set to key and authentication_send is set to header'),
 			authentication_send_data: z.string().optional().describe('name of data field to send authentication data in, required if authentication is set to key and authentication_send is set to data'),
 			authentication_key: z.string().optional().describe('secret key (or password) to use for authentication, required if authentication is set to key'),
 			authentication_key_custom: z.string().optional().describe('custom field name to use as the authentication key, required if authentication is set to key, mutually exclusive with authentication_key'),
 			extra_data: z.string().optional().describe('additional data (as JSON encoded string) to send with the webhook notification'),
-			retry: z.string().optional().describe('How to retry webhook notifications on failure (default: error): - none: no retry - error: delayed retry on any error'),
+			retry: z.enum(['none', 'error']).optional().describe('How to retry webhook notifications on failure (default: error): - none: no retry - error: delayed retry on any error'),
 		}),
 		outputSchema: z.object({
 			organization: z.string().describe('organization identification string'),
