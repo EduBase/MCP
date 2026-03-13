@@ -1,5 +1,6 @@
-/* Prompt definitions */
-export const EDUBASE_API_PROMPTS: object = {}
+import { EDUBASE_API_PROMPTS_QUESTIONS } from "./prompts/questions.js";
 
-/* Prompt handler definitions */
-export const EDUBASE_API_PROMPTS_HANDLERS: object = {}
+/* Prompt definitions */
+export const EDUBASE_API_PROMPTS: object = {
+    ...EDUBASE_API_PROMPTS_QUESTIONS,
+}

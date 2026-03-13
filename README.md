@@ -83,7 +83,28 @@ Add the following to your `claude_desktop_config.json`:
 
 #### Using Node.js
 
-Before running the MCP server, make sure you have **Node.js installed**. You can download it from [nodejs.org](https://nodejs.org/) or use a package manager like `brew`. Download EduBase MCP server release or clone the repository and run `npm run build` to build the server. Do not forget to adjust `/path/to/dist` to the actual directory and **configure the environmental variables**!
+Before running the MCP server, make sure you have **Node.js installed**. You can download it from [nodejs.org](https://nodejs.org/) or use a package manager like `brew`.
+
+```json
+{
+  "mcpServers": {
+    "edubase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@edubase/mcp"
+      ],
+      "env": {
+        "EDUBASE_API_URL": "https://domain.edubase.net/api",
+        "EDUBASE_API_APP": "your_integration_app_id",
+        "EDUBASE_API_KEY": "your_integration_secret_key"
+      }
+    }
+  }
+}
+```
+
+Or download EduBase MCP server release or clone the repository and run `npm run build` to build the server. Do not forget to adjust `/path/to/dist` to the actual directory and **configure the environmental variables**!
 
 ```json
 {

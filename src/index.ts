@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { CallToolRequest, CallToolRequestSchema, ListToolsRequestSchema, ListPromptsRequestSchema, GetPromptRequest, GetPromptRequestSchema, Tool, isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
+import { CallToolRequest, CallToolResult, isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { randomUUID } from "node:crypto";
 import queryString from "query-string";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
@@ -10,7 +10,12 @@ import { InMemoryEventStore } from '@modelcontextprotocol/sdk/examples/shared/in
 import express from "express";
 import { Request, Response } from "express";
 import bodyParser from "body-parser";
-import { getClientIp } from "./helpers.js";
+import { getClientIp, getHeaderValue } from "./helpers.js";
+import packageJson from '../package.json' with { type: "json" };
+import * as z from 'zod/v4';
+
+/* Version */
+const VERSION = packageJson.version;
 
 /* Enable SSE or Streamable HTTP mode */
 const SSE = ((process.env.EDUBASE_SSE_MODE || 'false') == 'true');
@@ -34,23 +39,146 @@ if (!SSE && !STREAMABLE_HTTP && EDUBASE_API_KEY.length == 0) {
 }
 
 /* Supported tools and prompts */
-import { EDUBASE_API_TOOLS, EDUBASE_API_TOOLS_OUTPUT_SCHEMA } from "./tools.js";
-import { EDUBASE_API_PROMPTS, EDUBASE_API_PROMPTS_HANDLERS } from "./prompts.js";
-import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
+import { EDUBASE_API_TOOLS } from "./tools.js";
+import { EDUBASE_API_PROMPTS } from "./prompts.js";
 
-/* Create MCP server */
-const server = new Server(
-	{
-		name: '@edubase/mcp',
-		version: '1.0.23',
-	},
-	{
-		capabilities: {
-			prompts: {},
-			tools: {},
+/* Create MCP server with appropriate EduBase configuration */
+function getEduBaseApiUrl(req: Request): string | null {
+	if (req.query?.config && typeof req.query.config == 'string') {
+		/* Use URL from Smithery configuration */
+		const smitheryConfig = JSON.parse(Buffer.from(req.query.config, 'base64').toString());
+		if (smitheryConfig.edubaseApiUrl && typeof smitheryConfig.edubaseApiUrl == 'string' && smitheryConfig.edubaseApiUrl.length > 0) {
+			return smitheryConfig.edubaseApiUrl;
+		}
+	}
+	return null;
+}
+function getEduBaseAuthentication(req: Request): EduBaseAuthentication | null {
+	let EDUBASE_API_APP: string | null = null;
+	let EDUBASE_API_KEY: string | null = null;
+	if (req.query?.config && typeof req.query.config == 'string') {
+		/* Use authentication from Smithery configuration */
+		const smitheryConfig = JSON.parse(Buffer.from(req.query.config, 'base64').toString());
+		if (smitheryConfig.edubaseApiApp && typeof smitheryConfig.edubaseApiApp == 'string' && smitheryConfig.edubaseApiApp.length > 0) {
+			EDUBASE_API_APP = smitheryConfig.edubaseApiApp;
+		}
+		if (smitheryConfig.edubaseApiKey && typeof smitheryConfig.edubaseApiKey == 'string' && smitheryConfig.edubaseApiKey.length > 0) {
+			EDUBASE_API_KEY = smitheryConfig.edubaseApiKey;
+		}
+	} else if (getHeaderValue(req, 'edubase-api-app') && getHeaderValue(req, 'edubase-api-secret')) {
+		/* Use authentication from request headers */
+		EDUBASE_API_APP = getHeaderValue(req, 'edubase-api-app');
+		EDUBASE_API_KEY = getHeaderValue(req, 'edubase-api-secret');
+	} else if (getHeaderValue(req, 'authorization') && getHeaderValue(req, 'authorization')!.startsWith('Bearer ')) {
+		/* Use authentication from Bearer token */
+		try {
+			/* Decode Bearer token */
+			const [ app, secret ] = atob(getHeaderValue(req, 'authorization')!.split(' ')[1]).split(':');
+			if (app && app.length > 0 && secret && secret.length > 0) {
+				EDUBASE_API_APP = app;
+				EDUBASE_API_KEY = secret;
+			}
+		} catch(error) {
+			/* Probably not encoded as base64 */
+			const [ app, secret ] = getHeaderValue(req, 'authorization')!.split(' ')[1].split(':');
+			if (app && app.length > 0 && secret && secret.length > 0) {
+				EDUBASE_API_APP = app;
+				EDUBASE_API_KEY = secret;
+			}
+		}
+	}
+	if(EDUBASE_API_APP && EDUBASE_API_KEY) {
+		return { app: EDUBASE_API_APP, secret: EDUBASE_API_KEY };
+	}
+	return null;
+}
+function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAuthentication | null = null) {
+	/* Create MCP server instance */
+	const server = new McpServer(
+		{
+			name: '@edubase/mcp',
+			version: VERSION,
 		},
-	},
-);
+		{
+			capabilities: {
+				prompts: {},
+				tools: {},
+			},
+		},
+	);
+
+	/* Configure request handlers */
+	Object.values(EDUBASE_API_PROMPTS).forEach((prompt) => {
+		/* Register prompts */
+		server.registerPrompt(prompt.name, {description: prompt.description, argsSchema: prompt.argsSchema}, prompt.handler);
+	});
+	server.registerTool('edubase_mcp_server_version', {description: 'Get the MCP server version (only use for debugging)'}, async (): Promise<CallToolResult> => {
+		/* Static response with server version, useful for testing connectivity and authentication */
+		return {
+			content: [{ type: 'text', text: VERSION }],
+			isError: false,
+		};
+	});
+	server.registerTool('edubase_mcp_server_api', {description: 'Get the MCP server API URL (only use for debugging)'}, async (): Promise<CallToolResult> => {
+		/* Static response with server API URL, useful for testing connectivity and authentication */
+		return {
+			content: [{ type: 'text', text: apiUrl || EDUBASE_API_URL }],
+			isError: false,
+		};
+	});
+	Object.values(EDUBASE_API_TOOLS).forEach((tool) => {
+		/* Register tools */
+		server.registerTool(tool.name, {description: tool.description, inputSchema: tool.inputSchema, outputSchema: tool.outputSchema}, async (args: any, ctx: any): Promise<CallToolResult> => {
+			try {
+				const name = tool.name;
+				/* Decompose request and check arguments */
+				if (!name.match(/^edubase_(get|post|delete)/)) {
+					throw new Error('Invalid tool configuration');
+				}
+				if (!args) {
+					throw new Error('No arguments provided');
+				}
+
+				/* Prepare and send API request */
+				const [ , method, ...endpoint ] = name.split('_');
+				const response = await sendEduBaseApiRequest(method, (apiUrl || EDUBASE_API_URL) + '/' + endpoint.join(':'), args, authentication);
+
+				/* Return response */
+				if (response.length == 0 || tool.outputSchema === z.object({}).optional()) {
+					/* Endpoint without response */
+					return {
+						content: [{ type: 'text', text: 'Success.' }],
+						isError: false,
+					};
+				}
+				else if (typeof response != 'object') {
+					/* Response should be an object at this point */
+					throw new Error('Invalid response');
+				}
+				else
+				{
+					/* Return response with schema */
+					return {
+						content: [{ type: 'text', text: JSON.stringify(response) }],
+						structuredContent: response,
+						isError: false,
+					};
+				}
+			} catch (error) {
+				/* Request failed */
+				return {
+					content: [{
+						type: 'text',
+						text: `${error instanceof Error ? error.message : String(error)}`,
+					}],
+					isError: true,
+				};
+			}
+		});
+	});
+
+	return server;
+}
 
 /* EduBase API rate limits (via environment variables or configured defaults) */
 const EDUBASE_API_MAXRATE_DEFAULT = {
@@ -148,110 +276,6 @@ async function sendEduBaseApiRequest(method: string, endpoint: string, data: obj
 	}
 }
 
-/* Configure request handlers */
-type EduBaseOverrideConfiguration = { EDUBASE_API_URL: string | null; EDUBASE_API_APP: string | null; EDUBASE_API_KEY: string | null };
-server.setRequestHandler(ListPromptsRequestSchema, async () => ({
-	prompts: Object.values(EDUBASE_API_PROMPTS),
-}));
-server.setRequestHandler(GetPromptRequestSchema, (request: GetPromptRequest) => {
-	try {
-		/* Decompose request and check arguments */
-		const { name, arguments: args } = request.params;
-		const promptHandler = EDUBASE_API_PROMPTS_HANDLERS[name as keyof typeof EDUBASE_API_PROMPTS_HANDLERS];
-		if (!promptHandler) {
-			throw new Error('Prompt not found');
-		}
-
-		/* Return prompt response */
-		return promptHandler;
-	} catch (error) {
-		/* Request failed */
-		return {};
-	}
-});
-server.setRequestHandler(ListToolsRequestSchema, async () => ({
-	tools: EDUBASE_API_TOOLS,
-}));
-server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
-	try {
-		/* Decompose request and check arguments */
-		const { name, arguments: args } = request.params;
-		if (!name.match(/^edubase_(get|post|delete)/)) {
-			throw new Error('Invalid tool configuration');
-		}
-		if (!args) {
-			throw new Error('No arguments provided');
-		}
-		const meta: any = request.params._meta || {};
-
-		/* Prepare authentication */
-		let authentication: EduBaseAuthentication | null = null;
-		if (meta && meta.override && meta.override.EDUBASE_API_APP && meta.override.EDUBASE_API_KEY) {
-			/* Use authentication from custom configuration */
-			authentication = {
-				app: meta.override.EDUBASE_API_APP,
-				secret: meta.override.EDUBASE_API_KEY
-			};
-		} else if (meta && meta.headers && meta.headers['edubase-api-app'] && meta.headers['edubase-api-secret']) {
-			/* Use authentication from request headers */
-			authentication = {
-				app: meta.headers['edubase-api-app'],
-				secret: meta.headers['edubase-api-secret']
-			};
-		} else if (meta && meta.headers && meta.headers['authorization'] && meta.headers['authorization'].startsWith('Bearer ')) {
-			/* Use authentication from Bearer token */
-			try {
-				/* Decode Bearer token */
-				const [ app, secret ] = atob(meta.headers['authorization'].split(' ')[1]).split(':');
-				if (app && app.length > 0 && secret && secret.length > 0) {
-					authentication = { app, secret };
-				}
-			} catch(error) {
-				/* Probably not encoded as base64 */
-				const [ app, secret ] = meta.headers['authorization'].split(' ')[1].split(':');
-				if (app && app.length > 0 && secret && secret.length > 0) {
-					authentication = { app, secret };
-				}
-			}
-		}
-
-		/* Prepare and send API request */
-		const [ , method, ...endpoint ] = name.split('_');
-		const response = await sendEduBaseApiRequest(method, (meta?.override?.EDUBASE_API_URL || EDUBASE_API_URL) + '/' + endpoint.join(':'), args, authentication);
-
-		/* Return response */
-		const outputSchemaKey = name as keyof typeof EDUBASE_API_TOOLS_OUTPUT_SCHEMA;
-		if (typeof EDUBASE_API_TOOLS_OUTPUT_SCHEMA[outputSchemaKey] == 'object' && Object.keys(EDUBASE_API_TOOLS_OUTPUT_SCHEMA[outputSchemaKey]).length == 0 && typeof response == 'string' && response.length == 0) {
-			/* Endpoint without response */
-			return {
-				content: [{ type: 'text', text: 'Success.' }],
-				isError: false,
-			};
-		}
-		else if (typeof response != 'object') {
-			/* Response should be an object at this point */
-			throw new Error('Invalid response');
-		}
-		else
-		{
-			/* Return response with optional schema */
-			return {
-				content: [{ type: 'text', text: "Response: " + JSON.stringify(response) + (Object.keys(EDUBASE_API_TOOLS_OUTPUT_SCHEMA[outputSchemaKey]).length > 0 ? "\nResponse schema: " + JSON.stringify(EDUBASE_API_TOOLS_OUTPUT_SCHEMA[outputSchemaKey]) : '') }],
-				isError: false,
-			};
-		}
-	} catch (error) {
-		/* Request failed */
-		return {
-			content: [{
-				type: 'text',
-				text: `${error instanceof Error ? error.message : String(error)}`,
-			}],
-			isError: true,
-		};
-	}
-});
-
 /* Start MCP server */
 if (STREAMABLE_HTTP) {
 	/* Using HTTP with Streamable HTTP transport */
@@ -281,6 +305,7 @@ if (STREAMABLE_HTTP) {
 					delete transports[transport.sessionId];
 				}
 			};
+			const server = createMcpServer(getEduBaseApiUrl(req), getEduBaseAuthentication(req));
 			await server.connect(transport);
 		} else {
 			console.error("No session found for request");
@@ -288,6 +313,7 @@ if (STREAMABLE_HTTP) {
 			return;
 		}
 		try {
+			type EduBaseOverrideConfiguration = { EDUBASE_API_URL: string | null; EDUBASE_API_APP: string | null; EDUBASE_API_KEY: string | null };
 			let override: EduBaseOverrideConfiguration = { EDUBASE_API_URL: null, EDUBASE_API_APP: null, EDUBASE_API_KEY: null };
 			if (req.query?.config && typeof req.query.config == 'string') {
 				/* Apply Smithery configuration */
@@ -355,7 +381,6 @@ if (STREAMABLE_HTTP) {
 	process.on('SIGTERM', () => {
 		/* Graceful shutdown */
 		console.error("Received SIGTERM, shutting down EduBase MCP server...");
-		server.close();
 	});
 } else if (SSE) {
 	/* Using HTTP with SSE transport */
@@ -363,14 +388,15 @@ if (STREAMABLE_HTTP) {
 	app.use(bodyParser.json());
 	app.disable('x-powered-by');
 	const transports: { [sessionId: string]: SSEServerTransport } = {};
-	app.get('/sse', async (_: Request, res: Response) => {
-		/* Handle SSE sessions */
+	app.get('/sse', async (req: Request, res: Response) => {
+		/* Handle SSE sessions (but prefer Streamable HTTP) */
 		const transport = new SSEServerTransport('/messages', res);
 		transports[transport.sessionId] = transport;
 		res.on('close', () => {
 			delete transports[transport.sessionId];
 		});
 		try {
+			const server = createMcpServer(getEduBaseApiUrl(req), getEduBaseAuthentication(req));
 			await server.connect(transport);
 		} catch (error) {
 			console.error("Error connecting transport to MCP server for session (" + transport.sessionId + "): " + error);
@@ -382,6 +408,7 @@ if (STREAMABLE_HTTP) {
 		const transport = transports[sessionId] ?? Object.values(transports)[0];
 		if (transport) {
 			try {
+				type EduBaseOverrideConfiguration = { EDUBASE_API_URL: string | null; EDUBASE_API_APP: string | null; EDUBASE_API_KEY: string | null };
 				let override: EduBaseOverrideConfiguration = { EDUBASE_API_URL: null, EDUBASE_API_APP: null, EDUBASE_API_KEY: null };
 				if (req.query?.config && typeof req.query.config == 'string') {
 					/* Apply Smithery configuration */
@@ -423,12 +450,12 @@ if (STREAMABLE_HTTP) {
 	process.on('SIGTERM', () => {
 		/* Graceful shutdown */
 		console.error("Received SIGTERM, shutting down EduBase MCP server...");
-		server.close();
 	});
 } else {
 	/* Using stdio transport */
 	async function runMcpServer() {
 		const transport = new StdioServerTransport();
+		const server = createMcpServer();
 		await server.connect(transport);
 		console.error("EduBase MCP server is now listening on standard input/output");
 	}

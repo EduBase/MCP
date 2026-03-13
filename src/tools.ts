@@ -1,4 +1,14 @@
-import { Tool } from "@modelcontextprotocol/sdk/types.js";
+import { EDUBASE_API_TOOLS_QUESTIONS } from "./tools/questions.js";
+import { EDUBASE_API_TOOLS_EXAMS } from "./tools/exams.js";
+import { EDUBASE_API_TOOLS_QUIZES } from "./tools/quizes.js";
+import { EDUBASE_API_TOOLS_PLAYS } from "./tools/plays.js";
+import { EDUBASE_API_TOOLS_USERS } from "./tools/users.js";
+import { EDUBASE_API_TOOLS_CLASSES } from "./tools/classes.js";
+import { EDUBASE_API_TOOLS_ORGANIZATIONS } from "./tools/organizations.js";
+import { EDUBASE_API_TOOLS_INTEGRATIONS } from "./tools/integrations.js";
+import { EDUBASE_API_TOOLS_TAGS } from "./tools/tags.js";
+import { EDUBASE_API_TOOLS_PERMISSIONS } from "./tools/permissions.js";
+import { EDUBASE_API_TOOLS_METRICS } from "./tools/metrics.js";
 
 /*
 # EduBase Quiz Hierarchical Structure
@@ -30,20 +40,8 @@ The relationship is strictly hierarchical: Exams contain Quiz sets, which contai
 When generating content for EduBase, maintain awareness of which level you're operating at and respect the constraints of each level in the hierarchy.
 */
 
-import { EDUBASE_API_TOOLS_QUESTIONS, EDUBASE_API_TOOLS_QUESTIONS_OUTPUT_SCHEMA } from "./tools/questions.js";
-import { EDUBASE_API_TOOLS_EXAMS, EDUBASE_API_TOOLS_EXAMS_OUTPUT_SCHEMA } from "./tools/exams.js";
-import { EDUBASE_API_TOOLS_QUIZES, EDUBASE_API_TOOLS_QUIZES_OUTPUT_SCHEMA } from "./tools/quizes.js";
-import { EDUBASE_API_TOOLS_PLAYS, EDUBASE_API_TOOLS_PLAYS_OUTPUT_SCHEMA } from "./tools/plays.js";
-import { EDUBASE_API_TOOLS_USERS, EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA } from "./tools/users.js";
-import { EDUBASE_API_TOOLS_CLASSES, EDUBASE_API_TOOLS_CLASSES_OUTPUT_SCHEMA } from "./tools/classes.js";
-import { EDUBASE_API_TOOLS_ORGANIZATIONS, EDUBASE_API_TOOLS_ORGANIZATIONS_OUTPUT_SCHEMA } from "./tools/organizations.js";
-import { EDUBASE_API_TOOLS_INTEGRATIONS, EDUBASE_API_TOOLS_INTEGRATIONS_OUTPUT_SCHEMA } from "./tools/integrations.js";
-import { EDUBASE_API_TOOLS_TAGS, EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA } from "./tools/tags.js";
-import { EDUBASE_API_TOOLS_PERMISSIONS, EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA } from "./tools/permissions.js";
-import { EDUBASE_API_TOOLS_METRICS, EDUBASE_API_TOOLS_METRICS_OUTPUT_SCHEMA } from "./tools/metrics.js";
-
 /* Tool definitions */
-export const EDUBASE_API_TOOLS: Tool[] = [
+export const EDUBASE_API_TOOLS = [
 	...EDUBASE_API_TOOLS_QUESTIONS,
 	...EDUBASE_API_TOOLS_EXAMS,
 	...EDUBASE_API_TOOLS_PLAYS,
@@ -56,18 +54,3 @@ export const EDUBASE_API_TOOLS: Tool[] = [
 	...EDUBASE_API_TOOLS_PERMISSIONS,
 	...EDUBASE_API_TOOLS_METRICS
 ];
-
-/* Output schema definitions */
-export const EDUBASE_API_TOOLS_OUTPUT_SCHEMA: object = {
-	...EDUBASE_API_TOOLS_QUESTIONS_OUTPUT_SCHEMA,
-	...EDUBASE_API_TOOLS_EXAMS_OUTPUT_SCHEMA,
-	...EDUBASE_API_TOOLS_QUIZES_OUTPUT_SCHEMA,
-	...EDUBASE_API_TOOLS_PLAYS_OUTPUT_SCHEMA,
-	...EDUBASE_API_TOOLS_USERS_OUTPUT_SCHEMA,
-	...EDUBASE_API_TOOLS_CLASSES_OUTPUT_SCHEMA,
-	...EDUBASE_API_TOOLS_ORGANIZATIONS_OUTPUT_SCHEMA,
-	...EDUBASE_API_TOOLS_INTEGRATIONS_OUTPUT_SCHEMA,
-	...EDUBASE_API_TOOLS_TAGS_OUTPUT_SCHEMA,
-	...EDUBASE_API_TOOLS_PERMISSIONS_OUTPUT_SCHEMA,
-	...EDUBASE_API_TOOLS_METRICS_OUTPUT_SCHEMA
-};
