@@ -57,7 +57,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
             title: z.string().describe('title of the exam'),
             id: z.string().describe('External unique exam identifier. Should be maximum 64 characters long!'),
             type: z.string().describe('Type of the exam. (default: exam) - exam: regular exam - championship: exam with championship features enabled - homework: homework assignment, can be paused and continued during the exam period - survey: survey (optionally anonymous) with no grading'),
-            quiz: z.string().describe('the Quiz set (specified using the quiz identification string) the exam is attached to'),
+            quiz: z.string().describe('the Quiz set (specified using the Quiz identification string) the exam is attached to'),
             open: z.string().describe('exam start time (in YYYY-mm-dd HH:ii:ss format)'),
             close: z.string().describe('exam end time (in YYYY-mm-dd HH:ii:ss format)'),
         }).partial({ language: true, id: true, type: true }),
