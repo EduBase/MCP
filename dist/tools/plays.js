@@ -78,7 +78,7 @@ export const EDUBASE_API_TOOLS_PLAYS = [
     // GET /exam:results:raw - Get raw results for a specific exam
     {
         name: 'edubase_get_exam_results_raw',
-        description: 'Get raw results for a specific exam. Only use this if very detailed results are needed!\n- This endpoint returns raw results, including all answers given by the user. It is not meant to be displayed to the user.\n- This might require additional permissions.',
+        description: 'Get raw results for a specific exam. Only use this if very detailed results are needed! This endpoint returns raw results, including all answers given by the user. It is not meant to be displayed to the user. This might require additional permissions!',
         inputSchema: z.object({
             exam: z.string().describe('exam identification string'),
         }),
