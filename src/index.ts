@@ -10,9 +10,10 @@ import { InMemoryEventStore } from '@modelcontextprotocol/sdk/examples/shared/in
 import express from "express";
 import { Request, Response } from "express";
 import bodyParser from "body-parser";
-import { getClientIp, getHeaderValue } from "./helpers.js";
+import { getClientIp, getHeaderValue, getFileBuffer } from "./helpers.js";
 import packageJson from '../package.json' with { type: "json" };
 import * as z from 'zod/v4';
+import { FormData, request } from "undici";
 
 /* Version */
 const VERSION = packageJson.version;
@@ -119,7 +120,7 @@ function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAu
 		server.registerPrompt(prompt.name, {description: prompt.description, argsSchema: prompt.argsSchema}, prompt.handler);
 	});
 	server.registerTool('edubase_mcp_server_version', {
-		description: 'Get the MCP server version (only use for debugging)',
+		description: 'Get the MCP server version (only use for debugging).',
 		annotations: {
 			title: 'Get MCP Server Version',
 			readOnlyHint: true,
@@ -136,7 +137,7 @@ function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAu
 	});
 	if((!apiUrl && !EDUBASE_API_URL.match(/dockerhost/)) || (apiUrl && !apiUrl.match(/dockerhost/))) {
 		server.registerTool('edubase_mcp_server_api', {
-			description: 'Get the MCP server API URL (only use for debugging)',
+			description: 'Get the MCP server API URL (only use for debugging).',
 			annotations: {
 				title: 'Get MCP Server API URL',
 				readOnlyHint: true,
@@ -152,6 +153,53 @@ function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAu
 			};
 		});
 	}
+	server.registerTool('edubase_filebin', {
+		description: 'Upload a local file or a file from a URL to the EduBase temporary file storage with a link requested from the API in advance.',
+		inputSchema: z.object({
+			filebin: z.string().describe("valid EduBase temporary filebin URL"),
+			source: z.string().describe("file URL or local (absolute) file path on user computer"),
+			filename: z.string().describe("the original file name (including extension)"),
+		}),
+		outputSchema: z.object({}).optional(),
+		annotations: {
+			title: 'Upload file to EduBase temporary file storage',
+			readOnlyHint: false,
+			destructiveHint: false,
+			idempotentHint: false,
+			openWorldHint: false,
+		},
+	}, async ({ filebin, source, filename }: { filebin: string; source: string; filename: string }): Promise<CallToolResult> => {
+		try {
+			/* Get file content */
+			const fileResult = await getFileBuffer(source)
+			if (!fileResult.success) {
+				throw new Error(fileResult.error);
+			}
+
+			/* Upload file (as form) */
+			const form = new FormData()
+			const fileBlob = new Blob([new Uint8Array(fileResult.buffer)])
+			form.append('file', fileBlob, filename)
+			const uploadResponse = await request(filebin, {
+				method: 'POST',
+				body: form,
+			})
+			const text = await uploadResponse.body.text()
+			return {
+				content: [{ type: 'text', text: text }],
+				isError: false,
+			};
+		} catch (error) {
+			/* Request failed */
+			return {
+				content: [{
+					type: 'text',
+					text: `${error instanceof Error ? error.message : String(error)}. Use \`curl\` to upload the file manually. Example command: \`curl -s -X POST -F "file=@/path/to/file" -H "Content-Type: multipart/form-data" ${filebin}\``,
+				}],
+				isError: true,
+			};
+		}
+	});
 	Object.values(EDUBASE_API_TOOLS_ANNOTATED).forEach((tool) => {
 		/* Register tools */
 		server.registerTool(tool.name, {
@@ -175,18 +223,17 @@ function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAu
 				const response = await sendEduBaseApiRequest(method, (apiUrl || EDUBASE_API_URL) + '/' + endpoint.join(':'), args, authentication);
 
 				/* Return response */
-				if (response.length == 0) {
+				if (z.object({}).strict().safeParse(tool.outputSchema).success) {
+					/* Endpoint with empty output schema */
+					return {
+						content: [{ type: 'text', text: '{}' }],
+						structuredContent: {},
+						isError: false,
+					};
+				} else if (response.length == 0) {
 					/* Endpoint without response */
 					return {
 						content: [{ type: 'text', text: 'Success.' }],
-						isError: false,
-					};
-				}
-				else if (z.object({}).strict().safeParse(tool.outputSchema).success) {
-					/* Endpoint with empty output schema */
-					return {
-						content: [{ type: 'text', text: 'Success.' }],
-						structuredContent: {},
 						isError: false,
 					};
 				}

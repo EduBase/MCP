@@ -1,3 +1,4 @@
+import { EDUBASE_API_TOOLS_COMMON } from "./tools/common.js";
 import { EDUBASE_API_TOOLS_QUESTIONS } from "./tools/questions.js";
 import { EDUBASE_API_TOOLS_EXAMS } from "./tools/exams.js";
 import { EDUBASE_API_TOOLS_QUIZES } from "./tools/quizes.js";
@@ -43,6 +44,7 @@ function withToolAnnotations(tools) {
 }
 /* Tool definitions */
 export const EDUBASE_API_TOOLS = [
+    ...EDUBASE_API_TOOLS_COMMON,
     ...EDUBASE_API_TOOLS_QUESTIONS,
     ...EDUBASE_API_TOOLS_EXAMS,
     ...EDUBASE_API_TOOLS_PLAYS,
