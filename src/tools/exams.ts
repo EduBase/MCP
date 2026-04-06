@@ -85,6 +85,44 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 		outputSchema: z.object({}).optional(),
 	},
 
+	// GET /exam:branding - Get exam branding configuration
+	{
+		name: 'edubase_get_exam_branding',
+		description: "Get exam branding configuration.",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+		}),
+		outputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			enabled: z.boolean().describe('whether branding is configured and enabled'),
+			type: z.enum(['foreground', 'background']).optional().describe('type of branding image (foreground: image is used as a logo, background: image is used as a cover), only present if branding is enabled'),
+			color: z.string().optional().describe('branding color, only present if branding is enabled'),
+		}),
+	},
+
+	// POST /exam:branding - Configure or update exam branding
+	{
+		name: 'edubase_post_exam_branding',
+		description: "Configure or update exam branding.",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			type: z.enum(['foreground', 'background']).optional().describe('branding image type (foreground: image is used as a logo, background: image is used as a cover), default: foreground'),
+			image: z.string().describe('branding image, either a base64-encoded image or a URL, supported formats: PNG, JPEG, WebP'),
+			color: z.enum(['branding', 'red', 'blue', 'yellow', 'green', 'purple', 'gray']).describe('branding color'),
+		}),
+		outputSchema: z.object({}).optional(),
+	},
+
+	// DELETE /exam:branding - Remove branding from an exam
+	{
+		name: 'edubase_delete_exam_branding',
+		description: "Remove branding from an exam.",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+		}),
+		outputSchema: z.object({}).optional(),
+	},
+
 	// GET /exam:users - List all users on an exam
 	{
 		name: 'edubase_get_exam_users',
