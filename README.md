@@ -61,6 +61,9 @@ The MCP server can be configured using environment variables. The following vari
 | `EDUBASE_SSE_MODE` | Start MCP server in HTTP mode with SSE transport. Value must be `true`. | No | `false` |
 | `EDUBASE_STREAMABLE_HTTP_MODE` | Start MCP server in HTTP mode with streamable HTTP transport. Value must be `true`. | No | `false` |
 | `EDUBASE_HTTP_PORT` | HTTP server will listen on this port if SSE or streamable HTTP transport mode is used. | No | 3000 |
+| `EDUBASE_OAUTH` | Enables OAuth 2.1 protected-resource behaviour: unauthenticated requests are rejected with `401 + WWW-Authenticate` pointing at `/.well-known/oauth-protected-resource`, and bearer tokens are forwarded to the EduBase API. | No | `false` |
+| `EDUBASE_OAUTH_AUTHORIZATION_SERVER` | Public base URL of the EduBase deployment acting as the OAuth IdP. Used to advertise the authorization server in the protected-resource metadata document. | No | derived from `EDUBASE_API_URL` |
+| `EDUBASE_OAUTH_RESOURCE_URL` | Public base URL of *this* MCP server (the OAuth resource indicator). Used in the `WWW-Authenticate` header and resource metadata. | No | derived from `EDUBASE_API_URL` |
 
 ## Use as a remote MCP server
 
@@ -72,6 +75,7 @@ You can use server in two modes:
 
 * **Without client authentication**: In this mode, the server will not require any authentication from the client. This is useful for testing or development purposes, or in a closed network but it is not recommended for production use. For this, you have to configure the server with the `EDUBASE_API_APP` and `EDUBASE_API_KEY` as well!
 * **With Bearer token authentication**: In this mode, the server will require a Bearer token to be sent with each request. This is the recommended way to use the server in production. You can obtain the Bearer token from your EduBase account by creating an integration app and providing the App ID and Secret key in the `{app}:{secret}` format, base64 encoded as a token. The server will then use this token to authenticate the client and authorize access to the API endpoints.
+* **With OAuth 2.1 (EduBase as IdP)**: When `EDUBASE_OAUTH=true`, compatible clients (Claude Desktop, Claude.ai connectors, Cursor, ChatGPT connectors, etc.) discover the EduBase authorization server through `/.well-known/oauth-protected-resource`, register themselves dynamically (RFC 7591), walk the user through an EduBase consent screen, and exchange an authorization code (with PKCE S256) for an opaque access token. The MCP server forwards that token verbatim to the EduBase API, which resolves it to the auto-provisioned MCP integration, created on first consent. No App ID/Secret to copy — users just click "Connect EduBase" in their client.
 
 ## Usage with Claude Desktop
 

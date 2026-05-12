@@ -10,6 +10,7 @@ import { InMemoryEventStore } from '@modelcontextprotocol/sdk/examples/shared/in
 import express from "express";
 import bodyParser from "body-parser";
 import { getClientIp, getHeaderValue, getFileBuffer } from "./helpers.js";
+import { MANIFEST } from "./manifest.js";
 import packageJson from '../package.json' with { type: "json" };
 import * as z from 'zod/v4';
 import { FormData, request } from "undici";
@@ -34,6 +35,10 @@ if (!SSE && !STREAMABLE_HTTP && EDUBASE_API_KEY.length == 0) {
     console.error('Error: EDUBASE_API_KEY environment variable is required with this transport mode');
     process.exit(1);
 }
+/* OAuth 2.1 Protected Resource discovery */
+const EDUBASE_OAUTH_AUTHORIZATION_SERVER = (process.env.EDUBASE_OAUTH_AUTHORIZATION_SERVER || EDUBASE_API_URL.replace(/\/api\/?$/, '') || 'https://www.edubase.net').replace(/\/$/, '');
+const EDUBASE_OAUTH_RESOURCE_URL = (process.env.EDUBASE_OAUTH_RESOURCE_URL || EDUBASE_API_URL.replace(/\/api\/?$/, '/mcp') || 'https://www.edubase.net/mcp').replace(/\/$/, '');
+const EDUBASE_OAUTH = ((process.env.EDUBASE_OAUTH || 'false') == 'true' && STREAMABLE_HTTP && EDUBASE_OAUTH_AUTHORIZATION_SERVER.length > 0 && EDUBASE_OAUTH_RESOURCE_URL.length > 0);
 /* Supported tools and prompts */
 import { EDUBASE_API_TOOLS_ANNOTATED } from "./tools.js";
 import { EDUBASE_API_PROMPTS } from "./prompts.js";
@@ -67,22 +72,10 @@ function getEduBaseAuthentication(req) {
         EDUBASE_API_KEY = getHeaderValue(req, 'edubase-api-secret');
     }
     else if (getHeaderValue(req, 'authorization') && getHeaderValue(req, 'authorization').startsWith('Bearer ')) {
-        /* Use authentication from Bearer token */
-        try {
-            /* Decode Bearer token */
-            const [app, secret] = atob(getHeaderValue(req, 'authorization').split(' ')[1]).split(':');
-            if (app && app.length > 0 && secret && secret.length > 0) {
-                EDUBASE_API_APP = app;
-                EDUBASE_API_KEY = secret;
-            }
-        }
-        catch (error) {
-            /* Probably not encoded as base64 */
-            const [app, secret] = getHeaderValue(req, 'authorization').split(' ')[1].split(':');
-            if (app && app.length > 0 && secret && secret.length > 0) {
-                EDUBASE_API_APP = app;
-                EDUBASE_API_KEY = secret;
-            }
+        /* Forward the bearer token to the EduBase API as is — API server understands both `base64(app:secret)` tokens and OAuth 2.1 IdP-issued access tokens. */
+        const raw = getHeaderValue(req, 'authorization').slice('Bearer '.length).trim();
+        if (raw.length > 0) {
+            return { bearer: raw };
         }
     }
     if (EDUBASE_API_APP && EDUBASE_API_KEY) {
@@ -93,10 +86,12 @@ function getEduBaseAuthentication(req) {
 function createMcpServer(apiUrl = null, authentication = null) {
     /* Create MCP server instance */
     const server = new McpServer({
-        name: '@edubase/mcp',
+        name: MANIFEST.name,
+        title: MANIFEST.title,
         version: VERSION,
-        icons: [{ src: 'https://static.edubase.net/media/brand/favicon/favicon.svg', sizes: ['any'], mimeType: 'image/svg+xml' }],
-        websiteUrl: 'https://github.com/EduBase/MCP'
+        description: MANIFEST.description,
+        icons: MANIFEST.icons.map(({ src, sizes, mimeType, theme }) => ({ src, sizes, mimeType, theme })),
+        websiteUrl: MANIFEST.websiteUrl,
     }, {
         capabilities: {
             prompts: {
@@ -306,15 +301,16 @@ async function sendEduBaseApiRequest(method, endpoint, data, authentication) {
     }
     /* Check rate limit */
     checkRateLimit();
-    /* Prepare authentication (prefer EDUBASE_API_APP and EDUBASE_API_KEY environment variables) */
+    /* Prepare authentication: a bearer token (OAuth 2.1 access token, or legacy base64(app:secret))
+     * takes precedence and is forwarded verbatim. Otherwise fall back to the App/Secret pair. */
     if (!authentication) {
         authentication = { app: EDUBASE_API_APP, secret: EDUBASE_API_KEY };
     }
-    else {
-        if (!authentication.hasOwnProperty('app') || authentication.app.length == 0 || EDUBASE_API_APP.length > 0) {
+    else if (!authentication.bearer) {
+        if (!authentication.app || authentication.app.length == 0 || EDUBASE_API_APP.length > 0) {
             authentication.app = EDUBASE_API_APP;
         }
-        if (!authentication.hasOwnProperty('secret') || authentication.secret.length == 0 || EDUBASE_API_KEY.length > 0) {
+        if (!authentication.secret || authentication.secret.length == 0 || EDUBASE_API_KEY.length > 0) {
             authentication.secret = EDUBASE_API_KEY;
         }
     }
@@ -324,16 +320,23 @@ async function sendEduBaseApiRequest(method, endpoint, data, authentication) {
         'Accept-Encoding': 'gzip',
         'EduBase-API-Client': 'MCP',
         'EduBase-API-Transport': (STREAMABLE_HTTP) ? 'Streamable HTTP' : ((SSE) ? 'SSE' : 'Stdio'),
-        'EduBase-API-App': authentication.app,
-        'EduBase-API-Secret': authentication.secret
     };
+    if (authentication.bearer) {
+        /* Authenticate with Bearer token */
+        headers['Authorization'] = 'Bearer ' + authentication.bearer;
+    }
+    else if (authentication.app && authentication.secret) {
+        /* Authenticate with custom EduBase API App/Secret headers */
+        headers['EduBase-API-App'] = authentication.app;
+        headers['EduBase-API-Secret'] = authentication.secret;
+    }
     const response = await fetch(endpoint + (method == 'GET' ? '?' + queryString.stringify(data) : ''), {
         method: method,
         body: (method != 'GET' ? JSON.stringify(data) : undefined),
         headers: headers
     });
     if (!response.ok) {
-        throw new Error(`EduBase API error: ${response.status} ${response.statusText}` + (response.headers.has('EduBase-API-Error') ? ` (${response.headers.get('EduBase-API-Error')})` : ''));
+        throw new Error(`EduBase API error: ${response.status}` + (response.statusText ? ` ${response.statusText}` : '') + (response.headers.has('EduBase-API-Error') ? ` (${response.headers.get('EduBase-API-Error')})` : ''));
     }
     /* Parse response and return as object */
     let clonedResponse = response.clone();
@@ -346,6 +349,79 @@ async function sendEduBaseApiRequest(method, endpoint, data, authentication) {
         return await clonedResponse.text();
     }
 }
+/* OAuth 2.1 metadata */
+function getProtectedResourceMetadata() {
+    return {
+        resource: EDUBASE_OAUTH_RESOURCE_URL,
+        authorization_servers: [EDUBASE_OAUTH_AUTHORIZATION_SERVER],
+        bearer_methods_supported: ['header'],
+        scopes_supported: MANIFEST.oauthScopes,
+        resource_documentation: MANIFEST.docsUrl,
+    };
+}
+/* MCP app manifests */
+function getAppManifest() {
+    return {
+        schema_version: 'v1',
+        name: MANIFEST.name,
+        title: MANIFEST.title,
+        version: MANIFEST.version,
+        description: MANIFEST.description,
+        categories: MANIFEST.categories,
+        keywords: MANIFEST.keywords,
+        website_url: MANIFEST.websiteUrl,
+        documentation_url: MANIFEST.docsUrl,
+        support_url: MANIFEST.supportUrl,
+        status_url: MANIFEST.statusUrl,
+        repository_url: MANIFEST.repositoryUrl,
+        privacy_policy_url: MANIFEST.privacyUrl,
+        terms_of_service_url: MANIFEST.termsUrl,
+        legal_url: MANIFEST.legalUrl,
+        contact_email: MANIFEST.contactEmail,
+        legal_entity: MANIFEST.legalName,
+        icons: MANIFEST.icons,
+        icon_url: MANIFEST.icons[0]?.src,
+        mcp: {
+            endpoint: EDUBASE_OAUTH_RESOURCE_URL,
+            transport: STREAMABLE_HTTP ? 'streamable-http' : (SSE ? 'sse' : 'stdio'),
+            protocol_version: '2025-06-18',
+        },
+        auth: {
+            type: 'oauth',
+            version: '2.1',
+            authorization_server: EDUBASE_OAUTH_AUTHORIZATION_SERVER,
+            authorization_server_metadata_url: `${EDUBASE_OAUTH_AUTHORIZATION_SERVER}/.well-known/oauth-authorization-server`,
+            protected_resource_metadata_url: EDUBASE_OAUTH_RESOURCE_URL.replace(/\/mcp\/?$/, '/.well-known/oauth-protected-resource'),
+            scopes: MANIFEST.oauthScopes,
+            pkce_required: true,
+            dynamic_client_registration: true,
+        },
+    };
+}
+function getAiPluginManifest() {
+    return {
+        schema_version: 'v1',
+        name_for_model: MANIFEST.name.replace(/[^A-Za-z0-9_]/g, '_').replace(/^_+|_+$/g, '').slice(0, 50) || 'edubase',
+        name_for_human: MANIFEST.title,
+        description_for_model: MANIFEST.description,
+        description_for_human: MANIFEST.description,
+        auth: {
+            type: 'oauth',
+            client_url: `${EDUBASE_OAUTH_AUTHORIZATION_SERVER}/oauth/authorize`,
+            authorization_url: `${EDUBASE_OAUTH_AUTHORIZATION_SERVER}/oauth/token`,
+            scope: MANIFEST.oauthScopes.join(' '),
+            authorization_content_type: 'application/x-www-form-urlencoded',
+            verification_tokens: {},
+        },
+        api: {
+            type: 'mcp',
+            url: `${EDUBASE_OAUTH_RESOURCE_URL}`,
+        },
+        logo_url: MANIFEST.icons[0]?.src,
+        contact_email: MANIFEST.contactEmail,
+        legal_info_url: MANIFEST.legalUrl,
+    };
+}
 /* Start MCP server */
 if (STREAMABLE_HTTP) {
     /* Using HTTP with Streamable HTTP transport */
@@ -353,7 +429,23 @@ if (STREAMABLE_HTTP) {
     app.disable('x-powered-by');
     app.use(bodyParser.json());
     const transports = {};
+    if (EDUBASE_OAUTH) {
+        /* Add OAuth 2.1 endpoints */
+        app.get('/.well-known/oauth-protected-resource', (req, res) => { res.json(getProtectedResourceMetadata()); });
+        app.get('/.well-known/oauth-protected-resource/mcp', (req, res) => { res.json(getProtectedResourceMetadata()); });
+        app.get('/.well-known/mcp-app.json', (req, res) => { res.json(getAppManifest()); });
+        app.get('/.well-known/openai-app.json', (req, res) => { res.json(getAppManifest()); });
+        app.get('/.well-known/ai-plugin.json', (req, res) => { res.json(getAiPluginManifest()); });
+        app.get('/manifest.json', (req, res) => { res.json(getAppManifest()); });
+    }
     app.post('/mcp', async (req, res) => {
+        if (EDUBASE_OAUTH && !getEduBaseAuthentication(req)) {
+            /* Reject unauthenticated requests with a 401 status and a WWW-Authenticate header pointing the client at the IdP for discovery */
+            const resourceMetadataUrl = EDUBASE_OAUTH_RESOURCE_URL.replace(/\/mcp\/?$/, '/.well-known/oauth-protected-resource');
+            res.setHeader('WWW-Authenticate', `Bearer realm="edubase-mcp", resource_metadata="${resourceMetadataUrl}"`);
+            res.status(401).json({ error: 'invalid_token', error_description: 'Authentication required. Discover the authorization server via the WWW-Authenticate header.' });
+            return;
+        }
         /* Handle POST requests */
         const sessionId = req.headers['mcp-session-id'];
         let transport;
@@ -438,7 +530,7 @@ if (STREAMABLE_HTTP) {
     });
     const EDUBASE_HTTP_PORT = parseInt(process.env.EDUBASE_HTTP_PORT || process.env.PORT || '3000');
     app.listen(EDUBASE_HTTP_PORT, () => {
-        console.error("EduBase MCP server is now listening on HTTP port " + EDUBASE_HTTP_PORT + " with Streamable HTTP transport");
+        console.error("EduBase MCP server is now listening on HTTP port " + EDUBASE_HTTP_PORT + " with Streamable HTTP transport" + (EDUBASE_OAUTH ? " and OAuth 2.1 authentication" : ""));
     });
     process.on('SIGTERM', () => {
         /* Graceful shutdown */
