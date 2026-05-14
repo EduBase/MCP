@@ -1,7 +1,7 @@
 import packageJson from '../package.json' with { type: "json" };
 
 /* URLs */
-const EDUBASE_URL = (process.env.EDUBASE_API_URL || packageJson.homepage || 'https://www.edubase.net').replace(/\/api\/?$/, '');
+const EDUBASE_URL = (process.env.EDUBASE_URL || process.env.EDUBASE_API_URL || packageJson.homepage || 'https://www.edubase.net').replace(/\/api\/?$/, '');
 const EDUBASE_STATIC = (process.env.EDUBASE_STATIC_URL || EDUBASE_URL).replace(/\/$/, '');
 
 /* Manifest */

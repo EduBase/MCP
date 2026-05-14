@@ -1,7 +1,12 @@
 {
   "name": "@edubase/mcp",
-  "version": "1.2.0",
+  "mcpName": "io.github.edubase/mcp",
+  "version": "1.2.1",
   "description": "EduBase MCP server",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EduBase/MCP.git"
+  },
   "license": "MIT",
   "author": "EduBase, LLC (https://www.edubase.net)",
   "homepage": "https://www.edubase.net",
