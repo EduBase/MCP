@@ -17,7 +17,7 @@ This document is intended for **app store reviewers** at OpenAI (ChatGPT Apps) a
 
 ## What it does
 
-EduBase is an **assessment and e-learning** platform used by 210+ organizations across corporate training, regulated industries, and higher education since 2016 (hundreds of thousands of documented successful exam completions). This MCP server exposes the EduBase REST API as MCP tools so that AI assistants can, on the user's behalf:
+EduBase is an **assessment and e-learning** platform used by hundreds of organizations across corporate training, regulated industries, and higher education since 2016 (hundreds of thousands of documented successful exam completions). This MCP server exposes the EduBase REST API as MCP tools so that AI assistants can, on the user's behalf:
 
 - **author** questions across 20+ types, with **parametric** values so every test-taker can receive a unique variant at the same difficulty;
 - assemble quiz sets and **schedule** exams with flexible access (link, QR code, PIN) and modes from homework and survey through formal exam;
