@@ -1,12 +1,12 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.edubase/mcp",
+  "name": "io.github.EduBase/MCP",
   "description": "EduBase MCP server",
   "repository": {
     "url": "https://github.com/EduBase/MCP",
     "source": "github"
   },
-  "version": "1.2.1",
+  "version": "1.2.2",
   "remotes": [
     {
       "type": "streamable-http",
@@ -31,6 +31,7 @@
     {
       "registryType": "npm",
       "identifier": "@edubase/mcp",
+      "version": "1.2.2",
       "transport": {
         "type": "stdio"
       },
