@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { CallToolRequest, CallToolResult, isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
+import { CallToolResult, isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { randomUUID } from "node:crypto";
 import queryString from "query-string";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
@@ -215,9 +215,13 @@ function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAu
 					throw new Error('No arguments provided');
 				}
 
+				/* Prefer the current request's bearer (threaded via _meta) over the closure-captured authentication, so that refreshed OAuth tokens take effect within an existing session without needing a new MCP session id. */
+				const requestBearer = (ctx?._meta?.bearer ?? ctx?._meta?.override?.EDUBASE_OAUTH_BEARER) as string | undefined;
+				const effectiveAuth: EduBaseAuthentication | null = (typeof requestBearer === 'string' && requestBearer.length > 0) ? { bearer: requestBearer } : authentication;
+
 				/* Prepare and send API request */
 				const [ , method, ...endpoint ] = name.split('_');
-				const response = await sendEduBaseApiRequest(method, (apiUrl || EDUBASE_API_URL) + '/' + endpoint.join(':'), args, authentication);
+				const response = await sendEduBaseApiRequest(method, (apiUrl || EDUBASE_API_URL) + '/' + endpoint.join(':'), args, effectiveAuth);
 
 				/* Return response */
 				if (z.object({}).strict().safeParse(tool.outputSchema).success) {
@@ -303,8 +307,52 @@ function checkRateLimit() {
 	requestRate.minute++;
 }
 
+/* EduBase API bearer-token revalidation with caching */
+type EduBaseTokenCacheEntry = { valid: boolean; checkedAt: number };
+const EDUBASE_TOKEN_CACHE_TTL_VALID = 60;
+const EDUBASE_TOKEN_CACHE_TTL_INVALID = 5;
+const EDUBASE_TOKEN_CACHE_MAX = 1024;
+const edubaseTokenCache = new Map<string, EduBaseTokenCacheEntry>();
+function invalidateEduBaseToken(bearer: string): void {
+	edubaseTokenCache.set(bearer, { valid: false, checkedAt: Date.now() });
+}
+async function validateEduBaseBearer(bearer: string, apiUrl: string): Promise<boolean> {
+	const cached = edubaseTokenCache.get(bearer);
+	if (cached) {
+		const ttl = (cached.valid ? EDUBASE_TOKEN_CACHE_TTL_VALID : EDUBASE_TOKEN_CACHE_TTL_INVALID) * 1000;
+		if (Date.now() - cached.checkedAt < ttl)
+			return cached.valid;
+	}
+	try {
+		/* The user:me is the cheapest authenticated endpoint and exists on every EduBase deployment */
+		const response = await fetch(apiUrl + '/user:me', {
+			method: 'GET',
+			headers: {
+				'Authorization': 'Bearer ' + bearer,
+				'EduBase-API-Client': 'MCP',
+				'EduBase-API-Transport': (STREAMABLE_HTTP) ? 'Streamable HTTP' : ((SSE) ? 'SSE' : 'Stdio'),
+			},
+		});
+		const valid = response.status !== 401 && response.status !== 403;
+		edubaseTokenCache.set(bearer, { valid, checkedAt: Date.now() });
+		if (edubaseTokenCache.size > EDUBASE_TOKEN_CACHE_MAX) {
+			/* Oldest entry wins eviction */
+			const oldest = edubaseTokenCache.keys().next().value as string | undefined;
+			if (oldest)
+				edubaseTokenCache.delete(oldest);
+		}
+		return valid;
+	} catch {
+		/* Fail open on network errors, the tool call itself will surface the real failure */
+		return true;
+	}
+}
+
 /* EduBase API requests */
 type EduBaseAuthentication = { app?: string; secret?: string; bearer?: string };
+class EduBaseAuthError extends Error {
+	constructor(message: string) { super(message); this.name = 'EduBaseAuthError'; }
+}
 async function sendEduBaseApiRequest(method: string, endpoint: string, data: object, authentication: EduBaseAuthentication | null) {
 	/* Check method and endpoint */
 	method = method.toUpperCase()
@@ -352,7 +400,14 @@ async function sendEduBaseApiRequest(method: string, endpoint: string, data: obj
 		headers: headers
 	});
 	if (!response.ok) {
-		throw new Error(`EduBase API error: ${response.status}` + (response.statusText ? ` ${response.statusText}` : '') + (response.headers.has('EduBase-API-Error') ? ` (${response.headers.get('EduBase-API-Error')})` : ''));
+		const detail = (response.statusText ? ` ${response.statusText}` : '') + (response.headers.has('EduBase-API-Error') ? ` (${response.headers.get('EduBase-API-Error')})` : '');
+		if (response.status === 401 || response.status === 403) {
+			/* Drop cached "valid" state immediately so the next /mcp request triggers re-validation and returns a transport-level 401 + WWW-Authenticate, letting the MCP client refresh. */
+			if (authentication?.bearer)
+				invalidateEduBaseToken(authentication.bearer);
+			throw new EduBaseAuthError(`EduBase API error: ${response.status}${detail}`);
+		}
+		throw new Error(`EduBase API error: ${response.status}${detail}`);
 	}
 
 	/* Parse response and return as object */
@@ -367,6 +422,14 @@ async function sendEduBaseApiRequest(method: string, endpoint: string, data: obj
 }
 
 /* OAuth 2.1 metadata */
+function getProtectedResourceMetadataUrl(): string {
+	try {
+		const u = new URL(EDUBASE_OAUTH_RESOURCE_URL);
+		return `${u.protocol}//${u.host}/.well-known/oauth-protected-resource`;
+	} catch {
+		return EDUBASE_OAUTH_RESOURCE_URL.replace(/\/[^/]*$/, '') + '/.well-known/oauth-protected-resource';
+	}
+}
 function getProtectedResourceMetadata(): object {
 	return {
 		resource: EDUBASE_OAUTH_RESOURCE_URL,
@@ -409,7 +472,7 @@ function getAppManifest(): Record<string, unknown> {
 			version: '2.1',
 			authorization_server: EDUBASE_OAUTH_AUTHORIZATION_SERVER,
 			authorization_server_metadata_url: `${EDUBASE_OAUTH_AUTHORIZATION_SERVER}/.well-known/oauth-authorization-server`,
-			protected_resource_metadata_url: EDUBASE_OAUTH_RESOURCE_URL.replace(/\/mcp\/?$/, '/.well-known/oauth-protected-resource'),
+			protected_resource_metadata_url: getProtectedResourceMetadataUrl(),
 			scopes: MANIFEST.oauthScopes,
 			pkce_required: true,
 			dynamic_client_registration: true,
@@ -458,12 +521,26 @@ if (STREAMABLE_HTTP) {
 		app.get('/manifest.json', (req: Request, res: Response) => { res.json(getAppManifest()); });
 	}
 	app.post('/mcp', async (req: Request, res: Response) => {
-		if (EDUBASE_OAUTH && !getEduBaseAuthentication(req)) {
-			/* Reject unauthenticated requests with a 401 status and a WWW-Authenticate header pointing the client at the IdP for discovery */
-			const resourceMetadataUrl = EDUBASE_OAUTH_RESOURCE_URL.replace(/\/mcp\/?$/, '/.well-known/oauth-protected-resource');
-			res.setHeader('WWW-Authenticate', `Bearer realm="edubase-mcp", resource_metadata="${resourceMetadataUrl}"`);
-			res.status(401).json({ error: 'invalid_token', error_description: 'Authentication required. Discover the authorization server via the WWW-Authenticate header.' });
-			return;
+		const requestAuth = getEduBaseAuthentication(req);
+		if (EDUBASE_OAUTH) {
+			const sendUnauthorized = (error: string, description: string) => {
+				res.setHeader('WWW-Authenticate', `Bearer realm="edubase-mcp", error="${error}", resource_metadata="${getProtectedResourceMetadataUrl()}"`);
+				res.status(401).json({ error, error_description: description });
+			};
+			if (!requestAuth) {
+				/* Reject unauthenticated requests with a 401 status and a WWW-Authenticate header pointing the client at the IdP for discovery */
+				sendUnauthorized('invalid_request', 'Authentication required. Discover the authorization server via the WWW-Authenticate header.');
+				return;
+			}
+			if (requestAuth.bearer) {
+				/* Validate the bearer upfront so expired/revoked tokens surface as transport-level 401 + WWW-Authenticate (the signal MCP clients need to trigger their refresh flow). Without this, an expired token would only fail inside a tool call, which the SDK serialises as a JSON-RPC tool error wrapped in HTTP 200 — Claude would never know to refresh. */
+				const apiUrlForCheck = getEduBaseApiUrl(req) || EDUBASE_API_URL;
+				const valid = await validateEduBaseBearer(requestAuth.bearer, apiUrlForCheck);
+				if (!valid) {
+					sendUnauthorized('invalid_token', 'The access token expired or was revoked. Use the refresh token to obtain a new one.');
+					return;
+				}
+			}
 		}
 		/* Handle POST requests */
 		const sessionId = req.headers['mcp-session-id'] as string | undefined;
@@ -514,6 +591,7 @@ if (STREAMABLE_HTTP) {
 				ip: getClientIp(req),
 				headers: req.headers,
 				override: override,
+				bearer: requestAuth?.bearer,
 			};
 			await transport!.handleRequest(req, res, {...req.body, params});
 		} catch (error) {
@@ -598,6 +676,7 @@ if (STREAMABLE_HTTP) {
 					ip: getClientIp(req),
 					headers: req.headers,
 					override: override,
+					bearer: getEduBaseAuthentication(req)?.bearer,
 				};
 				await transport!.handlePostMessage(req, res, {...req.body, params});
 			} catch (error) {
