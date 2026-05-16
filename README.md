@@ -81,6 +81,12 @@ You can use server in two modes:
 
 For a step-by-step walkthrough, see our blog post on how to [connect EduBase with Claude: The Complete MCP Integration Guide](https://edubase.blog/claude-mcp-integration-guide/).
 
+### Using the provided EduBase MCP server
+
+You can use the provided EduBase MCP server (if available) without any configuration, just by adding it as a remote server in your client with the URL `https://domain.edubase.net/mcp` (replace with the actual domain), if it supports OAuth authentication, or with the appropriate Bearer token in the `Authorization` header (`Authorization: Bearer ${BASE64_ENCODED_TOKEN}`).
+
+**Recommended for www.edubase.net users**, as the server is maintained and updated by us, and you don't have to worry about hosting or configuring it. Just make sure to use the correct URL and authentication method when connecting your client.
+
 ### Installing manually
 
 Add the following to your `claude_desktop_config.json`:

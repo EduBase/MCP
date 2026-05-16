@@ -523,13 +523,14 @@ if (STREAMABLE_HTTP) {
         }
         /* Handle POST requests */
         const sessionId = req.headers['mcp-session-id'];
+        const isInitialize = isInitializeRequest(req.body);
         let transport;
         if (sessionId && transports[sessionId]) {
             /* Use existing session */
             transport = transports[sessionId];
         }
-        else if (!sessionId && isInitializeRequest(req.body)) {
-            /* New session */
+        else if (isInitialize) {
+            /* New session: Accept this even if a stale `mcp-session-id` header is present (e.g. after a server restart) — the spec lets us treat any initialize request as a fresh session, and being permissive here avoids forcing the client to discover that its session is gone on a separate failed request first. */
             const eventStore = new InMemoryEventStore();
             transport = new StreamableHTTPServerTransport({
                 sessionIdGenerator: () => randomUUID(),
@@ -546,9 +547,29 @@ if (STREAMABLE_HTTP) {
             const server = createMcpServer(getEduBaseApiUrl(req), getEduBaseAuthentication(req));
             await server.connect(transport);
         }
+        else if (sessionId) {
+            /* Unknown session (most commonly: the server was restarted and lost its in-memory transport map): Per the MCP Streamable HTTP spec, respond with HTTP 404 so the client drops the stale session and re-initializes. Returning 400 would tell the client the request was malformed and cause it to retry the same broken request indefinitely. */
+            res.status(404).json({
+                jsonrpc: '2.0',
+                id: (req.body && typeof req.body === 'object' && 'id' in req.body) ? req.body.id : null,
+                error: {
+                    code: -32001,
+                    message: 'Session not found',
+                    data: { reason: 'unknown-session', hint: 'Send a new initialize request without an mcp-session-id header to start a fresh session.' },
+                },
+            });
+            return;
+        }
         else {
-            console.error("No session found for request");
-            res.status(400).send();
+            /* No session ID and not an initialize request — the request can't be routed anywhere */
+            res.status(400).json({
+                jsonrpc: '2.0',
+                id: null,
+                error: {
+                    code: -32600,
+                    message: 'Bad Request: an mcp-session-id header or an initialize request is required.',
+                },
+            });
             return;
         }
         try {
@@ -587,8 +608,13 @@ if (STREAMABLE_HTTP) {
     app.delete('/mcp', async (req, res) => {
         /* Handle DELETE requests */
         const sessionId = req.headers['mcp-session-id'];
-        if (!sessionId || !transports[sessionId]) {
-            res.status(400).send('Invalid session ID');
+        if (!sessionId) {
+            res.status(400).send('Missing mcp-session-id header');
+            return;
+        }
+        if (!transports[sessionId]) {
+            /* Idempotent: deleting a session that doesn't exist (already cleaned up, or server restarted) should succeed silently. Returning 404 is also spec-compliant but 204 keeps client logic simple. */
+            res.status(204).send();
             return;
         }
         try {
@@ -669,8 +695,16 @@ else if (SSE) {
             }
         }
         else {
-            console.error("No transport found for session (" + sessionId + ")");
-            res.status(400).send();
+            /* Unknown session (most commonly: server restart): Per the MCP spec for SSE transport, 404 signals to the client that it should re-open the SSE channel; 400 would tell it the request was malformed and cause an infinite retry loop. */
+            res.status(404).json({
+                jsonrpc: '2.0',
+                id: (req.body && typeof req.body === 'object' && 'id' in req.body) ? req.body.id : null,
+                error: {
+                    code: -32001,
+                    message: 'Session not found',
+                    data: { reason: 'unknown-session', hint: 'Re-open the SSE channel at /sse to start a fresh session.' },
+                },
+            });
         }
     });
     app.get('/health', async (_, res) => {
