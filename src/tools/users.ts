@@ -229,7 +229,7 @@ export const EDUBASE_API_TOOLS_USERS = [
 		}),
 		outputSchema: z.object({
 			user: z.string().describe('user identification string'),
-			token: z.boolean().describe('assume token'),
+			token: z.string().describe('assume token'),
 			valid: z.string().describe('validity of the generated token'),
 		}),
 	},

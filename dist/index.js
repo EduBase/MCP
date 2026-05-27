@@ -154,7 +154,7 @@ function createMcpServer(apiUrl = null, authentication = null) {
             readOnlyHint: false,
             destructiveHint: false,
             idempotentHint: false,
-            openWorldHint: false,
+            openWorldHint: true,
         },
     }, async ({ filebin, source, filename }) => {
         try {
@@ -338,7 +338,7 @@ class EduBaseAuthError extends Error {
 async function sendEduBaseApiRequest(method, endpoint, data, authentication) {
     /* Check method and endpoint */
     method = method.toUpperCase();
-    if (!['GET', 'POST', 'DELETE'].includes(method)) {
+    if (!['GET', 'POST', 'PATCH', 'PUT', 'DELETE'].includes(method)) {
         throw new Error('Invalid method: "' + method + '"');
     }
     if (endpoint.length == 0) {

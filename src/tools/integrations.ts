@@ -32,7 +32,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 			name: z.string().describe('title of the integration'),
 			type: z.enum(['api', 'moodle', 'canvas', 'd2l', 'schoology', 'lms']).describe('type of the integration'),
 			active: z.boolean().describe('integration is active'),
-			lti: z.boolean().describe('LTI version, only present if the integration is an LMS').optional(),
+			lti: z.enum(['1.0/1.1', '1.3']).describe('LTI version (1.0/1.1 or 1.3), only present if the integration is an LMS').optional(),
 		}),
 	},
 

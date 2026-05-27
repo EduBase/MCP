@@ -24,13 +24,13 @@ function inferToolAnnotations(tool) {
     const method = getToolMethod(tool.name);
     const readOnly = method === 'get';
     const destructive = method === 'delete';
-    const idempotent = method === 'get' || method === 'delete';
+    const idempotent = method === 'get' || method === 'patch' || method === 'put' || method === 'delete';
     return {
         title: getToolTitle(tool),
         readOnlyHint: readOnly,
         destructiveHint: readOnly ? false : destructive,
         idempotentHint: idempotent,
-        openWorldHint: false,
+        openWorldHint: true,
     };
 }
 function withToolAnnotations(tools) {
