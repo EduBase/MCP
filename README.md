@@ -65,6 +65,8 @@ The MCP server can be configured using environment variables. The following vari
 | `EDUBASE_OAUTH` | Enables OAuth 2.1 protected-resource behaviour: unauthenticated requests are rejected with `401 + WWW-Authenticate` pointing at `/.well-known/oauth-protected-resource`, and bearer tokens are forwarded to the EduBase API. | No | `false` |
 | `EDUBASE_OAUTH_AUTHORIZATION_SERVER` | Public base URL of the EduBase deployment acting as the OAuth IdP. Used to advertise the authorization server in the protected-resource metadata document. | No | derived from `EDUBASE_API_URL` |
 | `EDUBASE_OAUTH_RESOURCE_URL` | Public base URL of *this* MCP server (the OAuth resource indicator). Used in the `WWW-Authenticate` header and resource metadata. | No | derived from `EDUBASE_API_URL` |
+| `EDUBASE_ALLOW_PRIVATE_NETWORK` | When an HTTP transport is used, the `edubase_filebin` tool blocks outbound requests to private, loopback, link-local and reserved addresses (SSRF protection) and refuses local file paths. Set to `true` to allow them, e.g. a self-hosted deployment on a trusted private network. Has no effect in stdio mode, where the local user is the only caller. | No | `false` |
+| `EDUBASE_FILEBIN_ALLOWED_HOSTS` | Optional comma-separated allow-list of hostnames permitted as `edubase_filebin` upload targets (exact host or any subdomain, e.g. `edubase.net`). When empty, any public host is allowed (still subject to the address filtering above). | No | - |
 
 ## Use as a remote MCP server
 

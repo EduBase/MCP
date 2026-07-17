@@ -9,16 +9,20 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { InMemoryEventStore } from '@modelcontextprotocol/sdk/examples/shared/inMemoryEventStore.js';
 import express from "express";
 import bodyParser from "body-parser";
-import { getClientIp, getHeaderValue, getFileBuffer } from "./helpers.js";
+import { getClientIp, getHeaderValue, getFileBuffer, guardedRequest } from "./helpers.js";
 import { MANIFEST } from "./manifest.js";
 import packageJson from '../package.json' with { type: "json" };
 import * as z from 'zod/v4';
-import { FormData, request } from "undici";
+import { FormData } from "undici";
 /* Version */
 const VERSION = packageJson.version;
 /* Enable SSE or Streamable HTTP mode */
 const SSE = ((process.env.EDUBASE_SSE_MODE || 'false') == 'true');
 const STREAMABLE_HTTP = ((process.env.EDUBASE_STREAMABLE_HTTP_MODE || 'false') == 'true');
+/* SSRF protection */
+const EDUBASE_ALLOW_PRIVATE_NETWORK = ((process.env.EDUBASE_ALLOW_PRIVATE_NETWORK || 'false') == 'true');
+const EDUBASE_SSRF_PROTECTION = (STREAMABLE_HTTP || SSE) && !EDUBASE_ALLOW_PRIVATE_NETWORK;
+const EDUBASE_FILEBIN_ALLOWED_HOSTS = (process.env.EDUBASE_FILEBIN_ALLOWED_HOSTS || '').split(',').map((host) => host.trim().toLowerCase()).filter((host) => host.length > 0);
 /* Check required EduBase environment variables */
 const EDUBASE_API_URL = process.env.EDUBASE_API_URL || 'https://www.edubase.net/api';
 if (!SSE && !STREAMABLE_HTTP && EDUBASE_API_URL.length == 0) {
@@ -158,8 +162,25 @@ function createMcpServer(apiUrl = null, authentication = null) {
         },
     }, async ({ filebin, source, filename }) => {
         try {
+            /* Validate the upload destination before doing any work. When SSRF protection is active the destination is additionally IP-range filtered by guardedRequest below. */
+            if (EDUBASE_FILEBIN_ALLOWED_HOSTS.length > 0) {
+                let filebinHost;
+                try {
+                    filebinHost = new URL(filebin).hostname.toLowerCase();
+                }
+                catch {
+                    throw new Error(`Invalid filebin URL: ${filebin}`);
+                }
+                const allowed = EDUBASE_FILEBIN_ALLOWED_HOSTS.some((host) => filebinHost === host || filebinHost.endsWith('.' + host));
+                if (!allowed) {
+                    throw new Error(`Not allowed filebin host: ${filebinHost}`);
+                }
+            }
             /* Get file content */
-            const fileResult = await getFileBuffer(source);
+            const fileResult = await getFileBuffer(source, {
+                allowLocalFiles: !EDUBASE_SSRF_PROTECTION,
+                enforceSsrfProtection: EDUBASE_SSRF_PROTECTION,
+            });
             if (!fileResult.success) {
                 throw new Error(fileResult.error);
             }
@@ -167,11 +188,11 @@ function createMcpServer(apiUrl = null, authentication = null) {
             const form = new FormData();
             const fileBlob = new Blob([new Uint8Array(fileResult.buffer)]);
             form.append('file', fileBlob, filename);
-            const uploadResponse = await request(filebin, {
+            const uploadResponse = await guardedRequest(filebin, {
                 method: 'POST',
                 body: form,
-            });
-            const text = await uploadResponse.body.text();
+            }, EDUBASE_SSRF_PROTECTION);
+            const text = uploadResponse.body.toString('utf-8');
             return {
                 content: [{ type: 'text', text: text }],
                 isError: false,
