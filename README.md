@@ -3,6 +3,7 @@
 # EduBase MCP server
 
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/EduBase/MCP/main.svg)](https://results.pre-commit.ci/latest/github/EduBase/MCP/main)
+[![Publish to MCP Registry](https://github.com/EduBase/MCP/actions/workflows/publish-mcp.yml/badge.svg)](https://github.com/EduBase/MCP/actions/workflows/publish-mcp.yml)
 [![smithery badge](https://smithery.ai/badge/@EduBase/MCP)](https://smithery.ai/server/@EduBase/MCP)
 
 This repository contains the **implementation of the Model Context Protocol** (MCP) server **for the EduBase platform**. It allows MCP clients (for example Claude Desktop) and LLMs to interact with your EduBase account and perform tasks on your behalf. It supports stdio, SSE and streamable HTTP transport protocols.
