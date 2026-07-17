@@ -84,6 +84,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
 				solution_image: z.string().describe('Attach an image to the solution steps. Supported formats: PNG, JPEG, WebP. Format: filename=data, where data is either a temporary filebin storage external identifier (preferred), a base64-encoded image (whole data string) or a URL.'),
 				video_penalty: z.string().describe('Point deduction for video assistance used (NONE, ONCE:N%). Default: NONE.'),
 				manual_scoring: z.enum(['NO', 'NOT_CORRECT', 'ALWAYS']).describe('Controls when to enable manual scoring. Not applicable for READING and FREE-TEXT questions.'),
+				skills: z.string().describe('Define skills associated with the question, identified by skill identifiers. Separate multiple skills with triple-and operators ("&&&").'),
 				graph: z.string().describe('Attach a graph to the question.'),
 				parameters: z.string().describe('Parameter definitions for dynamic question generation. Separate multiple parameters with triple-and operators ("&&&"). Up to 128 parameters can be defined!'),
 				parameters_sync: z.enum(['+', '-']).describe('Controls synchronization of LIST parameter selections.'),

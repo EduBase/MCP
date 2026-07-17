@@ -57,6 +57,22 @@ export const EDUBASE_API_TOOLS_QUIZES = [
         }),
         outputSchema: z.object({}).optional(),
     },
+    // GET /quiz:skills - Get skills defined in the Quiz set used by an exam
+    {
+        name: 'edubase_get_quiz_skills',
+        description: "Get skills defined in a Quiz set.",
+        inputSchema: z.object({
+            quiz: z.string().describe('Quiz identification string'),
+        }),
+        outputSchema: z.object({
+            quiz: z.string().describe('Quiz identification string'),
+            skills: z.array(z.object({
+                identifier: z.string().describe('skill identifier'),
+                name: z.string().describe('skill name'),
+                description: z.string().optional().describe('skill description (if set)'),
+            })),
+        }),
+    },
     // GET /quiz:questions - List all questions and question groups in a Quiz set
     {
         name: 'edubase_get_quiz_questions',

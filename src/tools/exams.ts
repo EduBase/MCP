@@ -85,6 +85,23 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 		outputSchema: z.object({}).optional(),
 	},
 
+	// GET /exam:skills - Get skills defined in the Quiz set used by an exam
+	{
+		name: 'edubase_get_exam_skills',
+		description: "Get skills defined in the Quiz set used by an exam.",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+		}),
+		outputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			skills: z.array(z.object({
+				identifier: z.string().describe('skill identifier'),
+				name: z.string().describe('skill name'),
+				description: z.string().optional().describe('skill description (if set)'),
+			})),
+		}),
+	},
+
 	// GET /exam:branding - Get exam branding configuration
 	{
 		name: 'edubase_get_exam_branding',
