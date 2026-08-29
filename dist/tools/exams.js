@@ -112,8 +112,8 @@ export const EDUBASE_API_TOOLS_EXAMS = [
             exam: z.string().describe('exam identification string'),
             nonblocking: z.boolean().describe('exam accounts are exclusively assigned to the exam and cannot be assigned to other exams during the exam period'),
             pausable: z.boolean().describe('tests can be paused and continued later during the exam period'),
-            timelimit: z.number().int().nullable().describe('time limit of the whole test in seconds, null if the setting of the Quiz set is used, or 0 if there is no time limit'),
-            roundtime: z.number().int().nullable().describe('time limit of a single question in seconds, turn based Quiz sets only, null if the setting of the Quiz set is used, or 0 if there is no time limit'),
+            timelimit: z.number().int().nullable().describe('time limit of the whole test in seconds (as a number), null if the setting of the Quiz set is used, or 0 if there is no time limit'),
+            roundtime: z.number().int().nullable().describe('time limit of a single question in seconds (as a number), turn based Quiz sets only, null if the setting of the Quiz set is used, or 0 if there is no time limit'),
         }),
     },
     // POST /exam:settings - Change individual settings of an exam
@@ -127,18 +127,18 @@ export const EDUBASE_API_TOOLS_EXAMS = [
             timelimit: z.union([
                 z.number().int(),
                 z.literal('default'),
-            ]).optional().describe('time limit of the whole test in seconds, overriding the setting of the Quiz set, 0 if there is no time limit, or default if Quiz settings should be used'),
+            ]).optional().describe('time limit of the whole test in seconds (as a number), overriding the setting of the Quiz set, 0 if there is no time limit, or "default" if Quiz settings should be used'),
             roundtime: z.union([
                 z.number().int(),
                 z.literal('default'),
-            ]).optional().describe('time limit of a single question in seconds, overriding the setting of the Quiz set, only available for turn based (TURNS mode) Quiz sets, 0 if there is no time limit, or default if Quiz settings should be used'),
+            ]).optional().describe('time limit of a single question in seconds (as a number), overriding the setting of the Quiz set, only available for turn based (TURNS mode) Quiz sets, 0 if there is no time limit, or "default" if Quiz settings should be used'),
         }),
         outputSchema: z.object({
             exam: z.string().describe('exam identification string'),
             nonblocking: z.boolean().describe('exam accounts are exclusively assigned to the exam and cannot be assigned to other exams during the exam period'),
             pausable: z.boolean().describe('tests can be paused and continued later during the exam period'),
-            timelimit: z.number().int().nullable().describe('time limit of the whole test in seconds, null if the setting of the Quiz set is used, or 0 if there is no time limit'),
-            roundtime: z.number().int().nullable().describe('time limit of a single question in seconds, turn based Quiz sets only, null if the setting of the Quiz set is used, or 0 if there is no time limit'),
+            timelimit: z.number().int().nullable().describe('time limit of the whole test in seconds (as a number), null if the setting of the Quiz set is used, or 0 if there is no time limit'),
+            roundtime: z.number().int().nullable().describe('time limit of a single question in seconds (as a number), turn based Quiz sets only, null if the setting of the Quiz set is used, or 0 if there is no time limit'),
         }),
     },
     // PUT /exam:settings - Replace the complete configuration of an exam with the configuration of another exam
