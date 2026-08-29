@@ -60,6 +60,7 @@ export const EDUBASE_API_TOOLS_USERS = [
             exam: z.boolean().describe('user is only allowed to login when accessing exams (default: false)').optional(),
             group: z.string().describe('name of the user group').optional(),
             template: z.string().describe('a template ID for the new account (default: none)').optional(),
+            custom: z.record(z.string(), z.string()).optional().describe('custom field data, keyed by field name (sent as `custom_{field}`), only if the specified field is configured for the target EduBase instance'),
             language: z.string().describe("desired account language (default: API application owner's language)").optional(),
             timezone: z.string().describe("desired timezone (default: API application owner's timezone)").optional(),
             color: z.enum(['default', 'branding', 'red', 'blue', 'yellow', 'green', 'purple', 'gray']).describe('desired favorite color (default/branding/red/blue/yellow/green/purple/gray) (default: default)').optional(),

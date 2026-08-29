@@ -13,7 +13,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
             integrations: z.array(z.object({
                 integration: z.string().describe('integration identification string'),
                 id: z.string().nullable().optional().describe('external unique integration identifier (if set for the integration)'),
-                name: z.string().describe('title of the integration'),
+                title: z.string().describe('title of the integration'),
             })),
         }),
     },
@@ -27,7 +27,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
         outputSchema: z.object({
             integration: z.string().describe('integration identification string'),
             id: z.string().nullable().optional().describe('external unique integration identifier (if set for the integration)'),
-            name: z.string().describe('title of the integration'),
+            title: z.string().describe('title of the integration'),
             type: z.enum(['api', 'moodle', 'canvas', 'd2l', 'schoology', 'lms']).describe('type of the integration'),
             active: z.boolean().describe('integration is active'),
             lti: z.enum(['1.0/1.1', '1.3']).describe('LTI version (1.0/1.1 or 1.3), only present if the integration is an LMS').optional(),

@@ -9,7 +9,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { InMemoryEventStore } from '@modelcontextprotocol/sdk/examples/shared/inMemoryEventStore.js';
 import express from "express";
 import bodyParser from "body-parser";
-import { getClientIp, getHeaderValue, getFileBuffer, guardedRequest } from "./helpers.js";
+import { getClientIp, getHeaderValue, getFileBuffer, guardedRequest, expandCustomFields } from "./helpers.js";
 import { MANIFEST } from "./manifest.js";
 import packageJson from '../package.json' with { type: "json" };
 import * as z from 'zod/v4';
@@ -220,7 +220,7 @@ function createMcpServer(apiUrl = null, authentication = null) {
             try {
                 const name = tool.name;
                 /* Decompose request and check arguments */
-                if (!name.match(/^edubase_(get|post|delete)/)) {
+                if (!name.match(/^edubase_(get|post|patch|put|delete)_/)) {
                     throw new Error('Invalid tool configuration');
                 }
                 if (!args) {
@@ -231,7 +231,7 @@ function createMcpServer(apiUrl = null, authentication = null) {
                 const effectiveAuth = (typeof requestBearer === 'string' && requestBearer.length > 0) ? { bearer: requestBearer } : authentication;
                 /* Prepare and send API request */
                 const [, method, ...endpoint] = name.split('_');
-                const response = await sendEduBaseApiRequest(method, (apiUrl || EDUBASE_API_URL) + '/' + endpoint.join(':'), args, effectiveAuth);
+                const response = await sendEduBaseApiRequest(method, (apiUrl || EDUBASE_API_URL) + '/' + endpoint.join(':'), expandCustomFields(args), effectiveAuth);
                 /* Return response */
                 if (z.object({}).strict().safeParse(tool.outputSchema).success) {
                     /* Endpoint with empty output schema */

@@ -15,7 +15,7 @@ export const EDUBASE_API_TOOLS_CLASSES = [
 			classes: z.array(z.object({
 				class: z.string().describe('class identification string'),
 				id: z.string().nullable().optional().describe('external unique class identifier (if set for the class)'),
-				name: z.string().describe('title of the class'),
+				title: z.string().describe('title of the class'),
 			})),
 		}),
 	},
@@ -30,7 +30,7 @@ export const EDUBASE_API_TOOLS_CLASSES = [
 		outputSchema: z.object({
 			class: z.string().describe('class identification string'),
 			id: z.string().nullable().optional().describe('external unique class identifier (if set for the class)'),
-			name: z.string().describe('title of the class'),
+			title: z.string().describe('title of the class'),
 			start: z.string().nullable().optional().describe('start date and time (if set)'),
 			end: z.string().nullable().optional().describe('end date and time (if set)'),
 		}),
@@ -46,7 +46,7 @@ export const EDUBASE_API_TOOLS_CLASSES = [
 		outputSchema: z.object({
 			assignments: z.array(z.object({
 				assignment: z.string().describe('assignment identification string'),
-				name: z.string().describe('title of the assignment'),
+				title: z.string().describe('title of the assignment'),
 				link: z.string().describe('link to the assignment page'),
 				status: z.enum(['INACTIVE', 'ACTIVE', 'STARTED', 'SUBMITTED', 'GRADED']).describe('assignment and submission state (INACTIVE, ACTIVE, STARTED, SUBMITTED, GRADED)'),
 				starts: z.string().describe('when the assignment submission starts'),
@@ -119,7 +119,7 @@ export const EDUBASE_API_TOOLS_CLASSES = [
 			classes: z.array(z.object({
 				class: z.string().describe('class identification string'),
 				id: z.string().nullable().optional().describe('external unique class identifier (if set for the class)'),
-				name: z.string().describe('title of the class'),
+				title: z.string().describe('title of the class'),
 				link: z.string().describe('link to the class page'),
 				active: z.boolean().describe('active membership (approved and not expired)'),
 			})),

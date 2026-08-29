@@ -14,7 +14,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 			organizations: z.array(z.object({
 				organization: z.string().describe('organization identification string'),
 				id: z.string().nullable().optional().describe('external unique organization identifier (if set for the organization)'),
-				name: z.string().describe('title of the organization'),
+				title: z.string().describe('title of the organization'),
 			})),
 		}),
 	},
@@ -29,7 +29,8 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 		outputSchema: z.object({
 			organization: z.string().describe('organization identification string'),
 			id: z.string().nullable().optional().describe('external unique organization identifier (if set for the organization)'),
-			name: z.string().describe('title of the organization'),
+			title: z.string().describe('title of the organization'),
+			description: z.string().optional().describe('short description of the organization (only present if set for the organization)'),
 		}),
 	},
 
@@ -38,12 +39,13 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 		name: 'edubase_post_organization',
 		description: "Create an organization.",
 		inputSchema: z.object({
-			name: z.string().describe('title of the organization'),
+			title: z.string().describe('title of the organization'),
 			description: z.string().optional().describe('optional short description'),
 			domain: z.string().optional().describe('domain name (FQDN) for the organization without www prefix, needs special privileges to set!'),
 			website: z.url().optional().describe('homepage URL'),
 			email: z.email().optional().describe('contact email address'),
 			phone: z.string().optional().describe('contact phone number'),
+			custom: z.record(z.string(), z.string()).optional().describe('custom field data, keyed by field name (sent as `custom_{field}`), only if the specified field is configured for the target EduBase instance'),
 		}),
 		outputSchema: z.object({
 			organization: z.string().describe('organization identification string'),
@@ -56,6 +58,8 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 		description: "Update organization.",
 		inputSchema: z.object({
 			organization: z.string().describe('organization identification string'),
+			title: z.string().min(1).max(255).optional().describe('title of the organization'),
+			custom: z.record(z.string(), z.string()).optional().describe('custom field data, keyed by field name (sent as `custom_{field}`), only if the specified field is configured for the target EduBase instance'),
 		}),
 		outputSchema: z.object({}).optional(),
 	},
@@ -145,7 +149,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 			organizations: z.array(z.object({
 				organization: z.string().describe('organization identification string'),
 				id: z.string().nullable().optional().describe('external unique organization identifier (if set for the organization)'),
-				name: z.string().describe('title of the organization'),
+				title: z.string().describe('title of the organization'),
 				link: z.string().describe('link to the organization manager page'),
 				department: z.string().nullable().optional().describe('name of the department (if member)'),
 				permission: z.object({
@@ -195,7 +199,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 		outputSchema: z.object({
 			organization: z.string().describe('organization identification string'),
 			webhook: z.string().describe('webhook identification string'),
-			name: z.string().describe('title of the webhook'),
+			title: z.string().describe('title of the webhook'),
 			active: z.boolean().describe('webhook is active'),
 		}),
 	},
@@ -206,7 +210,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 		description: "Create a webhook for an organization.",
 		inputSchema: z.object({
 			organization: z.string().describe('organization identification string'),
-			name: z.string().describe('title of the webhook'),
+			title: z.string().describe('title of the webhook'),
 			trigger_event: z.enum(['exam-play-result', 'quiz-play-result', 'api']).describe('Type of event to trigger webhook: - exam-play-result: triggers when a user (must be member of the organization) completes an exam in the organization - quiz-play-result: triggers when a user (must be member of the organization) completes a quiz in practice mode in the organization - api: triggers when a manual API call is made (useful for testing and debugging)'),
 			endpoint: z.url().describe('URL to send webhook notifications to'),
 			method: z.enum(['POST', 'GET']).optional().describe('HTTP method to use for webhook notifications (default: POST) - POST - GET'),

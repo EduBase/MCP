@@ -27,7 +27,7 @@ const createEntityTagTools = (entity: TagEntityConfig) => [
 		outputSchema: z.object({
 			tags: z.array(z.object({
 				tag: z.string().describe('tag identification string'),
-				name: z.string().describe('title of the tag'),
+				title: z.string().describe('title of the tag'),
 			})),
 		}),
 	},
@@ -197,7 +197,7 @@ export const EDUBASE_API_TOOLS_TAGS = [
 			tags: z.array(z.object({
 				tag: z.string().describe('tag identification string'),
 				id: z.string().nullable().optional().describe('external unique tag identifier (if set for the tag)'),
-				name: z.string().describe('title of the tag'),
+				title: z.string().describe('title of the tag'),
 			})),
 		}),
 	},
@@ -212,7 +212,7 @@ export const EDUBASE_API_TOOLS_TAGS = [
 		outputSchema: z.object({
 			tag: z.string().describe('tag identification string'),
 			id: z.string().nullable().optional().describe('external unique tag identifier (if set for the tag)'),
-			name: z.string().describe('title of the tag'),
+			title: z.string().describe('title of the tag'),
 			color: z.string().describe('color in HEX format'),
 			icon: z.string().describe('Font Awesome icon class name'),
 		}),

@@ -176,3 +176,17 @@ export async function getFileBuffer(source, options = {}) {
         return readLocalFile(filePath);
     }
 }
+/* Expand the `custom` argument object into the flat `custom_{field}` arguments the EduBase API expects */
+export function expandCustomFields(args) {
+    const custom = args?.custom;
+    if (!custom || typeof custom !== 'object' || Array.isArray(custom)) {
+        return args;
+    }
+    const { custom: _custom, ...rest } = args;
+    for (const [field, value] of Object.entries(custom)) {
+        if (field.length > 0 && value !== undefined && value !== null) {
+            rest['custom_' + field] = value;
+        }
+    }
+    return rest;
+}
