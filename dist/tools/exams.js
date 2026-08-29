@@ -193,7 +193,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
         description: "Enable or reconfigure automatic login for an exam.",
         inputSchema: z.object({
             exam: z.string().describe('exam identification string'),
-            se: z.string().optional().describe('shortlink for the login URL, at least 3 characters long, send an empty value to remove the current shortlink, needs the shortlink feature to be enabled and cannot be used with secure (Safe Exam Browser) exams'),
+            se: z.string().optional().describe('shortlink for the login URL, at least 3 characters long (with a + sign automatically prepended), send an empty value to remove the current shortlink, needs the shortlink feature to be enabled and cannot be used with secure (Safe Exam Browser) exams'),
             autoadd: z.boolean().optional().describe('generate new exam accounts automatically on demand, needs special privileges to set!'),
             autojoin: z.boolean().optional().describe('allow already registered users to join the exam automatically, needs special privileges to set!'),
             autojoin_limited: z.boolean().optional().describe('limit automatic joining to the users assigned to the exam, only used when autojoin is enabled, needs special privileges to set! (default: false)'),
