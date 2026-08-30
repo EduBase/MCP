@@ -85,13 +85,13 @@ export const EDUBASE_API_TOOLS_QUIZES = [
             quiz: z.string().describe('Quiz identification string'),
             shuffle: z.boolean().describe('shuffle questions for every play, when disabled the current order of the questions is kept').optional(),
             timelimit: z.union([
-                z.number().int(),
-                z.literal('default'),
-            ]).describe('time limit of the whole test in seconds (0 or default: there is no time limit)').optional(),
+                z.number().int().min(0),
+                z.string().regex(/^(\d+|default)$/i),
+            ]).describe('time limit of the whole test in seconds. Accepts a number or a numeric string, 0 or "default" if there is no time limit').optional(),
             roundtime: z.union([
-                z.number().int(),
-                z.literal('default'),
-            ]).describe('time limit of a single question in seconds, only available for turn based (TURNS mode) Quiz sets (0 or default: there is no time limit)').optional(),
+                z.number().int().min(0),
+                z.string().regex(/^(\d+|default)$/i),
+            ]).describe('time limit of a single question in seconds, only available for turn based (TURNS mode) Quiz sets. Accepts a number or a numeric string, 0 or "default" if there is no time limit').optional(),
         }),
         outputSchema: z.object({
             quiz: z.string().describe('Quiz identification string'),

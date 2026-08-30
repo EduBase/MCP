@@ -133,13 +133,13 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 			nonblocking: z.boolean().optional().describe('exam accounts are exclusively assigned to the exam and cannot be assigned to other exams during the exam period, always true for homeworks and surveys, cannot be disabled when the exam already has results or when some tests are currently paused'),
 			pausable: z.boolean().optional().describe('allow tests to be paused and continued later during the exam period, only available for non-blocking exams and always true for homeworks, cannot be disabled when some tests are currently paused, automatically disabled when nonblocking is disabled'),
 			timelimit: z.union([
-				z.number().int(),
-				z.literal('default'),
-			]).optional().describe('time limit of the whole test in seconds (as a number), overriding the setting of the Quiz set, 0 if there is no time limit, or "default" if Quiz settings should be used'),
+				z.number().int().min(0),
+				z.string().regex(/^(\d+|default)$/i),
+			]).optional().describe('time limit of the whole test in seconds, overriding the setting of the Quiz set. Accepts a number or a numeric string, 0 if there is no time limit, or "default" if the setting of the Quiz set should be used'),
 			roundtime: z.union([
-				z.number().int(),
-				z.literal('default'),
-			]).optional().describe('time limit of a single question in seconds (as a number), overriding the setting of the Quiz set, only available for turn based (TURNS mode) Quiz sets, 0 if there is no time limit, or "default" if Quiz settings should be used'),
+				z.number().int().min(0),
+				z.string().regex(/^(\d+|default)$/i),
+			]).optional().describe('time limit of a single question in seconds, overriding the setting of the Quiz set, only available for turn based (TURNS mode) Quiz sets. Accepts a number or a numeric string, 0 if there is no time limit, or "default" if the setting of the Quiz set should be used'),
 		}),
 		outputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
