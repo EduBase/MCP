@@ -103,6 +103,30 @@ export const EDUBASE_API_TOOLS_PLAYS = [
 		}),
 	},
 
+	// POST /exam:results:export - Generate a download link for the results of an exam
+	{
+		name: 'edubase_post_exam_results_export',
+		description: 'Generate a download link for the results of an exam. The generated link is not authenticated, so it can be handed over to any service, but it can only be used once and it expires in an hour. Only those examinees are exported that are visible for the current user, and the exported columns are controlled by the export settings of the exam (see edubase_get_exam_settings). Exporting the results needs reporting permission for the exam.',
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			format: z.enum(['csv', 'xlsx']).describe('format of the exported file (csv: semicolon separated values, xlsx: Excel 2007+ workbook), default: the export_format setting of the exam').optional(),
+			preset: z.enum(['default', 'answers']).describe('content of the exported file (default: the examinees with their results, answers: the answers only, without the examinees), the answers preset is only available for anonymous surveys (default: default)').optional(),
+			sort: z.enum(['default', 'name']).describe('ordering of the examinees in the exported file (default: the same order they are listed in on the users page of the exam, name: by the name of the examinees), default: the export_sort setting of the exam').optional(),
+			round: z.number().int().describe('export the results of a previous round instead of the current one, only available when the exam is configured to keep the results of its previous rounds, has to be the number of an already closed round (see edubase_get_exam_round)').optional(),
+			filters: z.record(z.string(), z.union([
+				z.array(z.string()),
+				z.string(),
+			])).describe('only export the examinees matching the given user data, keyed by the label of a custom user data field of the exam (see edubase_get_exam_fields), only those select custom fields can be used that have their filtering configured, the value is one of the filterable options of the field or a list of them, the examinees have to match any of the values given for the same field and all of the fields specified, cannot be combined with round as the results of a previous round cannot be filtered').optional(),
+			language: z.string().describe('language of the exported file (default: the language of the user)').optional(),
+		}),
+		outputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			format: z.enum(['csv', 'xlsx']).describe('format of the exported file'),
+			url: z.url().describe('download link for the results'),
+			valid: z.string().describe('date and time of link expiration'),
+		}),
+	},
+
 	// GET /exam:certificates:user - Get (the latest) certificate details for a specific exam and user
 	{
 		name: 'edubase_get_exam_certificates_user',

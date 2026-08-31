@@ -113,7 +113,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// GET /exam:settings - Get the settings of an exam
 	{
 		name: 'edubase_get_exam_settings',
-		description: "Get the settings of an exam. Surveys are never graded and their results cannot be viewed later, so the settings from grading on are not returned for them.",
+		description: "Get the settings of an exam. Surveys are never graded and their results cannot be viewed later, so the grading and the results viewing settings are not returned for them. The columns of the results export cannot be configured for surveys either, only the format and the ordering of the exported file.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 		}),
@@ -136,13 +136,24 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 			hide_points: z.boolean().optional().describe('the points are hidden during the test and on the results page'),
 			hide_grade: z.boolean().optional().describe('the grade is hidden on the results page'),
 			show_in_lasthour: z.boolean().optional().describe('the results are only shown in the last hour of the exam'),
+			export_format: z.enum(['csv', 'xlsx']).describe('format of the exported results file (csv: semicolon separated values, xlsx: Excel 2007+ workbook)'),
+			export_sort: z.enum(['default', 'name']).describe('ordering of the examinees in the exported results file (default: the same order they are listed in on the users page of the exam, name: by the name of the examinees)'),
+			export_stats: z.boolean().optional().describe('the statistics of every question are exported (never returned for surveys)'),
+			export_answers: z.boolean().optional().describe('the answers given by the examinees are exported (never returned for surveys)'),
+			export_points: z.boolean().optional().describe('the points scored on every question are exported (never returned for surveys)'),
+			export_suspicion: z.boolean().optional().describe('the suspicious test taking indicator is exported (never returned for surveys)'),
+			export_finished_only: z.boolean().optional().describe('only the examinees who finished their test are exported (never returned for surveys)'),
+			export_custom_fields: z.boolean().optional().describe('the user data fields filled in by the examinees are exported (see edubase_get_exam_fields), never returned for surveys'),
+			export_skills: z.boolean().optional().describe('the skill results of the examinees are exported, only exported when the Quiz set of the exam has skills (never returned for surveys)'),
+			export_gender: z.boolean().optional().describe('the gender of the registered examinees is exported (never returned for surveys)'),
+			export_attendance: z.boolean().optional().describe('the attendance of the examinees is exported, read only as the attendance is configured together with its source on the interface (never returned for surveys)'),
 		}),
 	},
 
 	// POST /exam:settings - Change individual settings of an exam
 	{
 		name: 'edubase_post_exam_settings',
-		description: "Change individual settings of an exam.",
+		description: "Change individual settings of an exam. The columns of the export (every setting from export_stats on) cannot be configured for surveys, only the export_format and the export_sort settings are available for them. The export_attendance setting is read only, the attendance is configured together with its source on the interface.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 			nonblocking: z.boolean().optional().describe('exam accounts are exclusively assigned to the exam and cannot be assigned to other exams during the exam period, always true for homeworks and surveys, cannot be disabled when the exam already has results or when some tests are currently paused'),
@@ -160,13 +171,23 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 			freeze_round: z.boolean().optional().describe('freeze the current round of the exam, so the Quiz set cannot be replaced and no new round can be started, only available for the managers of the exam'),
 			archive: z.boolean().optional().describe('allow archiving the users who already have a result, only available for the managers of the exam'),
 			view_results: z.enum(['after', 'always', 'datetime', 'datetime_blind', 'manual', 'none']).optional().describe('when the examinees can see their results (after: right after the test is submitted, until the end of the exam, always: any time during the exam period, the examinees can log back in to see their results, datetime: after the test is submitted, and again from the start of the results viewing period, datetime_blind: only in the results viewing period, the solutions and the details of the evaluation are hidden right after the test, manual: only after the result is published separately, test by test, none: never), not available for surveys (default: after)'),
-			view_results_start: z.string().optional().describe('start of the results viewing period (in YYYY-MM-DD HH:ii:ss format), only available with the datetime and datetime_blind types where it is mandatory, has to be between the start and the end of the exam, no further tests can be started once the period has begun'),
+			view_results_start: z.string().optional().describe('start of the results viewing period (in YYYY-MM-DD HH:ii:ss format), only available with the datetime and datetime_blind types where it is mandatory, has to be between the start and the end of the exam, no further tests and no new rounds can be started once the period has begun'),
 			view_results_identifier: z.string().optional().describe('label of the unique free text custom user data field the examinees can look up their results with, only available with the datetime and datetime_blind types, the field has to be a unique free text (text, email or phone) custom field of the exam (see edubase_get_exam_fields), send "none" (or an empty value) to disable the identifier based results page'),
 			results_page: z.boolean().optional().describe('redirect the examinees to the results page after the test, can only be disabled with the datetime_blind, manual and none types'),
 			hide_ingame_results: z.boolean().optional().describe('hide the results while the test is taken'),
 			hide_points: z.boolean().optional().describe('hide the points during the test and on the results page, always enabled with the none type'),
 			hide_grade: z.boolean().optional().describe('hide the grade on the results page, can only be enabled together with hide_points, always enabled with the none type'),
 			show_in_lasthour: z.boolean().optional().describe('only show the results in the last hour of the exam, only available with the after type'),
+			export_format: z.enum(['csv', 'xlsx']).optional().describe('format of the exported results file (csv: semicolon separated values, xlsx: Excel 2007+ workbook), default: xlsx'),
+			export_sort: z.enum(['default', 'name']).optional().describe('ordering of the examinees in the exported results file (default: the same order they are listed in on the users page of the exam, name: by the name of the examinees), default: default'),
+			export_stats: z.boolean().optional().describe('export the statistics of every question, not available for surveys (default: false)'),
+			export_answers: z.boolean().optional().describe('export the answers given by the examinees, not available for surveys (default: false)'),
+			export_points: z.boolean().optional().describe('export the points scored on every question, not available for surveys (default: false)'),
+			export_suspicion: z.boolean().optional().describe('export the suspicious test taking indicator, not available for surveys (default: false)'),
+			export_finished_only: z.boolean().optional().describe('only export the examinees who finished their test, not available for surveys (default: false)'),
+			export_custom_fields: z.boolean().optional().describe('export the user data fields filled in by the examinees (see edubase_get_exam_fields), not available for surveys (default: true)'),
+			export_skills: z.boolean().optional().describe('export the skill results of the examinees, only exported when the Quiz set of the exam has skills, not available for surveys (default: true)'),
+			export_gender: z.boolean().optional().describe('export the gender of the registered examinees, needs special privileges to enable, not available for surveys (default: false)'),
 		}),
 		outputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
@@ -187,6 +208,17 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 			hide_points: z.boolean().optional().describe('the points are hidden during the test and on the results page'),
 			hide_grade: z.boolean().optional().describe('the grade is hidden on the results page'),
 			show_in_lasthour: z.boolean().optional().describe('the results are only shown in the last hour of the exam'),
+			export_format: z.enum(['csv', 'xlsx']).describe('format of the exported results file (csv: semicolon separated values, xlsx: Excel 2007+ workbook)'),
+			export_sort: z.enum(['default', 'name']).describe('ordering of the examinees in the exported results file (default: the same order they are listed in on the users page of the exam, name: by the name of the examinees)'),
+			export_stats: z.boolean().optional().describe('the statistics of every question are exported (never returned for surveys)'),
+			export_answers: z.boolean().optional().describe('the answers given by the examinees are exported (never returned for surveys)'),
+			export_points: z.boolean().optional().describe('the points scored on every question are exported (never returned for surveys)'),
+			export_suspicion: z.boolean().optional().describe('the suspicious test taking indicator is exported (never returned for surveys)'),
+			export_finished_only: z.boolean().optional().describe('only the examinees who finished their test are exported (never returned for surveys)'),
+			export_custom_fields: z.boolean().optional().describe('the user data fields filled in by the examinees are exported (see edubase_get_exam_fields), never returned for surveys'),
+			export_skills: z.boolean().optional().describe('the skill results of the examinees are exported, only exported when the Quiz set of the exam has skills (never returned for surveys)'),
+			export_gender: z.boolean().optional().describe('the gender of the registered examinees is exported (never returned for surveys)'),
+			export_attendance: z.boolean().optional().describe('the attendance of the examinees is exported, read only as the attendance is configured together with its source on the interface (never returned for surveys)'),
 		}),
 	},
 
@@ -473,7 +505,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// POST /exam:round - Start a new round of the exam
 	{
 		name: 'edubase_post_exam_round',
-		description: "Start a new round of the exam. The running tests are closed, the results of the previous round are detached from the exam accounts and the generated accounts are reset, so the exam can be taken again by another group of examinees. A new round cannot be started when the exam is locked, archived, or the current round is frozen (see the freeze_round setting of edubase_post_exam_settings).",
+		description: "Start a new round of the exam. The running tests are closed, the results of the previous round are detached from the exam accounts and the generated accounts are reset, so the exam can be taken again by another group of examinees. A new round cannot be started when the exam is locked, archived, the current round is frozen (see the freeze_round setting of edubase_post_exam_settings), or the results viewing period of the exam has already begun (see the view_results_start setting of edubase_post_exam_settings).",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 			force: z.boolean().optional().describe('start a new round even if the current one has no results yet (default: false)'),
