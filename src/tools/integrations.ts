@@ -46,6 +46,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 			type: z.enum(['api', 'moodle', 'canvas', 'd2l', 'schoology', 'lms']).optional().describe('type of the integration (default: api)'),
 			lti: z.enum(['1.0/1.1', '1.3']).optional().describe('LTI version, required for LMS integrations'),
 			platform: z.string().optional().describe('LMS platform URL, only necessary for LMS integrations!'),
+			organization: z.string().optional().describe('organization identification string to assign the integration to, only an organization of the API application owner can be used, always the organization of the user for organizational members'),
 		}).superRefine((data, ctx) => {
 			if (data.type && data.type !== 'api') {
 				if (!data.lti) {
@@ -76,6 +77,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 		inputSchema: z.object({
 			integration: z.string().describe('integration identification string'),
 			active: z.boolean().optional().describe('enable or disable the integration'),
+			organization: z.string().optional().describe('organization identification string to move the integration to, only an organization of the API application owner can be used, only the owner of the integration (or an administrator) can change the organization, send "none" (or an empty value) to remove the integration from its current organization, always the organization of the user for organizational members'),
 		}),
 		outputSchema: z.object({}).optional(),
 	},

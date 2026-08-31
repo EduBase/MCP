@@ -43,6 +43,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
             description: z.string().describe('short description').optional(),
             copy_settings: z.string().describe('optional Quiz set identification string to copy settings from').optional(),
             copy_questions: z.string().describe('optional Quiz set identification string to copy questions from').optional(),
+            organization: z.string().describe('organization identification string to assign the Quiz set to, only an organization of the API application owner can be used, always the organization of the user for organizational members').optional(),
             mode: z.enum(['TEST', 'TURNS']).describe('Sets how questions are displayed during the Quiz. (default: TEST) - TEST: all questions are displayed at once, user can answer them in any order and switch between them - TURNS: questions are displayed one by one, only one question is visible at a time and the user must answer it before moving to the next question').optional(),
             type: z.enum(['set', 'final', 'exam', 'private']).describe('Type of the Quiz set. (default: set) - set: for practice purposes - final: for course exam purposes - exam: for exam purposes - private: for private purposes (e.g testing)').optional(),
         }),
@@ -60,6 +61,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
             id: z.string().max(64).describe('external unique Quiz identifier, send an empty value to remove the current identifier').optional(),
             language: z.string().describe('language of the Quiz set').optional(),
             description: z.string().max(255).describe('short description of the Quiz set, send an empty value to remove the current description').optional(),
+            organization: z.string().describe('organization identification string to move the Quiz set to, only an organization of the API application owner can be used, only the owner of the Quiz set (or an administrator) can change the organization, send "none" (or an empty value) to remove the Quiz set from its current organization, always the organization of the user for organizational members').optional(),
         }),
         outputSchema: z.object({}).optional(),
     },
@@ -75,6 +77,8 @@ export const EDUBASE_API_TOOLS_QUIZES = [
             shuffle: z.boolean().describe('questions are shuffled for every play'),
             timelimit: z.number().int().nullable().describe('time limit of the whole test in seconds, null if there is no time limit'),
             roundtime: z.number().int().nullable().describe('time limit of a single question in seconds, turn based Quiz sets only, null if there is no time limit'),
+            grading: z.string().describe('grading of the Quiz set, the code of the grading preset in use, "custom" for a manually configured grading, or "none" when grading is disabled'),
+            grading_threshold: z.number().int().describe('threshold of the grading in percentage (only present if a threshold is configured for the Quiz set)').optional(),
         }),
     },
     // POST /quiz:settings - Change individual settings of a Quiz set
@@ -92,12 +96,16 @@ export const EDUBASE_API_TOOLS_QUIZES = [
                 z.number().int().min(0),
                 z.string().regex(/^(\d+|default)$/i),
             ]).describe('time limit of a single question in seconds, only available for turn based (TURNS mode) Quiz sets. Accepts a number or a numeric string, 0 or "default" if there is no time limit').optional(),
+            grading: z.string().describe('grading of the Quiz set, the code of a grading preset (see edubase_get_quiz_grading_presets), or "none" to disable grading').optional(),
+            grading_threshold: z.number().min(0).max(100).describe('threshold of the grading in percentage, between 0 and 100, only available for grading presets with a configurable threshold (of the go-nogo-custom type), can be changed without selecting the grading preset again').optional(),
         }),
         outputSchema: z.object({
             quiz: z.string().describe('Quiz identification string'),
             shuffle: z.boolean().describe('questions are shuffled for every play'),
             timelimit: z.number().int().nullable().describe('time limit of the whole test in seconds, null if there is no time limit'),
             roundtime: z.number().int().nullable().describe('time limit of a single question in seconds, turn based Quiz sets only, null if there is no time limit'),
+            grading: z.string().describe('grading of the Quiz set, the code of the grading preset in use, "custom" for a manually configured grading, or "none" when grading is disabled'),
+            grading_threshold: z.number().int().describe('threshold of the grading in percentage (only present if a threshold is configured for the Quiz set)').optional(),
         }),
     },
     // PUT /quiz:settings - Replace the complete configuration of a Quiz set with the configuration of another Quiz set
@@ -132,6 +140,103 @@ export const EDUBASE_API_TOOLS_QUIZES = [
         description: 'Remove/archive Quiz set.',
         inputSchema: z.object({
             quiz: z.string().describe('Quiz identification string'),
+        }),
+        outputSchema: z.object({}).optional(),
+    },
+    // GET /quiz:grading-presets - List the grading presets available for the user
+    {
+        name: 'edubase_get_quiz_grading_presets',
+        description: 'List the grading presets available for the user. Both the global presets and the owned, custom presets are returned.',
+        inputSchema: z.object({
+            language: z.string().describe('optional language to filter the results with, presets that are not bound to a language are always included').optional(),
+        }),
+        outputSchema: z.object({
+            presets: z.array(z.object({
+                preset: z.string().describe('grading preset identification string'),
+                title: z.string().describe('title of the grading preset'),
+                type: z.string().describe('type of the grading preset'),
+                language: z.string().nullable().describe('language of the grading preset, null if the preset is available in every language'),
+                configurable: z.boolean().describe('the threshold of the preset can be configured on the Quiz set or the exam'),
+                own: z.boolean().describe('the preset is a custom preset owned by the user'),
+            })),
+        }),
+    },
+    // GET /quiz:grading-preset - Get a grading preset with its thresholds and grades
+    {
+        name: 'edubase_get_quiz_grading_preset',
+        description: 'Get a grading preset with its thresholds and grades.',
+        inputSchema: z.object({
+            preset: z.string().describe('grading preset identification string'),
+        }),
+        outputSchema: z.object({
+            preset: z.string().describe('grading preset identification string'),
+            title: z.string().describe('title of the grading preset'),
+            type: z.string().describe('type of the grading preset'),
+            language: z.string().nullable().describe('language of the grading preset, null if the preset is available in every language'),
+            configurable: z.boolean().describe('the threshold of the preset can be configured on the Quiz set or the exam'),
+            own: z.boolean().describe('the preset is a custom preset owned by the user'),
+            used: z.boolean().describe('the preset is already used by a Quiz set or an exam of the user'),
+            grades: z.array(z.object({
+                threshold: z.number().describe('lowest result in percentage the grade is given for, the first item always starts at 0'),
+                grade: z.string().describe('the grade itself'),
+                text: z.string().optional().describe('text shown under the grade on the results page (if set)'),
+            })),
+        }),
+    },
+    // POST /quiz:grading-preset - Create a new custom grading preset
+    {
+        name: 'edubase_post_quiz_grading_preset',
+        description: 'Create a new custom grading preset. Needs the custom grading feature to be enabled.',
+        inputSchema: z.object({
+            title: z.string().min(1).max(128).describe('title of the grading preset'),
+            language: z.string().describe('language of the grading preset (default: content language of the API application owner)').optional(),
+            type: z.enum(['custom', 'go-nogo-custom', 'hungarian-school', 'hungarian-university']).describe('type of the grading preset (custom: freely named grades, at least 2 items - go-nogo-custom: successful/unsuccessful grading with a custom threshold, exactly 2 items - hungarian-school: Hungarian primary and secondary school grading (1-5), exactly 5 items - hungarian-university: Hungarian university grading (1-5), exactly 5 items)'),
+            grades: z.array(z.object({
+                threshold: z.number().min(0).max(100).optional().describe('lowest result in percentage the grade is given for, between 0 and 100, the first item always starts at 0 so its threshold is ignored'),
+                grade: z.string().optional().describe('the grade itself, only used with the custom type where every item needs a unique, non-empty grade, the grades of the other types are fixed by the type'),
+                text: z.string().optional().describe('optional text shown under the grade on the results page, text between asterisks (*) is displayed in bold and three or more consecutive spaces start a new line'),
+            })).describe('thresholds and grades of the preset, in ascending order'),
+        }),
+        outputSchema: z.object({
+            preset: z.string().describe('grading preset identification string'),
+        }),
+    },
+    // PATCH /quiz:grading-preset - Update an existing custom grading preset
+    {
+        name: 'edubase_patch_quiz_grading_preset',
+        description: 'Update an existing custom grading preset. Global presets cannot be modified.',
+        inputSchema: z.object({
+            preset: z.string().describe('grading preset identification string'),
+            title: z.string().min(1).max(128).describe('title of the grading preset').optional(),
+            language: z.string().describe('language of the grading preset').optional(),
+            type: z.enum(['custom', 'go-nogo-custom', 'hungarian-school', 'hungarian-university']).describe('type of the grading preset, cannot be changed anymore once the preset is used by a Quiz set or an exam').optional(),
+            grades: z.array(z.object({
+                threshold: z.number().min(0).max(100).optional().describe('lowest result in percentage the grade is given for, between 0 and 100, the first item always starts at 0 so its threshold is ignored'),
+                grade: z.string().optional().describe('the grade itself, only used with the custom type where every item needs a unique, non-empty grade, the grades of the other types are fixed by the type'),
+                text: z.string().optional().describe('optional text shown under the grade on the results page, text between asterisks (*) is displayed in bold and three or more consecutive spaces start a new line'),
+            })).describe('thresholds and grades of the preset, in ascending order, the complete list is replaced').optional(),
+        }),
+        outputSchema: z.object({
+            preset: z.string().describe('grading preset identification string'),
+            title: z.string().describe('title of the grading preset'),
+            type: z.string().describe('type of the grading preset'),
+            language: z.string().nullable().describe('language of the grading preset, null if the preset is available in every language'),
+            configurable: z.boolean().describe('the threshold of the preset can be configured on the Quiz set or the exam'),
+            own: z.boolean().describe('the preset is a custom preset owned by the user'),
+            used: z.boolean().describe('the preset is already used by a Quiz set or an exam of the user'),
+            grades: z.array(z.object({
+                threshold: z.number().describe('lowest result in percentage the grade is given for, the first item always starts at 0'),
+                grade: z.string().describe('the grade itself'),
+                text: z.string().optional().describe('text shown under the grade on the results page (if set)'),
+            })),
+        }),
+    },
+    // DELETE /quiz:grading-preset - Remove a custom grading preset
+    {
+        name: 'edubase_delete_quiz_grading_preset',
+        description: 'Remove a custom grading preset. Global presets, and presets that are still used by a Quiz set or an exam cannot be removed.',
+        inputSchema: z.object({
+            preset: z.string().describe('grading preset identification string'),
         }),
         outputSchema: z.object({}).optional(),
     },

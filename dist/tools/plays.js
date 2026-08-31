@@ -28,6 +28,15 @@ export const EDUBASE_API_TOOLS_PLAYS = [
             })),
         }),
     },
+    // DELETE /quiz:results:play - Archive or forget the result of a Quiz play
+    {
+        name: 'edubase_delete_quiz_results_play',
+        description: 'Archive or forget the result of a Quiz play. An exam result is archived: it disappears from the result lists and the reports of the exam, but it is kept and can be restored by adding the archived user back to the exam. A result outside of an exam is forgotten: the play is detached from the user and only kept for the statistics. Exam results can only be archived when archiving is enabled for the exam (see the archive setting of edubase_post_exam_settings), and only the current result of the user can be archived. Results outside of an exam can only be forgotten by administrators.',
+        inputSchema: z.object({
+            play: z.string().describe('Quiz play identification string'),
+        }),
+        outputSchema: z.object({}).optional(),
+    },
     // GET /quiz:results:user - Get user results for a specific Quiz set
     {
         name: 'edubase_get_quiz_results_user',

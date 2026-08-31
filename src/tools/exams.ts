@@ -73,6 +73,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 			keep_certificate_settings: z.boolean().optional().describe('whether to keep certificate settings from the copied exam (default: false)'),
 			type: z.enum(['exam', 'championship', 'homework', 'survey']).optional().describe('type of the exam (default: exam)'),
 			quiz: z.string().describe('the Quiz set (specified using the Quiz identification string) the exam is attached to'),
+			organization: z.string().optional().describe('organization identification string to assign the exam to, only an organization of the API application owner can be used, always the organization of the user for organizational members'),
 			start: z.string().describe('exam start time (in YYYY-MM-DD HH:ii:ss format)'),
 			end: z.string().describe('exam end time (in YYYY-MM-DD HH:ii:ss format)'),
 		}),
@@ -91,6 +92,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 			id: z.string().max(64).optional().describe('external unique exam identifier, send an empty value to remove the current identifier'),
 			language: z.string().optional().describe('language of the exam'),
 			description: z.string().optional().describe('description of the exam, basic HTML formatting is kept and scripts are removed, send an empty value to remove the current description'),
+			organization: z.string().optional().describe('organization identification string to move the exam to, only an organization of the API application owner can be used, only the owner of the exam (or an administrator) can change the organization, send "none" (or an empty value) to remove the exam from its current organization, always the organization of the user for organizational members'),
 			start: z.string().optional().describe('exam start time (in YYYY-MM-DD HH:ii:ss format), can only be changed until the first result arrives'),
 			end: z.string().optional().describe('exam end time (in YYYY-MM-DD HH:ii:ss format)'),
 			deadline: z.string().optional().describe('latest date and time the exam can be started at (in YYYY-MM-DD HH:ii:ss format), should be within the exam period, send "none" (or an empty value) to remove the current deadline'),
@@ -111,7 +113,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// GET /exam:settings - Get the settings of an exam
 	{
 		name: 'edubase_get_exam_settings',
-		description: "Get the settings of an exam.",
+		description: "Get the settings of an exam. Surveys are never graded and their results cannot be viewed later, so the settings from grading on are not returned for them.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 		}),
@@ -121,6 +123,19 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 			pausable: z.boolean().describe('tests can be paused and continued later during the exam period'),
 			timelimit: z.number().int().nullable().describe('time limit of the whole test in seconds (as a number), null if the setting of the Quiz set is used, or 0 if there is no time limit'),
 			roundtime: z.number().int().nullable().describe('time limit of a single question in seconds (as a number), turn based Quiz sets only, null if the setting of the Quiz set is used, or 0 if there is no time limit'),
+			freeze_round: z.boolean().describe('the current round of the exam is frozen, no new round can be started'),
+			archive: z.boolean().describe('the users who already have a result can be archived'),
+			grading: z.string().nullable().optional().describe('grading of the exam, the code of the grading preset in use, "custom" for a manually configured grading, or "none" when grading is disabled, null if the setting of the Quiz set is used (never returned for surveys)'),
+			grading_threshold: z.number().int().optional().describe('threshold of the grading in percentage (only present if a threshold is configured for the exam)'),
+			view_results: z.enum(['after', 'always', 'datetime', 'datetime_blind', 'manual', 'none']).optional().describe('when the examinees can see their results (after: right after the test is submitted, until the end of the exam, always: any time during the exam period, the examinees can log back in to see their results, datetime: after the test is submitted, and again from the start of the results viewing period, datetime_blind: only in the results viewing period, the solutions and the details of the evaluation are hidden right after the test, manual: only after the result is published separately, test by test, none: never), never returned for surveys'),
+			view_results_start: z.string().nullable().optional().describe('start of the results viewing period (only present if view_results is datetime or datetime_blind)'),
+			view_results_identifier: z.string().nullable().optional().describe('label of the custom user data field the examinees can look up their results with (only present if view_results is datetime or datetime_blind)'),
+			results_url: z.url().optional().describe('URL where examinees can look up their own results with the identifier (only present if the identifier based results page is available)'),
+			results_page: z.boolean().optional().describe('the examinees are redirected to the results page after the test'),
+			hide_ingame_results: z.boolean().optional().describe('the results are hidden while the test is taken'),
+			hide_points: z.boolean().optional().describe('the points are hidden during the test and on the results page'),
+			hide_grade: z.boolean().optional().describe('the grade is hidden on the results page'),
+			show_in_lasthour: z.boolean().optional().describe('the results are only shown in the last hour of the exam'),
 		}),
 	},
 
@@ -140,6 +155,18 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 				z.number().int().min(0),
 				z.string().regex(/^(\d+|default)$/i),
 			]).optional().describe('time limit of a single question in seconds, overriding the setting of the Quiz set, only available for turn based (TURNS mode) Quiz sets. Accepts a number or a numeric string, 0 if there is no time limit, or "default" if the setting of the Quiz set should be used'),
+			grading: z.string().optional().describe('grading of the exam, the code of a grading preset (see edubase_get_quiz_grading_presets), "none" to disable grading, or "default" to use the setting of the Quiz set, not available for surveys as they are never graded'),
+			grading_threshold: z.number().min(0).max(100).optional().describe('threshold of the grading in percentage, between 0 and 100, only available for grading presets with a configurable threshold (of the go-nogo-custom type), can be changed without selecting the grading preset again'),
+			freeze_round: z.boolean().optional().describe('freeze the current round of the exam, so the Quiz set cannot be replaced and no new round can be started, only available for the managers of the exam'),
+			archive: z.boolean().optional().describe('allow archiving the users who already have a result, only available for the managers of the exam'),
+			view_results: z.enum(['after', 'always', 'datetime', 'datetime_blind', 'manual', 'none']).optional().describe('when the examinees can see their results (after: right after the test is submitted, until the end of the exam, always: any time during the exam period, the examinees can log back in to see their results, datetime: after the test is submitted, and again from the start of the results viewing period, datetime_blind: only in the results viewing period, the solutions and the details of the evaluation are hidden right after the test, manual: only after the result is published separately, test by test, none: never), not available for surveys (default: after)'),
+			view_results_start: z.string().optional().describe('start of the results viewing period (in YYYY-MM-DD HH:ii:ss format), only available with the datetime and datetime_blind types where it is mandatory, has to be between the start and the end of the exam, no further tests can be started once the period has begun'),
+			view_results_identifier: z.string().optional().describe('label of the unique free text custom user data field the examinees can look up their results with, only available with the datetime and datetime_blind types, the field has to be a unique free text (text, email or phone) custom field of the exam (see edubase_get_exam_fields), send "none" (or an empty value) to disable the identifier based results page'),
+			results_page: z.boolean().optional().describe('redirect the examinees to the results page after the test, can only be disabled with the datetime_blind, manual and none types'),
+			hide_ingame_results: z.boolean().optional().describe('hide the results while the test is taken'),
+			hide_points: z.boolean().optional().describe('hide the points during the test and on the results page, always enabled with the none type'),
+			hide_grade: z.boolean().optional().describe('hide the grade on the results page, can only be enabled together with hide_points, always enabled with the none type'),
+			show_in_lasthour: z.boolean().optional().describe('only show the results in the last hour of the exam, only available with the after type'),
 		}),
 		outputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
@@ -147,6 +174,19 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 			pausable: z.boolean().describe('tests can be paused and continued later during the exam period'),
 			timelimit: z.number().int().nullable().describe('time limit of the whole test in seconds (as a number), null if the setting of the Quiz set is used, or 0 if there is no time limit'),
 			roundtime: z.number().int().nullable().describe('time limit of a single question in seconds (as a number), turn based Quiz sets only, null if the setting of the Quiz set is used, or 0 if there is no time limit'),
+			freeze_round: z.boolean().describe('the current round of the exam is frozen, no new round can be started'),
+			archive: z.boolean().describe('the users who already have a result can be archived'),
+			grading: z.string().nullable().optional().describe('grading of the exam, the code of the grading preset in use, "custom" for a manually configured grading, or "none" when grading is disabled, null if the setting of the Quiz set is used (never returned for surveys)'),
+			grading_threshold: z.number().int().optional().describe('threshold of the grading in percentage (only present if a threshold is configured for the exam)'),
+			view_results: z.enum(['after', 'always', 'datetime', 'datetime_blind', 'manual', 'none']).optional().describe('when the examinees can see their results (after: right after the test is submitted, until the end of the exam, always: any time during the exam period, the examinees can log back in to see their results, datetime: after the test is submitted, and again from the start of the results viewing period, datetime_blind: only in the results viewing period, the solutions and the details of the evaluation are hidden right after the test, manual: only after the result is published separately, test by test, none: never), never returned for surveys'),
+			view_results_start: z.string().nullable().optional().describe('start of the results viewing period (only present if view_results is datetime or datetime_blind)'),
+			view_results_identifier: z.string().nullable().optional().describe('label of the custom user data field the examinees can look up their results with (only present if view_results is datetime or datetime_blind)'),
+			results_url: z.url().optional().describe('URL where examinees can look up their own results with the identifier (only present if the identifier based results page is available)'),
+			results_page: z.boolean().optional().describe('the examinees are redirected to the results page after the test'),
+			hide_ingame_results: z.boolean().optional().describe('the results are hidden while the test is taken'),
+			hide_points: z.boolean().optional().describe('the points are hidden during the test and on the results page'),
+			hide_grade: z.boolean().optional().describe('the grade is hidden on the results page'),
+			show_in_lasthour: z.boolean().optional().describe('the results are only shown in the last hour of the exam'),
 		}),
 	},
 
@@ -260,6 +300,191 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 				name: z.string().describe('full name of the generated account'),
 				password: z.string().nullable().describe('password of the generated account (if available)'),
 			})),
+		}),
+	},
+
+	// GET /exam:fields - Get the user data fields of an exam
+	{
+		name: 'edubase_get_exam_fields',
+		description: "Get the user data fields of an exam. These are the built-in name, email address and phone number fields, and the custom fields the examinees fill in before they start their test.",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+		}),
+		outputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			name: z.union([
+				z.boolean(),
+				z.string(),
+			]).describe('the full name of the examinee is requested (false: the field is not used, true: the field is used with its default label, otherwise the custom label of the field)'),
+			email: z.union([
+				z.boolean(),
+				z.string(),
+			]).describe('the email address of the examinee is requested (false: the field is not used, true: the field is used with its default label, otherwise the custom label of the field)'),
+			phone: z.union([
+				z.boolean(),
+				z.string(),
+			]).describe('the phone number of the examinee is requested (false: the field is not used, true: the field is used with its default label, otherwise the custom label of the field)'),
+			fields: z.array(z.object({
+				label: z.string().describe('label of the field, shown to the examinee'),
+				type: z.string().describe('type of the field'),
+				required: z.boolean().describe('the field has to be filled in'),
+				description: z.string().optional().describe('description shown under the field (if set)'),
+				icon: z.string().optional().describe('Font Awesome icon class name of the field (if set)'),
+				options: z.array(z.string()).optional().describe('the selectable options (select fields only)'),
+				filtering: z.record(z.string(), z.string()).optional().describe('short labels the examinees are grouped and filtered with in the exam manager and the reports, keyed by option (select fields only, if set)'),
+				from: z.number().optional().describe('lowest selectable value (from-to fields only)'),
+				to: z.number().optional().describe('highest selectable value (from-to fields only)'),
+				step: z.number().optional().describe('difference between the selectable values (from-to fields only, if set)'),
+				minlength: z.number().int().optional().describe('minimum length of the value (free text fields only, if set)'),
+				maxlength: z.number().int().optional().describe('maximum length of the value (free text fields only, if set)'),
+				pattern: z.string().optional().describe('regular expression the value has to match (free text fields only, if set)'),
+				unique: z.boolean().optional().describe('the value has to be unique within the exam (free text fields only, if set)'),
+			})).describe('the custom fields of the exam'),
+		}),
+	},
+
+	// POST /exam:fields - Change the built-in user data fields of an exam, and replace the complete list of its custom fields
+	{
+		name: 'edubase_post_exam_fields',
+		description: "Change the built-in user data fields of an exam, and replace the complete list of its custom fields. The view_results_identifier setting of the exam is cleared when the selected custom field is not a unique free text field anymore.",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			name: z.union([
+				z.boolean(),
+				z.string().min(1).max(255),
+			]).optional().describe('request the full name of the examinee (true: use the field with its default label, false: do not use the field but keep its other settings, any other value is used as the label of the field)'),
+			email: z.union([
+				z.boolean(),
+				z.string().min(1).max(255),
+			]).optional().describe('request the email address of the examinee (true: use the field with its default label, false: do not use the field but keep its other settings, any other value is used as the label of the field)'),
+			phone: z.union([
+				z.boolean(),
+				z.string().min(1).max(255),
+			]).optional().describe('request the phone number of the examinee (true: use the field with its default label, false: do not use the field but keep its other settings, any other value is used as the label of the field)'),
+			fields: z.array(z.object({
+				label: z.string().describe('label of the field, shown to the examinee, the label identifies the field so it has to be unique within the exam, the settings of the previous field with the same label are used as the defaults'),
+				type: z.enum(['text', 'email', 'phone', 'select', 'number', 'from-to', 'yes-no', 'yes', 'no', 'true-false', 'gender']).optional().describe('type of the field (text: free text, email: email address, phone: phone number, select: one of the given options, number: number, from-to: number selected from a range, yes-no: yes or no, yes: yes only and the examinee has to accept it, no: no only, true-false: true or false, gender: male, female or other), default: text'),
+				required: z.boolean().optional().describe('the field has to be filled in (default: true)'),
+				description: z.string().optional().describe('description shown under the field'),
+				icon: z.string().optional().describe('Font Awesome icon class name of the field, in fa-{style} fa-{name} format where style is solid, regular, light, thin or brands (example: fa-regular fa-id-card)'),
+				options: z.array(z.string()).optional().describe('the selectable options, mandatory for select fields, empty options are dropped'),
+				filtering: z.record(z.string(), z.string()).optional().describe('short labels the examinees are grouped and filtered with in the exam manager and the reports, keyed by option, only used for select fields and only the options of the field can be used as keys, the previously stored labels are kept when it is not specified'),
+				from: z.number().optional().describe('lowest selectable value, mandatory for from-to fields, has to be lower than to'),
+				to: z.number().optional().describe('highest selectable value, mandatory for from-to fields'),
+				step: z.number().optional().describe('difference between the selectable values, only used for from-to fields and it cannot be 0'),
+				minlength: z.number().int().min(1).max(255).optional().describe('minimum length of the value, between 1 and 255, only used for the free text (text, email and phone) fields'),
+				maxlength: z.number().int().min(1).max(255).optional().describe('maximum length of the value, between 1 and 255, only used for the free text (text, email and phone) fields'),
+				pattern: z.string().min(1).max(255).optional().describe('regular expression the value has to match, only used for the free text (text, email and phone) fields, has to be a valid expression and it is matched against the whole value, needs special privileges to set and the previously stored pattern is kept for everyone else'),
+				unique: z.boolean().optional().describe('require the value to be unique within the exam, only used for the free text (text, email and phone) fields (default: false)'),
+			})).min(1).optional().describe('the custom fields of the exam, in the order they are shown to the examinee, the submitted list replaces the current one so send every custom field that should be kept, use edubase_delete_exam_fields to remove every custom field'),
+		}),
+		outputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			name: z.union([
+				z.boolean(),
+				z.string(),
+			]).describe('the full name of the examinee is requested (false: the field is not used, true: the field is used with its default label, otherwise the custom label of the field)'),
+			email: z.union([
+				z.boolean(),
+				z.string(),
+			]).describe('the email address of the examinee is requested (false: the field is not used, true: the field is used with its default label, otherwise the custom label of the field)'),
+			phone: z.union([
+				z.boolean(),
+				z.string(),
+			]).describe('the phone number of the examinee is requested (false: the field is not used, true: the field is used with its default label, otherwise the custom label of the field)'),
+			fields: z.array(z.object({
+				label: z.string().describe('label of the field, shown to the examinee'),
+				type: z.string().describe('type of the field'),
+				required: z.boolean().describe('the field has to be filled in'),
+				description: z.string().optional().describe('description shown under the field (if set)'),
+				icon: z.string().optional().describe('Font Awesome icon class name of the field (if set)'),
+				options: z.array(z.string()).optional().describe('the selectable options (select fields only)'),
+				filtering: z.record(z.string(), z.string()).optional().describe('short labels the examinees are grouped and filtered with in the exam manager and the reports, keyed by option (select fields only, if set)'),
+				from: z.number().optional().describe('lowest selectable value (from-to fields only)'),
+				to: z.number().optional().describe('highest selectable value (from-to fields only)'),
+				step: z.number().optional().describe('difference between the selectable values (from-to fields only, if set)'),
+				minlength: z.number().int().optional().describe('minimum length of the value (free text fields only, if set)'),
+				maxlength: z.number().int().optional().describe('maximum length of the value (free text fields only, if set)'),
+				pattern: z.string().optional().describe('regular expression the value has to match (free text fields only, if set)'),
+				unique: z.boolean().optional().describe('the value has to be unique within the exam (free text fields only, if set)'),
+			})).describe('the custom fields of the exam'),
+		}),
+	},
+
+	// DELETE /exam:fields - Remove every custom field of an exam
+	{
+		name: 'edubase_delete_exam_fields',
+		description: "Remove every custom field of an exam. The built-in name, email address and phone number fields are kept, use edubase_post_exam_fields to turn those off. The values the examinees already entered are kept, but they are not shown anymore. The view_results_identifier setting of the exam is cleared as well.",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+		}),
+		outputSchema: z.object({}).optional(),
+	},
+
+	// GET /exam:status - Get the status of an exam
+	{
+		name: 'edubase_get_exam_status',
+		description: "Get the status of an exam, showing whether new tests can be started.",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+		}),
+		outputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			active: z.boolean().describe('exam is active'),
+			status: z.boolean().describe('new tests can be started'),
+			modified: z.string().nullable().describe('date and time the status was changed at'),
+			scheduled: z.string().nullable().describe('date and time starting new tests is automatically disabled at'),
+		}),
+	},
+
+	// POST /exam:status - Enable or disable starting new tests on an exam
+	{
+		name: 'edubase_post_exam_status',
+		description: "Enable or disable starting new tests on an exam. The exam itself stays active, only the start of further tests is controlled. The status can only be changed while the exam is active and has not closed yet. New tests cannot be started in the results viewing period. Disabling new tests also cancels the scheduled automatic disabling of the exam.",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			status: z.boolean().describe('allow new tests to be started'),
+		}),
+		outputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			active: z.boolean().describe('exam is active'),
+			status: z.boolean().describe('new tests can be started'),
+			modified: z.string().nullable().describe('date and time the status was changed at'),
+			scheduled: z.string().nullable().describe('date and time starting new tests is automatically disabled at'),
+		}),
+	},
+
+	// GET /exam:round - Get the current round of an exam
+	{
+		name: 'edubase_get_exam_round',
+		description: "Get the current round of an exam.",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+		}),
+		outputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			round: z.number().int().describe('index of the current round'),
+			started: z.string().nullable().describe('date and time the current round was started at'),
+			results: z.boolean().describe('the current round already has results'),
+			frozen: z.boolean().describe('the current round is frozen, no new round can be started'),
+		}),
+	},
+
+	// POST /exam:round - Start a new round of the exam
+	{
+		name: 'edubase_post_exam_round',
+		description: "Start a new round of the exam. The running tests are closed, the results of the previous round are detached from the exam accounts and the generated accounts are reset, so the exam can be taken again by another group of examinees. A new round cannot be started when the exam is locked, archived, or the current round is frozen (see the freeze_round setting of edubase_post_exam_settings).",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			force: z.boolean().optional().describe('start a new round even if the current one has no results yet (default: false)'),
+			notify: z.boolean().optional().describe('notify the assigned users about the exam (default: false)'),
+		}),
+		outputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			round: z.number().int().describe('index of the current round'),
+			started: z.string().nullable().describe('date and time the current round was started at'),
+			results: z.boolean().describe('the current round already has results'),
+			frozen: z.boolean().describe('the current round is frozen, no new round can be started'),
 		}),
 	},
 

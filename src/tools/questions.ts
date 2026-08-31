@@ -70,6 +70,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
 				category: z.string().describe('Category, another layer of organization as seen in SUBJECT'),
 				main_category: z.string().describe('The name of the category (for which CATEGORY will be a subcategory).'),
 				difficulty: z.string().describe('Difficulty level of the question. Scale: 1 (very easy) - 5 (very difficult). Default: 0 (not classified).'),
+				organization: z.string().describe('Organization identification string to assign the question to. Only an organization of the API application owner can be used. Only the owner of the question (or an administrator) can change the organization of an existing question. Send "none" (or an empty value) to remove the question from its current organization. Always the organization of the user for organizational members.'),
 				options: z.string().describe('Incorrect options or false statements for choice-based question types. Only applicable for CHOICE, MULTIPLE-CHOICE, and TRUE/FALSE questions. Separate multiple options with triple-and operators ("&&&").'),
 				options_fix: z.string().describe('Controls the arrangement of answers and options.'),
 				options_order: z.string().describe('Define exact presentation order of answers and options.'),
