@@ -146,18 +146,25 @@ export const EDUBASE_API_TOOLS_QUIZES = [
     // GET /quiz:grading-presets - List the grading presets available for the user
     {
         name: 'edubase_get_quiz_grading_presets',
-        description: 'List the grading presets available for the user. Both the global presets and the owned, custom presets are returned.',
+        description: 'List the grading presets available for the user. The global presets, the owned custom presets and the presets of the organizations of the user are returned. A Quiz set or an exam can be specified to list only the presets that can be used on it, together with the one it is currently using.',
         inputSchema: z.object({
-            language: z.string().describe('optional language to filter the results with, presets that are not bound to a language are always included').optional(),
+            quiz: z.string().describe('Quiz identification string, only the presets that can be used on this Quiz set are listed').optional(),
+            exam: z.string().describe('exam identification string, only the presets that can be used on this exam are listed, either the quiz or the exam can be specified, not both of them').optional(),
+            language: z.string().describe('optional language to filter the results with, presets that are not bound to a language are always included (default: the language of the specified Quiz set or exam)').optional(),
         }),
         outputSchema: z.object({
+            quiz: z.string().describe('Quiz identification string (only present if a Quiz set is specified)').optional(),
+            exam: z.string().describe('exam identification string (only present if an exam is specified)').optional(),
             presets: z.array(z.object({
                 preset: z.string().describe('grading preset identification string'),
                 title: z.string().describe('title of the grading preset'),
                 type: z.string().describe('type of the grading preset'),
                 language: z.string().nullable().describe('language of the grading preset, null if the preset is available in every language'),
                 configurable: z.boolean().describe('the threshold of the preset can be configured on the Quiz set or the exam'),
+                certificates: z.boolean().describe('the preset decides whether the test was successful, so certificates can be issued with it (see edubase_post_exam_certificates)'),
                 own: z.boolean().describe('the preset is a custom preset owned by the user'),
+                organization: z.string().nullable().describe('organization identification string of the preset, null if the preset is not bound to an organization'),
+                current: z.boolean().optional().describe('the specified Quiz set or exam is currently graded with this preset (only present if a Quiz set or an exam is specified)'),
             })),
         }),
     },
@@ -174,7 +181,9 @@ export const EDUBASE_API_TOOLS_QUIZES = [
             type: z.string().describe('type of the grading preset'),
             language: z.string().nullable().describe('language of the grading preset, null if the preset is available in every language'),
             configurable: z.boolean().describe('the threshold of the preset can be configured on the Quiz set or the exam'),
+            certificates: z.boolean().describe('the preset decides whether the test was successful, so certificates can be issued with it (see edubase_post_exam_certificates)'),
             own: z.boolean().describe('the preset is a custom preset owned by the user'),
+            organization: z.string().nullable().describe('organization identification string of the preset, null if the preset is not bound to an organization'),
             used: z.boolean().describe('the preset is already used by a Quiz set or an exam of the user'),
             grades: z.array(z.object({
                 threshold: z.number().describe('lowest result in percentage the grade is given for, the first item always starts at 0'),
@@ -204,7 +213,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
     // PATCH /quiz:grading-preset - Update an existing custom grading preset
     {
         name: 'edubase_patch_quiz_grading_preset',
-        description: 'Update an existing custom grading preset. Global presets cannot be modified.',
+        description: 'Update an existing custom grading preset. The global presets and the presets of the organizations cannot be modified.',
         inputSchema: z.object({
             preset: z.string().describe('grading preset identification string'),
             title: z.string().min(1).max(128).describe('title of the grading preset').optional(),
@@ -222,7 +231,9 @@ export const EDUBASE_API_TOOLS_QUIZES = [
             type: z.string().describe('type of the grading preset'),
             language: z.string().nullable().describe('language of the grading preset, null if the preset is available in every language'),
             configurable: z.boolean().describe('the threshold of the preset can be configured on the Quiz set or the exam'),
+            certificates: z.boolean().describe('the preset decides whether the test was successful, so certificates can be issued with it (see edubase_post_exam_certificates)'),
             own: z.boolean().describe('the preset is a custom preset owned by the user'),
+            organization: z.string().nullable().describe('organization identification string of the preset, null if the preset is not bound to an organization'),
             used: z.boolean().describe('the preset is already used by a Quiz set or an exam of the user'),
             grades: z.array(z.object({
                 threshold: z.number().describe('lowest result in percentage the grade is given for, the first item always starts at 0'),
@@ -234,7 +245,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
     // DELETE /quiz:grading-preset - Remove a custom grading preset
     {
         name: 'edubase_delete_quiz_grading_preset',
-        description: 'Remove a custom grading preset. Global presets, and presets that are still used by a Quiz set or an exam cannot be removed.',
+        description: 'Remove a custom grading preset. The global presets, the presets of the organizations, and the presets that are still used by a Quiz set or an exam cannot be removed.',
         inputSchema: z.object({
             preset: z.string().describe('grading preset identification string'),
         }),

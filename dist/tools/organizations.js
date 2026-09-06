@@ -95,7 +95,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
             users: z.string().describe('comma-separated list of user identification strings'),
-            department: z.string().optional().describe('optional name of department'),
+            department: z.string().optional().describe('optional name of department, the competency assignments of the members moved to another department are updated, the competencies they only had through their previous department are lost'),
             permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
             permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
             permission_members: z.enum(['none', 'department', 'organization']).optional().describe('optional permission level to members in organization (none / department / organization) (default: none)'),
@@ -120,7 +120,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
         inputSchema: z.object({
             organizations: z.string().describe('comma-separated list of organization identification strings'),
             users: z.string().describe('comma-separated list of user identification strings'),
-            department: z.string().optional().describe('optional name of department'),
+            department: z.string().optional().describe('optional name of department, the competency assignments of the members moved to another department are updated, the competencies they only had through their previous department are lost'),
             permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
             permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
             permission_members: z.enum(['none', 'department', 'organization']).optional().describe('optional permission level to members in organization (none / department / organization) (default: none)'),
@@ -157,7 +157,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
         inputSchema: z.object({
             user: z.string().describe('user identification string'),
             organizations: z.string().describe('comma-separated list of organization identification strings'),
-            department: z.string().optional().describe('optional name of department'),
+            department: z.string().optional().describe('optional name of department, the competency assignments of the members moved to another department are updated, the competencies they only had through their previous department are lost'),
             permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
             permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
             permission_members: z.enum(['none', 'department', 'organization']).optional().describe('optional permission level to members in organization (none / department / organization) (default: none)'),
