@@ -51,8 +51,19 @@ const EDUBASE_OAUTH_RESOURCE_URL = (process.env.EDUBASE_OAUTH_RESOURCE_URL || ED
 const EDUBASE_OAUTH = ((process.env.EDUBASE_OAUTH || 'false') == 'true' && STREAMABLE_HTTP && EDUBASE_OAUTH_AUTHORIZATION_SERVER.length > 0 && EDUBASE_OAUTH_RESOURCE_URL.length > 0);
 
 /* Supported tools and prompts */
-import { EDUBASE_API_TOOLS_ANNOTATED } from "./tools.js";
+import { EduBaseToolset, parseToolsets, selectTools } from "./tools.js";
 import { EDUBASE_API_PROMPTS } from "./prompts.js";
+import { getServerInstructions } from "./instructions.js";
+
+/* Toolsets and read-only mode (per-session configuration can only narrow these down) */
+type EduBaseToolOptions = { toolsets: EduBaseToolset[]; readOnly: boolean };
+const EDUBASE_FILTER_TOOLSETS = parseToolsets(process.env.EDUBASE_TOOLSETS);
+if (EDUBASE_FILTER_TOOLSETS.unknown.length > 0) {
+	console.error('Error: EDUBASE_TOOLSETS environment variable contains unknown toolsets: ' + EDUBASE_FILTER_TOOLSETS.unknown.join(', '));
+	process.exit(1);
+}
+const EDUBASE_FILTER_READ_ONLY = ((process.env.EDUBASE_READONLY || 'false') == 'true');
+const EDUBASE_TOOL_OPTIONS: EduBaseToolOptions = { toolsets: EDUBASE_FILTER_TOOLSETS.toolsets, readOnly: EDUBASE_FILTER_READ_ONLY };
 
 /* Create MCP server with appropriate EduBase configuration */
 function getEduBaseApiUrl(req: Request): string | null {
@@ -93,7 +104,32 @@ function getEduBaseAuthentication(req: Request): EduBaseAuthentication | null {
 	}
 	return null;
 }
-function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAuthentication | null = null) {
+function getEduBaseToolOptions(req: Request): EduBaseToolOptions {
+	let toolsets: string | null = null;
+	let readOnly = false;
+	if (req.query?.config && typeof req.query.config == 'string') {
+		/* Use toolsets and read-only mode from Smithery configuration */
+		const smitheryConfig = JSON.parse(Buffer.from(req.query.config, 'base64').toString());
+		if (smitheryConfig.edubaseToolsets && typeof smitheryConfig.edubaseToolsets == 'string' && smitheryConfig.edubaseToolsets.length > 0) {
+			toolsets = smitheryConfig.edubaseToolsets;
+		}
+		readOnly = (smitheryConfig.edubaseReadOnly === true || smitheryConfig.edubaseReadOnly === 'true');
+	}
+	if (!toolsets) {
+		/* Use toolsets from request headers or query parameters */
+		toolsets = getHeaderValue(req, 'edubase-mcp-toolsets') || (typeof req.query?.toolsets == 'string' ? req.query.toolsets : null);
+	}
+	readOnly = readOnly || getHeaderValue(req, 'edubase-mcp-readonly') == 'true' || req.query?.read_only == 'true';
+	const requested = parseToolsets(toolsets);
+	if (requested.unknown.length > 0) {
+		throw new Error('Unknown toolsets: ' + requested.unknown.join(', '));
+	}
+	return {
+		toolsets: EDUBASE_TOOL_OPTIONS.toolsets.filter((toolset) => requested.toolsets.includes(toolset)),
+		readOnly: EDUBASE_TOOL_OPTIONS.readOnly || readOnly,
+	};
+}
+function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAuthentication | null = null, toolOptions: EduBaseToolOptions = EDUBASE_TOOL_OPTIONS) {
 	/* Create MCP server instance */
 	const server = new McpServer(
 		{
@@ -113,6 +149,7 @@ function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAu
 					listChanged: true
 				},
 			},
+			instructions: getServerInstructions(toolOptions.toolsets, toolOptions.readOnly),
 		},
 	);
 
@@ -155,7 +192,7 @@ function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAu
 			};
 		});
 	}
-	server.registerTool('edubase_filebin', {
+	if (!toolOptions.readOnly && toolOptions.toolsets.includes('files')) server.registerTool('edubase_filebin', {
 		description: 'Upload a local file or a file from a URL to the EduBase temporary file storage with a link requested from the API in advance.',
 		inputSchema: z.object({
 			filebin: z.string().describe("valid EduBase temporary filebin URL"),
@@ -219,7 +256,7 @@ function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAu
 			};
 		}
 	});
-	Object.values(EDUBASE_API_TOOLS_ANNOTATED).forEach((tool) => {
+	selectTools(toolOptions.toolsets, toolOptions.readOnly).forEach((tool) => {
 		/* Register tools */
 		server.registerTool(tool.name, {
 			description: tool.description,
@@ -572,6 +609,21 @@ if (STREAMABLE_HTTP) {
 			/* Use existing session */
 			transport = transports[sessionId];
 		} else if (isInitialize) {
+			/* Toolsets and read-only mode are fixed for the lifetime of the session */
+			let toolOptions: EduBaseToolOptions;
+			try {
+				toolOptions = getEduBaseToolOptions(req);
+			} catch (error) {
+				res.status(400).json({
+					jsonrpc: '2.0',
+					id: (req.body && typeof req.body === 'object' && 'id' in req.body) ? (req.body as { id: string | number | null }).id : null,
+					error: {
+						code: -32602,
+						message: error instanceof Error ? error.message : String(error),
+					},
+				});
+				return;
+			}
 			/* New session: Accept this even if a stale `mcp-session-id` header is present (e.g. after a server restart) — the spec lets us treat any initialize request as a fresh session, and being permissive here avoids forcing the client to discover that its session is gone on a separate failed request first. */
 			const eventStore = new InMemoryEventStore();
 			transport = new StreamableHTTPServerTransport({
@@ -586,7 +638,7 @@ if (STREAMABLE_HTTP) {
 					delete transports[transport.sessionId];
 				}
 			};
-			const server = createMcpServer(getEduBaseApiUrl(req), getEduBaseAuthentication(req));
+			const server = createMcpServer(getEduBaseApiUrl(req), getEduBaseAuthentication(req), toolOptions);
 			await server.connect(transport);
 		} else if (sessionId) {
 			/* Unknown session (most commonly: the server was restarted and lost its in-memory transport map): Per the MCP Streamable HTTP spec, respond with HTTP 404 so the client drops the stale session and re-initializes. Returning 400 would tell the client the request was malformed and cause it to retry the same broken request indefinitely. */
@@ -685,13 +737,20 @@ if (STREAMABLE_HTTP) {
 	const transports: { [sessionId: string]: SSEServerTransport } = {};
 	app.get('/sse', async (req: Request, res: Response) => {
 		/* Handle SSE sessions (but prefer Streamable HTTP) */
+		let toolOptions: EduBaseToolOptions;
+		try {
+			toolOptions = getEduBaseToolOptions(req);
+		} catch (error) {
+			res.status(400).send(error instanceof Error ? error.message : String(error));
+			return;
+		}
 		const transport = new SSEServerTransport('/messages', res);
 		transports[transport.sessionId] = transport;
 		res.on('close', () => {
 			delete transports[transport.sessionId];
 		});
 		try {
-			const server = createMcpServer(getEduBaseApiUrl(req), getEduBaseAuthentication(req));
+			const server = createMcpServer(getEduBaseApiUrl(req), getEduBaseAuthentication(req), toolOptions);
 			await server.connect(transport);
 		} catch (error) {
 			console.error("Error connecting transport to MCP server for session (" + transport.sessionId + "): " + error);

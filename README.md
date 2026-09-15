@@ -4,15 +4,10 @@
 
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/EduBase/MCP/main.svg)](https://results.pre-commit.ci/latest/github/EduBase/MCP/main)
 [![Publish to MCP Registry](https://github.com/EduBase/MCP/actions/workflows/publish-mcp.yml/badge.svg)](https://github.com/EduBase/MCP/actions/workflows/publish-mcp.yml)
-[![smithery badge](https://smithery.ai/badge/@EduBase/MCP)](https://smithery.ai/server/@EduBase/MCP)
 
 This repository contains the **implementation of the Model Context Protocol** (MCP) server **for the EduBase platform**. It allows MCP clients (for example Claude Desktop) and LLMs to interact with your EduBase account and perform tasks on your behalf. It supports stdio, SSE and streamable HTTP transport protocols.
 
 ![EduBase MCP demo GIF: Claude uploads math questions](https://shared.edubase.net/mcp/EduBaseMCPdemomath.gif)
-
-<a href="https://glama.ai/mcp/servers/@EduBase/MCP">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/@EduBase/MCP/badge" alt="EduBase Server MCP server" />
-</a>
 
 ## What is EduBase?
 
@@ -50,6 +45,29 @@ Once logged in, on your Dashboard, search for the Integrations menu, click "add 
 
 Each documented API endpoint is available as a separate tool, named `edubase_<method>_<endpoint>`. For example, the tool for the `GET /user:me` endpoint is named `edubase_get_user_me`. See our [developer documentation](https://developer.edubase.net) for more information.
 
+### Toolsets
+
+Tools are grouped into toolsets, so you can expose only the tools you need. Fewer tools use less of the model's context and make it easier for the model to pick the right one. Every toolset is enabled by default.
+
+| Toolset | Tools for |
+|---|---|
+| `files` | Temporary file uploads (always enabled) |
+| `questions` | Questions |
+| `quizzes` | Quiz sets, their questions, settings and grading presets |
+| `exams` | Exams, their settings, users, certificates and branding |
+| `results` | Quiz and exam results, certificate downloads |
+| `users` | Users, login links and assumed users |
+| `classes` | Classes and class memberships |
+| `organizations` | Organizations, members, departments, competencies and webhooks |
+| `integrations` | Integrations and their keys |
+| `tags` | Tags and tag attachments |
+| `permissions` | Permissions and ownership transfers |
+| `metrics` | Custom metrics |
+
+Select toolsets with a comma-separated list in `EDUBASE_TOOLSETS` (e.g. `questions,quizzes,exams`). Set `EDUBASE_READONLY=true` to expose only the tools that read data (the `get` tools, and the tools that only generate download links, like `edubase_post_question_export`).
+
+When an HTTP transport is used, clients can narrow the configuration further for their own session with the `EduBase-Mcp-Toolsets` and `EduBase-Mcp-ReadOnly` headers, or the `toolsets` and `read_only` query parameters (e.g. `https://domain.edubase.net/mcp?toolsets=exams&read_only=true`). A session can never enable toolsets or write tools that the server configuration disables.
+
 ## Configuration
 
 The MCP server can be configured using environment variables. The following variables are available:
@@ -61,6 +79,8 @@ The MCP server can be configured using environment variables. The following vari
 | `EDUBASE_API_KEY` | The Secret key of your integration app on EduBase, the `secret` on the EduBase API. Find this along the App ID in the integration details window on EduBase. | Not if HTTP transport is used with authentication, otherwise **Yes** | - |
 | `EDUBASE_SSE_MODE` | Start MCP server in HTTP mode with SSE transport. Value must be `true`. | No | `false` |
 | `EDUBASE_STREAMABLE_HTTP_MODE` | Start MCP server in HTTP mode with streamable HTTP transport. Value must be `true`. | No | `false` |
+| `EDUBASE_TOOLSETS` | Comma-separated list of the enabled [toolsets](#toolsets), or `all`. | No | `all` |
+| `EDUBASE_READONLY` | Only expose the tools that read data. Value must be `true`. | No | `false` |
 | `EDUBASE_HTTP_PORT` | HTTP server will listen on this port if SSE or streamable HTTP transport mode is used. | No | 3000 |
 | `EDUBASE_OAUTH` | Enables OAuth 2.1 protected-resource behaviour: unauthenticated requests are rejected with `401 + WWW-Authenticate` pointing at `/.well-known/oauth-protected-resource`, and bearer tokens are forwarded to the EduBase API. | No | `false` |
 | `EDUBASE_OAUTH_AUTHORIZATION_SERVER` | Public base URL of the EduBase deployment acting as the OAuth IdP. Used to advertise the authorization server in the protected-resource metadata document. | No | derived from `EDUBASE_API_URL` |

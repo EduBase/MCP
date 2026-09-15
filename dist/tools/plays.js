@@ -119,6 +119,10 @@ export const EDUBASE_API_TOOLS_PLAYS = [
             url: z.url().describe('download link for the results'),
             valid: z.string().describe('date and time of link expiration'),
         }),
+        /* Only generates a download link, no data is changed */
+        annotations: {
+            readOnlyHint: true,
+        },
     },
     // GET /exam:certificates:user - Get (the latest) certificate details for a specific exam and user
     {
@@ -152,5 +156,9 @@ export const EDUBASE_API_TOOLS_PLAYS = [
             url: z.url().describe('download link for the certificate'),
             valid: z.string().describe('date of link expiration'),
         }),
+        /* Only generates a download link, no data is changed */
+        annotations: {
+            readOnlyHint: true,
+        },
     },
 ];

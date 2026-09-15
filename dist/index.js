@@ -44,8 +44,16 @@ const EDUBASE_OAUTH_AUTHORIZATION_SERVER = (process.env.EDUBASE_OAUTH_AUTHORIZAT
 const EDUBASE_OAUTH_RESOURCE_URL = (process.env.EDUBASE_OAUTH_RESOURCE_URL || EDUBASE_API_URL.replace(/\/api\/?$/, '/mcp') || 'https://www.edubase.net/mcp').replace(/\/$/, '');
 const EDUBASE_OAUTH = ((process.env.EDUBASE_OAUTH || 'false') == 'true' && STREAMABLE_HTTP && EDUBASE_OAUTH_AUTHORIZATION_SERVER.length > 0 && EDUBASE_OAUTH_RESOURCE_URL.length > 0);
 /* Supported tools and prompts */
-import { EDUBASE_API_TOOLS_ANNOTATED } from "./tools.js";
+import { parseToolsets, selectTools } from "./tools.js";
 import { EDUBASE_API_PROMPTS } from "./prompts.js";
+import { getServerInstructions } from "./instructions.js";
+const EDUBASE_FILTER_TOOLSETS = parseToolsets(process.env.EDUBASE_TOOLSETS);
+if (EDUBASE_FILTER_TOOLSETS.unknown.length > 0) {
+    console.error('Error: EDUBASE_TOOLSETS environment variable contains unknown toolsets: ' + EDUBASE_FILTER_TOOLSETS.unknown.join(', '));
+    process.exit(1);
+}
+const EDUBASE_FILTER_READ_ONLY = ((process.env.EDUBASE_READONLY || 'false') == 'true');
+const EDUBASE_TOOL_OPTIONS = { toolsets: EDUBASE_FILTER_TOOLSETS.toolsets, readOnly: EDUBASE_FILTER_READ_ONLY };
 /* Create MCP server with appropriate EduBase configuration */
 function getEduBaseApiUrl(req) {
     if (req.query?.config && typeof req.query.config == 'string') {
@@ -87,7 +95,32 @@ function getEduBaseAuthentication(req) {
     }
     return null;
 }
-function createMcpServer(apiUrl = null, authentication = null) {
+function getEduBaseToolOptions(req) {
+    let toolsets = null;
+    let readOnly = false;
+    if (req.query?.config && typeof req.query.config == 'string') {
+        /* Use toolsets and read-only mode from Smithery configuration */
+        const smitheryConfig = JSON.parse(Buffer.from(req.query.config, 'base64').toString());
+        if (smitheryConfig.edubaseToolsets && typeof smitheryConfig.edubaseToolsets == 'string' && smitheryConfig.edubaseToolsets.length > 0) {
+            toolsets = smitheryConfig.edubaseToolsets;
+        }
+        readOnly = (smitheryConfig.edubaseReadOnly === true || smitheryConfig.edubaseReadOnly === 'true');
+    }
+    if (!toolsets) {
+        /* Use toolsets from request headers or query parameters */
+        toolsets = getHeaderValue(req, 'edubase-mcp-toolsets') || (typeof req.query?.toolsets == 'string' ? req.query.toolsets : null);
+    }
+    readOnly = readOnly || getHeaderValue(req, 'edubase-mcp-readonly') == 'true' || req.query?.read_only == 'true';
+    const requested = parseToolsets(toolsets);
+    if (requested.unknown.length > 0) {
+        throw new Error('Unknown toolsets: ' + requested.unknown.join(', '));
+    }
+    return {
+        toolsets: EDUBASE_TOOL_OPTIONS.toolsets.filter((toolset) => requested.toolsets.includes(toolset)),
+        readOnly: EDUBASE_TOOL_OPTIONS.readOnly || readOnly,
+    };
+}
+function createMcpServer(apiUrl = null, authentication = null, toolOptions = EDUBASE_TOOL_OPTIONS) {
     /* Create MCP server instance */
     const server = new McpServer({
         name: MANIFEST.name,
@@ -105,6 +138,7 @@ function createMcpServer(apiUrl = null, authentication = null) {
                 listChanged: true
             },
         },
+        instructions: getServerInstructions(toolOptions.toolsets, toolOptions.readOnly),
     });
     /* Configure request handlers */
     Object.values(EDUBASE_API_PROMPTS).forEach((prompt) => {
@@ -145,71 +179,72 @@ function createMcpServer(apiUrl = null, authentication = null) {
             };
         });
     }
-    server.registerTool('edubase_filebin', {
-        description: 'Upload a local file or a file from a URL to the EduBase temporary file storage with a link requested from the API in advance.',
-        inputSchema: z.object({
-            filebin: z.string().describe("valid EduBase temporary filebin URL"),
-            source: z.string().describe("file URL or local (absolute) file path on user computer"),
-            filename: z.string().describe("the original file name (including extension)"),
-        }),
-        outputSchema: z.object({}).optional(),
-        annotations: {
-            title: 'Upload file to EduBase temporary file storage',
-            readOnlyHint: false,
-            destructiveHint: false,
-            idempotentHint: false,
-            openWorldHint: true,
-        },
-    }, async ({ filebin, source, filename }) => {
-        try {
-            /* Validate the upload destination before doing any work. When SSRF protection is active the destination is additionally IP-range filtered by guardedRequest below. */
-            if (EDUBASE_FILEBIN_ALLOWED_HOSTS.length > 0) {
-                let filebinHost;
-                try {
-                    filebinHost = new URL(filebin).hostname.toLowerCase();
+    if (!toolOptions.readOnly && toolOptions.toolsets.includes('files'))
+        server.registerTool('edubase_filebin', {
+            description: 'Upload a local file or a file from a URL to the EduBase temporary file storage with a link requested from the API in advance.',
+            inputSchema: z.object({
+                filebin: z.string().describe("valid EduBase temporary filebin URL"),
+                source: z.string().describe("file URL or local (absolute) file path on user computer"),
+                filename: z.string().describe("the original file name (including extension)"),
+            }),
+            outputSchema: z.object({}).optional(),
+            annotations: {
+                title: 'Upload file to EduBase temporary file storage',
+                readOnlyHint: false,
+                destructiveHint: false,
+                idempotentHint: false,
+                openWorldHint: true,
+            },
+        }, async ({ filebin, source, filename }) => {
+            try {
+                /* Validate the upload destination before doing any work. When SSRF protection is active the destination is additionally IP-range filtered by guardedRequest below. */
+                if (EDUBASE_FILEBIN_ALLOWED_HOSTS.length > 0) {
+                    let filebinHost;
+                    try {
+                        filebinHost = new URL(filebin).hostname.toLowerCase();
+                    }
+                    catch {
+                        throw new Error(`Invalid filebin URL: ${filebin}`);
+                    }
+                    const allowed = EDUBASE_FILEBIN_ALLOWED_HOSTS.some((host) => filebinHost === host || filebinHost.endsWith('.' + host));
+                    if (!allowed) {
+                        throw new Error(`Not allowed filebin host: ${filebinHost}`);
+                    }
                 }
-                catch {
-                    throw new Error(`Invalid filebin URL: ${filebin}`);
+                /* Get file content */
+                const fileResult = await getFileBuffer(source, {
+                    allowLocalFiles: !EDUBASE_SSRF_PROTECTION,
+                    enforceSsrfProtection: EDUBASE_SSRF_PROTECTION,
+                });
+                if (!fileResult.success) {
+                    throw new Error(fileResult.error);
                 }
-                const allowed = EDUBASE_FILEBIN_ALLOWED_HOSTS.some((host) => filebinHost === host || filebinHost.endsWith('.' + host));
-                if (!allowed) {
-                    throw new Error(`Not allowed filebin host: ${filebinHost}`);
-                }
+                /* Upload file (as form) */
+                const form = new FormData();
+                const fileBlob = new Blob([new Uint8Array(fileResult.buffer)]);
+                form.append('file', fileBlob, filename);
+                const uploadResponse = await guardedRequest(filebin, {
+                    method: 'POST',
+                    body: form,
+                }, EDUBASE_SSRF_PROTECTION);
+                const text = uploadResponse.body.toString('utf-8');
+                return {
+                    content: [{ type: 'text', text: text }],
+                    isError: false,
+                };
             }
-            /* Get file content */
-            const fileResult = await getFileBuffer(source, {
-                allowLocalFiles: !EDUBASE_SSRF_PROTECTION,
-                enforceSsrfProtection: EDUBASE_SSRF_PROTECTION,
-            });
-            if (!fileResult.success) {
-                throw new Error(fileResult.error);
+            catch (error) {
+                /* Request failed */
+                return {
+                    content: [{
+                            type: 'text',
+                            text: `${error instanceof Error ? error.message : String(error)}. Use \`curl\` to upload the file manually. Example command: \`curl -s -X POST -F "file=@/path/to/file" -H "Content-Type: multipart/form-data" ${filebin}\``,
+                        }],
+                    isError: true,
+                };
             }
-            /* Upload file (as form) */
-            const form = new FormData();
-            const fileBlob = new Blob([new Uint8Array(fileResult.buffer)]);
-            form.append('file', fileBlob, filename);
-            const uploadResponse = await guardedRequest(filebin, {
-                method: 'POST',
-                body: form,
-            }, EDUBASE_SSRF_PROTECTION);
-            const text = uploadResponse.body.toString('utf-8');
-            return {
-                content: [{ type: 'text', text: text }],
-                isError: false,
-            };
-        }
-        catch (error) {
-            /* Request failed */
-            return {
-                content: [{
-                        type: 'text',
-                        text: `${error instanceof Error ? error.message : String(error)}. Use \`curl\` to upload the file manually. Example command: \`curl -s -X POST -F "file=@/path/to/file" -H "Content-Type: multipart/form-data" ${filebin}\``,
-                    }],
-                isError: true,
-            };
-        }
-    });
-    Object.values(EDUBASE_API_TOOLS_ANNOTATED).forEach((tool) => {
+        });
+    selectTools(toolOptions.toolsets, toolOptions.readOnly).forEach((tool) => {
         /* Register tools */
         server.registerTool(tool.name, {
             description: tool.description,
@@ -551,6 +586,22 @@ if (STREAMABLE_HTTP) {
             transport = transports[sessionId];
         }
         else if (isInitialize) {
+            /* Toolsets and read-only mode are fixed for the lifetime of the session */
+            let toolOptions;
+            try {
+                toolOptions = getEduBaseToolOptions(req);
+            }
+            catch (error) {
+                res.status(400).json({
+                    jsonrpc: '2.0',
+                    id: (req.body && typeof req.body === 'object' && 'id' in req.body) ? req.body.id : null,
+                    error: {
+                        code: -32602,
+                        message: error instanceof Error ? error.message : String(error),
+                    },
+                });
+                return;
+            }
             /* New session: Accept this even if a stale `mcp-session-id` header is present (e.g. after a server restart) — the spec lets us treat any initialize request as a fresh session, and being permissive here avoids forcing the client to discover that its session is gone on a separate failed request first. */
             const eventStore = new InMemoryEventStore();
             transport = new StreamableHTTPServerTransport({
@@ -565,7 +616,7 @@ if (STREAMABLE_HTTP) {
                     delete transports[transport.sessionId];
                 }
             };
-            const server = createMcpServer(getEduBaseApiUrl(req), getEduBaseAuthentication(req));
+            const server = createMcpServer(getEduBaseApiUrl(req), getEduBaseAuthentication(req), toolOptions);
             await server.connect(transport);
         }
         else if (sessionId) {
@@ -668,13 +719,21 @@ else if (SSE) {
     const transports = {};
     app.get('/sse', async (req, res) => {
         /* Handle SSE sessions (but prefer Streamable HTTP) */
+        let toolOptions;
+        try {
+            toolOptions = getEduBaseToolOptions(req);
+        }
+        catch (error) {
+            res.status(400).send(error instanceof Error ? error.message : String(error));
+            return;
+        }
         const transport = new SSEServerTransport('/messages', res);
         transports[transport.sessionId] = transport;
         res.on('close', () => {
             delete transports[transport.sessionId];
         });
         try {
-            const server = createMcpServer(getEduBaseApiUrl(req), getEduBaseAuthentication(req));
+            const server = createMcpServer(getEduBaseApiUrl(req), getEduBaseAuthentication(req), toolOptions);
             await server.connect(transport);
         }
         catch (error) {

@@ -42,19 +42,37 @@ function withToolAnnotations(tools) {
         },
     }));
 }
-/* Tool definitions */
-export const EDUBASE_API_TOOLS = [
-    ...EDUBASE_API_TOOLS_COMMON,
-    ...EDUBASE_API_TOOLS_QUESTIONS,
-    ...EDUBASE_API_TOOLS_EXAMS,
-    ...EDUBASE_API_TOOLS_PLAYS,
-    ...EDUBASE_API_TOOLS_QUIZES,
-    ...EDUBASE_API_TOOLS_USERS,
-    ...EDUBASE_API_TOOLS_CLASSES,
-    ...EDUBASE_API_TOOLS_ORGANIZATIONS,
-    ...EDUBASE_API_TOOLS_INTEGRATIONS,
-    ...EDUBASE_API_TOOLS_TAGS,
-    ...EDUBASE_API_TOOLS_PERMISSIONS,
-    ...EDUBASE_API_TOOLS_METRICS
-];
+/* Toolsets (the files toolset is always enabled, as uploads are needed by the other toolsets) */
+export const EDUBASE_TOOLSETS = {
+    files: EDUBASE_API_TOOLS_COMMON,
+    questions: EDUBASE_API_TOOLS_QUESTIONS,
+    quizzes: EDUBASE_API_TOOLS_QUIZES,
+    exams: EDUBASE_API_TOOLS_EXAMS,
+    results: EDUBASE_API_TOOLS_PLAYS,
+    users: EDUBASE_API_TOOLS_USERS,
+    classes: EDUBASE_API_TOOLS_CLASSES,
+    organizations: EDUBASE_API_TOOLS_ORGANIZATIONS,
+    integrations: EDUBASE_API_TOOLS_INTEGRATIONS,
+    tags: EDUBASE_API_TOOLS_TAGS,
+    permissions: EDUBASE_API_TOOLS_PERMISSIONS,
+    metrics: EDUBASE_API_TOOLS_METRICS,
+};
+export const EDUBASE_TOOLSET_NAMES = Object.keys(EDUBASE_TOOLSETS);
+export const EDUBASE_TOOLSETS_ALWAYS_ENABLED = ['files'];
+/* Parse a comma-separated toolset list ("all" or empty selects every toolset) */
+export function parseToolsets(value) {
+    const names = (value || '').split(',').map((name) => name.trim().toLowerCase()).filter((name) => name.length > 0);
+    if (names.length == 0 || names.includes('all')) {
+        return { toolsets: [...EDUBASE_TOOLSET_NAMES], unknown: names.filter((name) => name != 'all' && !EDUBASE_TOOLSET_NAMES.includes(name)) };
+    }
+    return {
+        toolsets: EDUBASE_TOOLSET_NAMES.filter((toolset) => names.includes(toolset) || EDUBASE_TOOLSETS_ALWAYS_ENABLED.includes(toolset)),
+        unknown: names.filter((name) => !EDUBASE_TOOLSET_NAMES.includes(name)),
+    };
+}
+export const EDUBASE_API_TOOLS = EDUBASE_TOOLSET_NAMES.flatMap((toolset) => EDUBASE_TOOLSETS[toolset].map((tool) => ({ ...tool, toolset })));
 export const EDUBASE_API_TOOLS_ANNOTATED = withToolAnnotations(EDUBASE_API_TOOLS);
+/* Select the tools of the enabled toolsets (only the read-only tools in read-only mode) */
+export function selectTools(toolsets, readOnly) {
+    return EDUBASE_API_TOOLS_ANNOTATED.filter((tool) => toolsets.includes(tool.toolset) && (!readOnly || tool.annotations?.readOnlyHint === true));
+}

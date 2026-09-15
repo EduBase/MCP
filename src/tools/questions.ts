@@ -166,6 +166,10 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
 			url: z.url().describe('download link for the question'),
 			valid: z.string().describe('date of link expiration'),
 		}),
+		/* Only generates a download link, no data is changed */
+		annotations: {
+			readOnlyHint: true,
+		},
 	},
 
 	// GET /question:id - Get external unique question identifier by question identification string

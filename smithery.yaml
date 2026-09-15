@@ -21,6 +21,15 @@ startCommand:
         type: string
         title: Secret Key
         description: The secret key for the EduBase API
+      edubaseToolsets:
+        type: string
+        title: Toolsets
+        description: Comma-separated list of the enabled toolsets (e.g. questions,quizzes,exams), all toolsets are enabled if empty
+      edubaseReadOnly:
+        type: boolean
+        title: Read-only
+        description: Only expose the tools that read data
+        default: false
   exampleConfig:
     edubaseApiUrl: https://domain.edubase.net/api
     edubaseApiApp: your_integration_app_id
