@@ -24,7 +24,26 @@ jobs:
       - name: Run tests
         run: npm test
       - name: Publish package to npm
-        run: npm publish
+        run: |
+          PACKAGE="$(node -p "require('./package.json').name")@$(node -p "require('./package.json').version")"
+          if [ -n "$(npm view "$PACKAGE" version 2>/dev/null)" ]; then
+            echo "$PACKAGE is already published to npm, skipping"
+          else
+            npm publish
+          fi
+      - name: Wait for package to appear on npm
+        run: |
+          PACKAGE="$(node -p "require('./package.json').name")@$(node -p "require('./package.json').version")"
+          for i in $(seq 1 30); do
+            if [ -n "$(npm view "$PACKAGE" version --prefer-online 2>/dev/null)" ]; then
+              echo "$PACKAGE is available on npm"
+              exit 0
+            fi
+            echo "Waiting for $PACKAGE to appear on npm ($i/30)..."
+            sleep 10
+          done
+          echo "$PACKAGE did not appear on npm in time"
+          exit 1
 
       # Publish MCP server to MCP Registry
       - name: Install mcp-publisher
@@ -33,4 +52,13 @@ jobs:
       - name: Authenticate to MCP Registry
         run: ./mcp-publisher login github-oidc
       - name: Publish server to MCP Registry
-        run: ./mcp-publisher publish
+        run: |
+          for i in $(seq 1 6); do
+            if ./mcp-publisher publish; then
+              exit 0
+            fi
+            echo "Publish attempt $i/6 failed, retrying in 30 seconds..."
+            sleep 30
+          done
+          echo "Failed to publish server to MCP Registry"
+          exit 1
