@@ -43,7 +43,7 @@ Once logged in, on your Dashboard, search for the Integrations menu, click "add 
 
 ## Tools
 
-Each documented API endpoint is available as a separate tool, named `edubase_<method>_<endpoint>`. For example, the tool for the `GET /user:me` endpoint is named `edubase_get_user_me`. See our [developer documentation](https://developer.edubase.net) for more information.
+Each documented API endpoint is available as a tool, named `edubase_<method>_<endpoint>`. For example, the tool for the `GET /user:me` endpoint is named `edubase_get_user_me`. The tag, permission and transfer endpoints work the same way for every content type, so they share a single tool per method with a `type` argument (e.g. `edubase_post_content_tag` for `POST /exam:tag`, `POST /quiz:tag`, etc.). See our [developer documentation](https://developer.edubase.net) for more information.
 
 ### Toolsets
 
@@ -56,17 +56,19 @@ Tools are grouped into toolsets, so you can expose only the tools you need. Fewe
 | `quizzes` | Quiz sets, their questions, settings and grading presets |
 | `exams` | Exams, their settings, users, certificates and branding |
 | `results` | Quiz and exam results, certificate downloads |
-| `users` | Users, login links and assumed users |
+| `users` | Users, their names, groups and login links |
 | `classes` | Classes and class memberships |
 | `organizations` | Organizations, members, departments, competencies and webhooks |
 | `integrations` | Integrations and their keys |
-| `tags` | Tags and tag attachments |
-| `permissions` | Permissions and ownership transfers |
+| `tags` | Tags and tag attachments of contents |
+| `permissions` | User permissions on contents and ownership transfers |
 | `metrics` | Custom metrics |
 
 Select toolsets with a comma-separated list in `EDUBASE_TOOLSETS` (e.g. `questions,quizzes,exams`). Set `EDUBASE_READONLY=true` to expose only the tools that read data (the `get` tools, and the tools that only generate download links, like `edubase_post_question_export`).
 
-When an HTTP transport is used, clients can narrow the configuration further for their own session with the `EduBase-Mcp-Toolsets` and `EduBase-Mcp-ReadOnly` headers, or the `toolsets` and `read_only` query parameters (e.g. `https://domain.edubase.net/mcp?toolsets=exams&read_only=true`). A session can never enable toolsets or write tools that the server configuration disables.
+Set `EDUBASE_DYNAMIC_TOOLSETS=true` to enable toolsets on demand: sessions start with only the critical tools, and the model enables the toolsets it needs with the `edubase_enable_toolsets` tool (listed with `edubase_list_toolsets`). This keeps the initial tool list small for clients that load every tool upfront, but needs a client that refreshes the tool list when notified about changes.
+
+When an HTTP transport is used, clients can narrow the configuration further for their own session with the `EduBase-Mcp-Toolsets`, `EduBase-Mcp-ReadOnly` and `EduBase-Mcp-Dynamic` headers, or the `toolsets`, `read_only` and `dynamic_toolsets` query parameters (e.g. `https://domain.edubase.net/mcp?toolsets=exams&read_only=true`). A session can never enable toolsets or write tools that the server configuration disables.
 
 ## Configuration
 
@@ -81,6 +83,9 @@ The MCP server can be configured using environment variables. The following vari
 | `EDUBASE_STREAMABLE_HTTP_MODE` | Start MCP server in HTTP mode with streamable HTTP transport. Value must be `true`. | No | `false` |
 | `EDUBASE_TOOLSETS` | Comma-separated list of the enabled [toolsets](#toolsets), or `all`. | No | `all` |
 | `EDUBASE_READONLY` | Only expose the tools that read data. Value must be `true`. | No | `false` |
+| `EDUBASE_OUTPUT_SCHEMAS` | Output schemas of the tools and structured tool results: `off` lists the tools without output schemas and returns the results as JSON text only, `on` includes the complete output schemas, `fields` includes the output schemas without the field descriptions (keeping the structured results, but saving most of the tokens of the schemas). | No | `fields` |
+| `EDUBASE_PROVIDERS` | Comma-separated list of the hosting providers allowed to supply session configuration in the requests when an HTTP transport is used. Currently only `smithery` is supported (the base64-encoded `config` query parameter). | No | - |
+| `EDUBASE_DYNAMIC_TOOLSETS` | Start sessions with only the file upload tools and let the model enable [toolsets](#toolsets) on demand. Value must be `true`. | No | `false` |
 | `EDUBASE_HTTP_PORT` | HTTP server will listen on this port if SSE or streamable HTTP transport mode is used. | No | 3000 |
 | `EDUBASE_OAUTH` | Enables OAuth 2.1 protected-resource behaviour: unauthenticated requests are rejected with `401 + WWW-Authenticate` pointing at `/.well-known/oauth-protected-resource`, and bearer tokens are forwarded to the EduBase API. | No | `false` |
 | `EDUBASE_OAUTH_AUTHORIZATION_SERVER` | Public base URL of the EduBase deployment acting as the OAuth IdP. Used to advertise the authorization server in the protected-resource metadata document. | No | derived from `EDUBASE_API_URL` |
@@ -215,6 +220,10 @@ To install EduBase MCP server for Claude Desktop automatically via [Smithery](ht
 ```bash
 npx -y @smithery/cli install @EduBase/MCP --client claude
 ```
+
+## Development
+
+Run `npm test` to build the server and check the tool listing: the size budgets of the tool list and the server instructions, the tool descriptions, the toolset, read-only and dynamic toolsets modes, and the configuration handling of the HTTP transport. When new tools exceed a budget, shorten their schemas or raise the budget in `test/server.test.mjs` deliberately, as every client pays for the tool list in every session.
 
 ## Contact
 

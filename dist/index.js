@@ -9,7 +9,8 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { InMemoryEventStore } from '@modelcontextprotocol/sdk/examples/shared/inMemoryEventStore.js';
 import express from "express";
 import bodyParser from "body-parser";
-import { getClientIp, getHeaderValue, getFileBuffer, guardedRequest, expandCustomFields } from "./helpers.js";
+import { getClientIp, getHeaderValue, getFileBuffer, guardedRequest, expandCustomFields, stripSchemaDescriptions } from "./helpers.js";
+import { configureProviders, getProviderConfig, getProviderOverride, rejectInvalidProviderConfig } from "./providers.js";
 import { MANIFEST } from "./manifest.js";
 import packageJson from '../package.json' with { type: "json" };
 import * as z from 'zod/v4';
@@ -44,39 +45,53 @@ const EDUBASE_OAUTH_AUTHORIZATION_SERVER = (process.env.EDUBASE_OAUTH_AUTHORIZAT
 const EDUBASE_OAUTH_RESOURCE_URL = (process.env.EDUBASE_OAUTH_RESOURCE_URL || EDUBASE_API_URL.replace(/\/api\/?$/, '/mcp') || 'https://www.edubase.net/mcp').replace(/\/$/, '');
 const EDUBASE_OAUTH = ((process.env.EDUBASE_OAUTH || 'false') == 'true' && STREAMABLE_HTTP && EDUBASE_OAUTH_AUTHORIZATION_SERVER.length > 0 && EDUBASE_OAUTH_RESOURCE_URL.length > 0);
 /* Supported tools and prompts */
-import { parseToolsets, selectTools } from "./tools.js";
+import { EDUBASE_TOOLSETS_ALWAYS_ENABLED, parseToolsets, selectTools } from "./tools.js";
 import { EDUBASE_API_PROMPTS } from "./prompts.js";
-import { getServerInstructions } from "./instructions.js";
+import { getServerInstructions, getToolsetSummary } from "./instructions.js";
 const EDUBASE_FILTER_TOOLSETS = parseToolsets(process.env.EDUBASE_TOOLSETS);
 if (EDUBASE_FILTER_TOOLSETS.unknown.length > 0) {
     console.error('Error: EDUBASE_TOOLSETS environment variable contains unknown toolsets: ' + EDUBASE_FILTER_TOOLSETS.unknown.join(', '));
     process.exit(1);
 }
 const EDUBASE_FILTER_READ_ONLY = ((process.env.EDUBASE_READONLY || 'false') == 'true');
-const EDUBASE_TOOL_OPTIONS = { toolsets: EDUBASE_FILTER_TOOLSETS.toolsets, readOnly: EDUBASE_FILTER_READ_ONLY };
+const EDUBASE_FILTER_DYNAMIC = ((process.env.EDUBASE_DYNAMIC_TOOLSETS || 'false') == 'true');
+const EDUBASE_TOOL_OPTIONS = { toolsets: EDUBASE_FILTER_TOOLSETS.toolsets, readOnly: EDUBASE_FILTER_READ_ONLY, dynamic: EDUBASE_FILTER_DYNAMIC };
+/* Output schemas and structured tool results (fields by default, keeping the structure without the field descriptions, as the complete output schemas make up a large part of the tool list) */
+const EDUBASE_OUTPUT_SCHEMAS_MODES = ['off', 'on', 'fields'];
+const EDUBASE_OUTPUT_SCHEMAS = (process.env.EDUBASE_OUTPUT_SCHEMAS || 'fields').trim().toLowerCase();
+if (!EDUBASE_OUTPUT_SCHEMAS_MODES.includes(EDUBASE_OUTPUT_SCHEMAS)) {
+    console.error('Error: EDUBASE_OUTPUT_SCHEMAS environment variable must be one of: ' + EDUBASE_OUTPUT_SCHEMAS_MODES.join(', '));
+    process.exit(1);
+}
+function withOutputSchema(schema) {
+    switch (EDUBASE_OUTPUT_SCHEMAS) {
+        case 'on': return schema;
+        case 'fields': return stripSchemaDescriptions(schema);
+        default: return undefined;
+    }
+}
+function withStructuredContent(value) {
+    return (EDUBASE_OUTPUT_SCHEMAS != 'off') ? { structuredContent: value } : {};
+}
+/* Hosting providers supplying session configuration in the requests (disabled by default) */
+const EDUBASE_CONFIG_PROVIDERS = configureProviders(process.env.EDUBASE_CONFIG_PROVIDERS);
+if (EDUBASE_CONFIG_PROVIDERS.unknown.length > 0) {
+    console.error('Error: EDUBASE_CONFIG_PROVIDERS environment variable contains unknown providers: ' + EDUBASE_CONFIG_PROVIDERS.unknown.join(', '));
+    process.exit(1);
+}
 /* Create MCP server with appropriate EduBase configuration */
 function getEduBaseApiUrl(req) {
-    if (req.query?.config && typeof req.query.config == 'string') {
-        /* Use URL from Smithery configuration */
-        const smitheryConfig = JSON.parse(Buffer.from(req.query.config, 'base64').toString());
-        if (smitheryConfig.edubaseApiUrl && typeof smitheryConfig.edubaseApiUrl == 'string' && smitheryConfig.edubaseApiUrl.length > 0) {
-            return smitheryConfig.edubaseApiUrl;
-        }
-    }
-    return null;
+    /* Use URL from provider configuration */
+    return getProviderConfig(req)?.apiUrl ?? null;
 }
 function getEduBaseAuthentication(req) {
     let EDUBASE_API_APP = null;
     let EDUBASE_API_KEY = null;
-    if (req.query?.config && typeof req.query.config == 'string') {
-        /* Use authentication from Smithery configuration */
-        const smitheryConfig = JSON.parse(Buffer.from(req.query.config, 'base64').toString());
-        if (smitheryConfig.edubaseApiApp && typeof smitheryConfig.edubaseApiApp == 'string' && smitheryConfig.edubaseApiApp.length > 0) {
-            EDUBASE_API_APP = smitheryConfig.edubaseApiApp;
-        }
-        if (smitheryConfig.edubaseApiKey && typeof smitheryConfig.edubaseApiKey == 'string' && smitheryConfig.edubaseApiKey.length > 0) {
-            EDUBASE_API_KEY = smitheryConfig.edubaseApiKey;
-        }
+    const providerConfig = getProviderConfig(req);
+    if (providerConfig?.apiApp && providerConfig?.apiKey) {
+        /* Use authentication from provider configuration */
+        EDUBASE_API_APP = providerConfig.apiApp;
+        EDUBASE_API_KEY = providerConfig.apiKey;
     }
     else if (getHeaderValue(req, 'edubase-api-app') && getHeaderValue(req, 'edubase-api-secret')) {
         /* Use authentication from request headers */
@@ -96,21 +111,17 @@ function getEduBaseAuthentication(req) {
     return null;
 }
 function getEduBaseToolOptions(req) {
-    let toolsets = null;
-    let readOnly = false;
-    if (req.query?.config && typeof req.query.config == 'string') {
-        /* Use toolsets and read-only mode from Smithery configuration */
-        const smitheryConfig = JSON.parse(Buffer.from(req.query.config, 'base64').toString());
-        if (smitheryConfig.edubaseToolsets && typeof smitheryConfig.edubaseToolsets == 'string' && smitheryConfig.edubaseToolsets.length > 0) {
-            toolsets = smitheryConfig.edubaseToolsets;
-        }
-        readOnly = (smitheryConfig.edubaseReadOnly === true || smitheryConfig.edubaseReadOnly === 'true');
-    }
+    /* Use toolsets, read-only and dynamic toolsets mode from provider configuration */
+    const providerConfig = getProviderConfig(req);
+    let toolsets = providerConfig?.toolsets ?? null;
+    let readOnly = providerConfig?.readOnly ?? false;
+    let dynamic = providerConfig?.dynamic ?? false;
     if (!toolsets) {
         /* Use toolsets from request headers or query parameters */
         toolsets = getHeaderValue(req, 'edubase-mcp-toolsets') || (typeof req.query?.toolsets == 'string' ? req.query.toolsets : null);
     }
     readOnly = readOnly || getHeaderValue(req, 'edubase-mcp-readonly') == 'true' || req.query?.read_only == 'true';
+    dynamic = dynamic || getHeaderValue(req, 'edubase-mcp-dynamic') == 'true' || req.query?.dynamic_toolsets == 'true';
     const requested = parseToolsets(toolsets);
     if (requested.unknown.length > 0) {
         throw new Error('Unknown toolsets: ' + requested.unknown.join(', '));
@@ -118,6 +129,7 @@ function getEduBaseToolOptions(req) {
     return {
         toolsets: EDUBASE_TOOL_OPTIONS.toolsets.filter((toolset) => requested.toolsets.includes(toolset)),
         readOnly: EDUBASE_TOOL_OPTIONS.readOnly || readOnly,
+        dynamic: EDUBASE_TOOL_OPTIONS.dynamic || dynamic,
     };
 }
 function createMcpServer(apiUrl = null, authentication = null, toolOptions = EDUBASE_TOOL_OPTIONS) {
@@ -138,7 +150,7 @@ function createMcpServer(apiUrl = null, authentication = null, toolOptions = EDU
                 listChanged: true
             },
         },
-        instructions: getServerInstructions(toolOptions.toolsets, toolOptions.readOnly),
+        instructions: getServerInstructions(toolOptions.toolsets, toolOptions.readOnly, toolOptions.dynamic),
     });
     /* Configure request handlers */
     Object.values(EDUBASE_API_PROMPTS).forEach((prompt) => {
@@ -187,7 +199,7 @@ function createMcpServer(apiUrl = null, authentication = null, toolOptions = EDU
                 source: z.string().describe("file URL or local (absolute) file path on user computer"),
                 filename: z.string().describe("the original file name (including extension)"),
             }),
-            outputSchema: z.object({}).optional(),
+            outputSchema: withOutputSchema(z.object({}).optional()),
             annotations: {
                 title: 'Upload file to EduBase temporary file storage',
                 readOnlyHint: false,
@@ -244,12 +256,13 @@ function createMcpServer(apiUrl = null, authentication = null, toolOptions = EDU
                 };
             }
         });
+    const registeredToolsets = new Map();
     selectTools(toolOptions.toolsets, toolOptions.readOnly).forEach((tool) => {
         /* Register tools */
-        server.registerTool(tool.name, {
+        const registeredTool = server.registerTool(tool.name, {
             description: tool.description,
             inputSchema: tool.inputSchema,
-            outputSchema: tool.outputSchema,
+            outputSchema: withOutputSchema(tool.outputSchema),
             annotations: tool.annotations,
         }, async (args, ctx) => {
             try {
@@ -266,13 +279,14 @@ function createMcpServer(apiUrl = null, authentication = null, toolOptions = EDU
                 const effectiveAuth = (typeof requestBearer === 'string' && requestBearer.length > 0) ? { bearer: requestBearer } : authentication;
                 /* Prepare and send API request */
                 const [, method, ...endpoint] = name.split('_');
-                const response = await sendEduBaseApiRequest(method, (apiUrl || EDUBASE_API_URL) + '/' + endpoint.join(':'), expandCustomFields(args), effectiveAuth);
+                const request = tool.request ? tool.request(args) : { endpoint: endpoint.join(':'), args: args };
+                const response = await sendEduBaseApiRequest(method, (apiUrl || EDUBASE_API_URL) + '/' + request.endpoint, expandCustomFields(request.args), effectiveAuth);
                 /* Return response */
                 if (z.object({}).strict().safeParse(tool.outputSchema).success) {
                     /* Endpoint with empty output schema */
                     return {
                         content: [{ type: 'text', text: '{}' }],
-                        structuredContent: {},
+                        ...withStructuredContent({}),
                         isError: false,
                     };
                 }
@@ -291,7 +305,7 @@ function createMcpServer(apiUrl = null, authentication = null, toolOptions = EDU
                     /* Return response (schema will be validated automatically) */
                     return {
                         content: [{ type: 'text', text: JSON.stringify(response) }],
-                        structuredContent: response,
+                        ...withStructuredContent(response),
                         isError: false,
                     };
                 }
@@ -307,7 +321,78 @@ function createMcpServer(apiUrl = null, authentication = null, toolOptions = EDU
                 };
             }
         });
+        registeredToolsets.set(tool.toolset, [...(registeredToolsets.get(tool.toolset) || []), { name: tool.name, tool: registeredTool }]);
     });
+    if (toolOptions.dynamic) {
+        /* Dynamic toolsets: only the always enabled toolsets are available at the start, the others are enabled on demand (clients are notified about the changed tool list) */
+        const enabledToolsets = new Set(EDUBASE_TOOLSETS_ALWAYS_ENABLED);
+        const availableToolsets = [...registeredToolsets.keys()].filter((toolset) => !enabledToolsets.has(toolset));
+        availableToolsets.forEach((toolset) => registeredToolsets.get(toolset).forEach(({ tool }) => tool.disable()));
+        server.registerTool('edubase_list_toolsets', {
+            description: 'List the EduBase toolsets available in this session, with what they cover, whether they are enabled and their tools. Enable a toolset with edubase_enable_toolsets before using its tools.',
+            outputSchema: withOutputSchema(z.object({
+                toolsets: z.array(z.object({
+                    toolset: z.string().describe('toolset name'),
+                    description: z.string().describe('what the toolset covers'),
+                    enabled: z.boolean().describe('the tools of the toolset are available'),
+                    tools: z.array(z.string()).describe('names of the tools in the toolset'),
+                })),
+            })),
+            annotations: {
+                title: 'List EduBase toolsets',
+                readOnlyHint: true,
+                destructiveHint: false,
+                idempotentHint: true,
+                openWorldHint: false,
+            },
+        }, async () => {
+            const toolsets = [...registeredToolsets.entries()].map(([toolset, tools]) => ({
+                toolset: toolset,
+                description: getToolsetSummary(toolset),
+                enabled: enabledToolsets.has(toolset),
+                tools: tools.map(({ name }) => name),
+            }));
+            return {
+                content: [{ type: 'text', text: JSON.stringify({ toolsets }) }],
+                ...withStructuredContent({ toolsets }),
+                isError: false,
+            };
+        });
+        if (availableToolsets.length > 0) {
+            server.registerTool('edubase_enable_toolsets', {
+                description: 'Enable EduBase toolsets for this session, making their tools available. Only the file upload tools are enabled at the start, enable the toolsets needed for the task (see edubase_list_toolsets).',
+                inputSchema: z.object({
+                    toolsets: z.array(z.enum(availableToolsets)).min(1).describe('toolsets to enable'),
+                }),
+                outputSchema: withOutputSchema(z.object({
+                    enabled: z.array(z.string()).describe('the enabled toolsets'),
+                    tools: z.array(z.string()).describe('names of the tools that became available'),
+                })),
+                annotations: {
+                    title: 'Enable EduBase toolsets',
+                    readOnlyHint: true,
+                    destructiveHint: false,
+                    idempotentHint: true,
+                    openWorldHint: false,
+                },
+            }, async ({ toolsets }) => {
+                const tools = [];
+                toolsets.filter((toolset) => !enabledToolsets.has(toolset)).forEach((toolset) => {
+                    enabledToolsets.add(toolset);
+                    registeredToolsets.get(toolset).forEach(({ name, tool }) => {
+                        tool.enable();
+                        tools.push(name);
+                    });
+                });
+                const result = { enabled: [...enabledToolsets], tools: tools };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result) }],
+                    ...withStructuredContent(result),
+                    isError: false,
+                };
+            });
+        }
+    }
     return server;
 }
 /* EduBase API rate limits (via environment variables or configured defaults) */
@@ -545,6 +630,7 @@ if (STREAMABLE_HTTP) {
     const app = express();
     app.disable('x-powered-by');
     app.use(bodyParser.json());
+    app.use('/mcp', rejectInvalidProviderConfig);
     const transports = {};
     if (EDUBASE_OAUTH) {
         /* Add OAuth 2.1 endpoints */
@@ -645,25 +731,11 @@ if (STREAMABLE_HTTP) {
             return;
         }
         try {
-            let override = { EDUBASE_API_URL: null, EDUBASE_API_APP: null, EDUBASE_API_KEY: null };
-            if (req.query?.config && typeof req.query.config == 'string') {
-                /* Apply Smithery configuration */
-                const smitheryConfig = JSON.parse(Buffer.from(req.query.config, 'base64').toString());
-                if (smitheryConfig.edubaseApiUrl && typeof smitheryConfig.edubaseApiUrl == 'string' && smitheryConfig.edubaseApiUrl.length > 0) {
-                    override.EDUBASE_API_URL = smitheryConfig.edubaseApiUrl;
-                }
-                if (smitheryConfig.edubaseApiApp && typeof smitheryConfig.edubaseApiApp == 'string' && smitheryConfig.edubaseApiApp.length > 0) {
-                    override.EDUBASE_API_APP = smitheryConfig.edubaseApiApp;
-                }
-                if (smitheryConfig.edubaseApiKey && typeof smitheryConfig.edubaseApiKey == 'string' && smitheryConfig.edubaseApiKey.length > 0) {
-                    override.EDUBASE_API_KEY = smitheryConfig.edubaseApiKey;
-                }
-            }
             const params = req.body?.params || {};
             params._meta = {
                 ip: getClientIp(req),
                 headers: req.headers,
-                override: override,
+                override: getProviderOverride(req),
                 bearer: requestAuth?.bearer,
             };
             await transport.handleRequest(req, res, { ...req.body, params });
@@ -709,6 +781,7 @@ if (STREAMABLE_HTTP) {
     process.on('SIGTERM', () => {
         /* Graceful shutdown */
         console.error("Received SIGTERM, shutting down EduBase MCP server...");
+        process.exit(0);
     });
 }
 else if (SSE) {
@@ -716,6 +789,7 @@ else if (SSE) {
     const app = express();
     app.use(bodyParser.json());
     app.disable('x-powered-by');
+    app.use(['/sse', '/messages'], rejectInvalidProviderConfig);
     const transports = {};
     app.get('/sse', async (req, res) => {
         /* Handle SSE sessions (but prefer Streamable HTTP) */
@@ -746,25 +820,11 @@ else if (SSE) {
         const transport = transports[sessionId] ?? Object.values(transports)[0];
         if (transport) {
             try {
-                let override = { EDUBASE_API_URL: null, EDUBASE_API_APP: null, EDUBASE_API_KEY: null };
-                if (req.query?.config && typeof req.query.config == 'string') {
-                    /* Apply Smithery configuration */
-                    const smitheryConfig = JSON.parse(Buffer.from(req.query.config, 'base64').toString());
-                    if (smitheryConfig.edubaseApiUrl && typeof smitheryConfig.edubaseApiUrl == 'string' && smitheryConfig.edubaseApiUrl.length > 0) {
-                        override.EDUBASE_API_URL = smitheryConfig.edubaseApiUrl;
-                    }
-                    if (smitheryConfig.edubaseApiApp && typeof smitheryConfig.edubaseApiApp == 'string' && smitheryConfig.edubaseApiApp.length > 0) {
-                        override.EDUBASE_API_APP = smitheryConfig.edubaseApiApp;
-                    }
-                    if (smitheryConfig.edubaseApiKey && typeof smitheryConfig.edubaseApiKey == 'string' && smitheryConfig.edubaseApiKey.length > 0) {
-                        override.EDUBASE_API_KEY = smitheryConfig.edubaseApiKey;
-                    }
-                }
                 const params = req.body?.params || {};
                 params._meta = {
                     ip: getClientIp(req),
                     headers: req.headers,
-                    override: override,
+                    override: getProviderOverride(req),
                     bearer: getEduBaseAuthentication(req)?.bearer,
                 };
                 await transport.handlePostMessage(req, res, { ...req.body, params });
@@ -798,6 +858,7 @@ else if (SSE) {
     process.on('SIGTERM', () => {
         /* Graceful shutdown */
         console.error("Received SIGTERM, shutting down EduBase MCP server...");
+        process.exit(0);
     });
 }
 else {

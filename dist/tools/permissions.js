@@ -1,198 +1,74 @@
 import * as z from 'zod/v4';
-const PERMISSION_ENTITIES = [
+import { contentRequest } from './content.js';
+/* Content types supporting permissions (the permission and transfer endpoints of every content type work the same way, so they are exposed as a single tool per method) */
+const PERMISSION_CONTENT_TYPES = ['class', 'course', 'event', 'exam', 'integration', 'organization', 'quiz', 'scorm', 'tag', 'video'];
+const PERMISSION_LEVELS = ['view', 'report', 'control', 'modify', 'finances', 'grant', 'admin'];
+const permissionContentInputSchema = {
+    type: z.enum(PERMISSION_CONTENT_TYPES).describe('type of the content (scorm: SCORM learning material, quiz: Quiz set)'),
+    content: z.string().describe('identification string of the content (e.g. the exam identification string if type is exam)'),
+    user: z.string().describe('user identification string'),
+};
+const permissionLevelSchema = z.enum(PERMISSION_LEVELS).describe('permission level (view / report / control / modify / grant / admin), finances is only available for events');
+const permissionContentOutputSchema = z.object({
+    type: z.enum(PERMISSION_CONTENT_TYPES).describe('type of the content'),
+    code: z.string().describe('the content identification string'),
+    id: z.string().nullable().optional().describe('external unique content identifier (if set for the content)'),
+});
+const permissionActionOutputSchema = z.object({
+    user: z.string().describe('the user identification string'),
+    content: permissionContentOutputSchema,
+    success: z.boolean().describe('operation was successful'),
+});
+/* Tool definitions */
+export const EDUBASE_API_TOOLS_PERMISSIONS = [
+    // GET /{type}:permission - Check if a user has permission on a content
     {
-        key: 'class',
-        permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
-        permissionLevels: 'view / report / control / modify / grant / admin',
-        contentType: 'class',
-        inputIdDescription: 'class identification string',
-        contentCodeDescription: 'the class identification string',
-        contentIdDescription: 'external unique class identifier (if set for the class)',
-        checkDescription: 'Check if a user has permission on a class.',
-        postDescription: 'Create new permission for a user on a class.',
-        deleteDescription: 'Remove a user permission from a class.',
-        transferDescription: 'Transfer class to user.',
+        name: 'edubase_get_content_permission',
+        description: "Check if a user has a permission level on a content (class, course, event, exam, integration, organization, Quiz set, SCORM learning material, tag or video). Returns whether the user has the permission, and whether there is a permission rule with exactly these parameters.",
+        inputSchema: z.object({
+            ...permissionContentInputSchema,
+            permission: permissionLevelSchema,
+        }),
+        outputSchema: z.object({
+            user: z.string().describe('the user identification string'),
+            content: permissionContentOutputSchema,
+            status: z.object({
+                permission: z.boolean().describe('the user has permission on the content'),
+                rule: z.boolean().describe('there is a permission rule with these parameters'),
+            }),
+        }),
+        request: contentRequest('permission'),
     },
+    // POST /{type}:permission - Create new permission for a user on a content
     {
-        key: 'course',
-        permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
-        permissionLevels: 'view / report / control / modify / grant / admin',
-        contentType: 'course',
-        inputIdDescription: 'course identification string',
-        contentCodeDescription: 'the course identification string',
-        contentIdDescription: 'external unique course identifier (if set for the course)',
-        checkDescription: 'Check if a user has permission on a course.',
-        postDescription: 'Create new permission for a user on a course.',
-        deleteDescription: 'Remove a user permission from a course.',
-        transferDescription: 'Transfer course to user.',
-        transferToolName: 'edubase_post_course_transfer',
+        name: 'edubase_post_content_permission',
+        description: "Give a user a permission level on a content (class, course, event, exam, integration, organization, Quiz set, SCORM learning material, tag or video).",
+        inputSchema: z.object({
+            ...permissionContentInputSchema,
+            permission: permissionLevelSchema,
+        }),
+        outputSchema: permissionActionOutputSchema,
+        request: contentRequest('permission'),
     },
+    // DELETE /{type}:permission - Remove a user permission from a content
     {
-        key: 'event',
-        permissionValues: ['view', 'report', 'control', 'modify', 'finances', 'grant', 'admin'],
-        permissionLevels: 'view / report / control / modify / finances / grant / admin',
-        contentType: 'event',
-        inputIdDescription: 'event identification string',
-        contentCodeDescription: 'the event identification string',
-        contentIdDescription: 'external unique event identifier (if set for the event)',
-        checkDescription: 'Check if a user has permission on an event.',
-        postDescription: 'Create new permission for a user on an event.',
-        deleteDescription: 'Remove a user permission from an event.',
-        transferDescription: 'Transfer event to user.',
+        name: 'edubase_delete_content_permission',
+        description: "Remove a permission level of a user from a content (class, course, event, exam, integration, organization, Quiz set, SCORM learning material, tag or video).",
+        inputSchema: z.object({
+            ...permissionContentInputSchema,
+            permission: permissionLevelSchema,
+        }),
+        outputSchema: permissionActionOutputSchema,
+        request: contentRequest('permission'),
     },
+    // POST /{type}:transfer - Transfer content to user
     {
-        key: 'exam',
-        permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
-        permissionLevels: 'view / report / control / modify / grant / admin',
-        contentType: 'exam',
-        inputIdDescription: 'exam identification string',
-        contentCodeDescription: 'the exam identification string',
-        contentIdDescription: 'external unique exam identifier (if set for the exam)',
-        checkDescription: 'Check if a user has permission on an exam.',
-        postDescription: 'Create new permission for a user on an exam.',
-        deleteDescription: 'Remove a user permission from an exam.',
-        transferDescription: 'Transfer exam to user.',
-    },
-    {
-        key: 'integration',
-        permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
-        permissionLevels: 'view / report / control / modify / grant / admin',
-        contentType: 'integration',
-        inputIdDescription: 'integration identification string',
-        contentCodeDescription: 'the integration identification string',
-        contentIdDescription: 'external unique integration identifier (if set for the integration)',
-        checkDescription: 'Check if a user has permission on an integration.',
-        postDescription: 'Create new permission for a user on an integration.',
-        deleteDescription: 'Remove a user permission from an integration.',
-        transferDescription: 'Transfer integration to user.',
-    },
-    {
-        key: 'organization',
-        permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
-        permissionLevels: 'view / report / control / modify / grant / admin',
-        contentType: 'organization',
-        inputIdDescription: 'organization identification string',
-        contentCodeDescription: 'the organization identification string',
-        contentIdDescription: 'external unique organization identifier (if set for the organization)',
-        checkDescription: 'Check if a user has permission on an organization.',
-        postDescription: 'Create new permission for a user on an organization.',
-        deleteDescription: 'Remove a user permission from an organization.',
-        transferDescription: 'Transfer organization to user.',
-    },
-    {
-        key: 'quiz',
-        permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
-        permissionLevels: 'view / report / control / modify / grant / admin',
-        contentType: 'quiz',
-        inputIdDescription: 'Quiz identification string',
-        contentCodeDescription: 'the Quiz identification string',
-        contentIdDescription: 'external unique Quiz identifier (if set for the Quiz)',
-        checkDescription: 'Check if a user has permission on a quiz.',
-        postDescription: 'Create new permission for a user on a quiz.',
-        deleteDescription: 'Remove a user permission from a quiz.',
-        transferDescription: 'Transfer Quiz to user.',
-    },
-    {
-        key: 'scorm',
-        permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
-        permissionLevels: 'view / report / control / modify / grant / admin',
-        contentType: 'scorm',
-        inputIdDescription: 'SCORM identification string',
-        contentCodeDescription: 'the SCORM identification string',
-        contentIdDescription: 'external unique SCORM identifier (if set for the SCORM)',
-        checkDescription: 'Check if a user has permission on a SCORM learning material.',
-        postDescription: 'Create new permission for a user on a SCORM learning material.',
-        deleteDescription: 'Remove a user permission from a SCORM learning material.',
-        transferDescription: 'Transfer SCORM to user.',
-    },
-    {
-        key: 'tag',
-        permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
-        permissionLevels: 'view / report / control / modify / grant / admin',
-        contentType: 'tag',
-        inputIdDescription: 'tag identification string',
-        contentCodeDescription: 'the tag identification string',
-        contentIdDescription: 'external unique tag identifier (if set for the tag)',
-        checkDescription: 'Check if a user has permission on a tag.',
-        postDescription: 'Create new permission for a user on a tag.',
-        deleteDescription: 'Remove a user permission from a tag.',
-        transferDescription: 'Transfer tag to user.',
-    },
-    {
-        key: 'video',
-        permissionValues: ['view', 'report', 'control', 'modify', 'grant', 'admin'],
-        permissionLevels: 'view / report / control / modify / grant / admin',
-        contentType: 'video',
-        inputIdDescription: 'video identification string',
-        contentCodeDescription: 'the video identification string',
-        contentIdDescription: 'external unique video identifier (if set for the video)',
-        checkDescription: 'Check if a user has permission on a video.',
-        postDescription: 'Create new permission for a user on a video.',
-        deleteDescription: 'Remove a user permission from a video.',
-        transferDescription: 'Transfer video to user.',
+        name: 'edubase_post_content_transfer',
+        description: "Transfer the ownership of a content (class, course, event, exam, integration, organization, Quiz set, SCORM learning material, tag or video) to another user. Confirm with the user first.",
+        inputSchema: z.object({
+            ...permissionContentInputSchema,
+        }),
+        outputSchema: permissionActionOutputSchema,
+        request: contentRequest('transfer'),
     },
 ];
-const createPermissionContentSchema = (entity) => z.object({
-    type: z.literal(entity.contentType).describe(`will be "${entity.contentType}"`),
-    code: z.string().describe(entity.contentCodeDescription),
-    id: z.string().nullable().optional().describe(entity.contentIdDescription),
-});
-const createPermissionTools = (entity) => {
-    const permissionDescription = `permission level (${entity.permissionLevels})`;
-    const checkOutputSchema = z.object({
-        user: z.string().describe('the user identification string'),
-        content: createPermissionContentSchema(entity),
-        status: z.object({
-            permission: z.boolean().describe(`the user has permission on this ${entity.contentType}`),
-            rule: z.boolean().describe('there is a permission rule with these parameters'),
-        }),
-    });
-    const actionOutputSchema = z.object({
-        user: z.string().describe('the user identification string'),
-        content: createPermissionContentSchema(entity),
-        success: z.boolean().describe('operation was successful'),
-    });
-    return [
-        {
-            name: `edubase_get_${entity.key}_permission`,
-            description: entity.checkDescription,
-            inputSchema: z.object({
-                [entity.key]: z.string().describe(entity.inputIdDescription),
-                user: z.string().describe('user identification string'),
-                permission: z.enum(entity.permissionValues).describe(permissionDescription),
-            }),
-            outputSchema: checkOutputSchema,
-        },
-        {
-            name: `edubase_post_${entity.key}_permission`,
-            description: entity.postDescription,
-            inputSchema: z.object({
-                [entity.key]: z.string().describe(entity.inputIdDescription),
-                user: z.string().describe('user identification string'),
-                permission: z.enum(entity.permissionValues).describe(permissionDescription),
-            }),
-            outputSchema: actionOutputSchema,
-        },
-        {
-            name: `edubase_delete_${entity.key}_permission`,
-            description: entity.deleteDescription,
-            inputSchema: z.object({
-                [entity.key]: z.string().describe(entity.inputIdDescription),
-                user: z.string().describe('user identification string'),
-                permission: z.enum(entity.permissionValues).describe(permissionDescription),
-            }),
-            outputSchema: actionOutputSchema,
-        },
-        {
-            name: entity.transferToolName ?? `edubase_post_${entity.key}_transfer`,
-            description: entity.transferDescription,
-            inputSchema: z.object({
-                [entity.key]: z.string().describe(entity.inputIdDescription),
-                user: z.string().describe('user identification string'),
-            }),
-            outputSchema: actionOutputSchema,
-        },
-    ];
-};
-/* Tool definitions */
-export const EDUBASE_API_TOOLS_PERMISSIONS = PERMISSION_ENTITIES.flatMap(createPermissionTools);

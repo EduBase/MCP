@@ -101,7 +101,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// GET /exam - Get/check exam
 	{
 		name: 'edubase_get_exam',
-		description: "Get/check exam.",
+		description: "Get the details of an exam: title, language, the Quiz set it uses, active state, status (INACTIVE, ACTIVE, PAUSED, REVIEW, EXPIRED), start and end times, deadline and Safe Exam Browser links. Use edubase_get_exam_settings for its settings.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 		}),
@@ -147,7 +147,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// PATCH /exam - Update the details of an existing exam
 	{
 		name: 'edubase_patch_exam',
-		description: "Update the details of an existing exam.",
+		description: "Update the details of an existing exam: title, external identifier, language, description, organization, start and end times, and deadline. The start time can only be changed until the first result arrives. Use edubase_post_exam_settings to change its settings.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 			title: z.string().min(1).max(255).optional().describe('title of the exam'),
@@ -165,7 +165,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// DELETE /exam - Remove/archive exam
 	{
 		name: 'edubase_delete_exam',
-		description: "Remove/archive exam.",
+		description: "Delete an exam, or archive it when the user is not allowed to delete it. Confirm with the user first.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 		}),
@@ -317,7 +317,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// GET /exam:autologin - Get the automatic login configuration of an exam
 	{
 		name: 'edubase_get_exam_autologin',
-		description: "Get the automatic login configuration of an exam.",
+		description: "Get the automatic login configuration of an exam: whether it is enabled, the PIN code, the login and results links, and whether exam accounts are generated or registered users can join automatically.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 		}),
@@ -336,7 +336,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// POST /exam:autologin - Enable or reconfigure automatic login for an exam
 	{
 		name: 'edubase_post_exam_autologin',
-		description: "Enable or reconfigure automatic login for an exam.",
+		description: "Enable or reconfigure automatic login for an exam, optionally with a shortlink for the login link. Returns the configuration with the PIN code and login link, the same way as edubase_get_exam_autologin. Disable it with edubase_delete_exam_autologin.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 			se: z.string().optional().describe('shortlink for the login URL, at least 3 characters long (with a + sign automatically prepended), send an empty value to remove the current shortlink, needs the shortlink feature to be enabled and cannot be used with secure (Safe Exam Browser) exams'),
@@ -553,7 +553,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// GET /exam:round - Get the current round of an exam
 	{
 		name: 'edubase_get_exam_round',
-		description: "Get the current round of an exam.",
+		description: "Get the current round of an exam: its index, start time, whether it already has results and whether it is frozen. Start a new round with edubase_post_exam_round.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 		}),
@@ -721,7 +721,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// GET /exam:skills - Get skills defined in the Quiz set used by an exam
 	{
 		name: 'edubase_get_exam_skills',
-		description: "Get skills defined in the Quiz set used by an exam.",
+		description: "Get the skills defined in the Quiz set used by an exam, with the identifier, title and description of each skill.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 		}),
@@ -738,7 +738,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// GET /exam:branding - Get exam branding configuration
 	{
 		name: 'edubase_get_exam_branding',
-		description: "Get exam branding configuration.",
+		description: "Get the branding of an exam: whether it is enabled, the type of the branding image (logo or cover) and the branding color.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 		}),
@@ -753,7 +753,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// POST /exam:branding - Configure or update exam branding
 	{
 		name: 'edubase_post_exam_branding',
-		description: "Configure or update exam branding.",
+		description: "Configure or update the branding of an exam with an image (base64-encoded or URL, used as a logo or as a cover) and a color.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 			type: z.enum(['foreground', 'background']).optional().describe('branding image type (foreground: image is used as a logo, background: image is used as a cover), default: foreground'),
@@ -766,7 +766,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// DELETE /exam:branding - Remove branding from an exam
 	{
 		name: 'edubase_delete_exam_branding',
-		description: "Remove branding from an exam.",
+		description: "Remove the branding image and color from an exam.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 		}),
@@ -776,7 +776,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// GET /exam:users - List all users on an exam
 	{
 		name: 'edubase_get_exam_users',
-		description: "List all users on an exam.",
+		description: "List the users assigned to an exam, with their names. Assign users with edubase_post_exam_users.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 		}),
@@ -791,7 +791,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// POST /exam:users - Assign user(s) to an exam
 	{
 		name: 'edubase_post_exam_users',
-		description: "Assign user(s) to an exam.",
+		description: "Assign existing users to an exam by their user identification strings. Use edubase_post_exam_users_generate to create new exam accounts instead.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 			users: z.string().describe('comma-separated list of user identification strings'),
@@ -802,7 +802,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// DELETE /exam:users - Remove user(s) from an exam
 	{
 		name: 'edubase_delete_exam_users',
-		description: "Remove user(s) from an exam.",
+		description: "Remove users from an exam by their user identification strings.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 			users: z.string().describe('comma-separated list of user identification strings'),
@@ -813,7 +813,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// POST /exam:summary - Submit a new exam summary
 	{
 		name: 'edubase_post_exam_summary',
-		description: "Submit a new AI exam summary.",
+		description: "Submit a short summary of an exam, such as an AI-generated evaluation of its results. Keep it concise, use only basic HTML formatting, and avoid personal information (names, usernames, contact details).",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 			language: z.string().optional().describe('summary language'),

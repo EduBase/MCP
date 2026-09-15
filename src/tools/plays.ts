@@ -4,7 +4,7 @@ export const EDUBASE_API_TOOLS_PLAYS = [
 	// GET /quiz:results:play - Get detailed results for a specific Quiz play
 	{
 		name: 'edubase_get_quiz_results_play',
-		description: 'Get detailed results for a specific Quiz play.',
+		description: "Get the detailed results of a single Quiz play (attempt): times, points, validity, whether it passed the grading, and the points and answer time of every question. Play identification strings are returned by edubase_get_quiz_results_user and edubase_get_exam_results_user.",
 		inputSchema: z.object({
 			play: z.string().describe('Quiz play identification string'),
 		}),
@@ -43,7 +43,7 @@ export const EDUBASE_API_TOOLS_PLAYS = [
 	// GET /quiz:results:user - Get user results for a specific Quiz set
 	{
 		name: 'edubase_get_quiz_results_user',
-		description: 'Get user results for a specific Quiz set.',
+		description: "List the results (plays) of a user in a Quiz set, with times, points, validity and whether they passed the grading. Use edubase_get_quiz_results_play for the per-question details of a play.",
 		inputSchema: z.object({
 			quiz: z.string().describe('Quiz set identification string'),
 			user: z.string().describe('user identification string'),
@@ -67,7 +67,7 @@ export const EDUBASE_API_TOOLS_PLAYS = [
 	// GET /exam:results:user - Get user results for a specific exam
 	{
 		name: 'edubase_get_exam_results_user',
-		description: 'Get user results for a specific exam.',
+		description: "List the results (attempts) of a user in an exam, with times, points, attempt index, validity and whether they passed the grading. Use edubase_get_quiz_results_play for the per-question details of an attempt.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 			user: z.string().describe('user identification string'),

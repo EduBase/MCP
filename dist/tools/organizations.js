@@ -3,7 +3,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // GET /organizations - List owned and managed organizations
     {
         name: 'edubase_get_organizations',
-        description: "List owned and managed organizations.",
+        description: "List owned and managed organizations. Returns organization identification strings, external identifiers and titles.",
         inputSchema: z.object({
             search: z.string().optional().describe('search string to filter results'),
             limit: z.number().int().optional().describe('limit number of results (default: 16)'),
@@ -20,7 +20,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // GET /organization - Get/check organization
     {
         name: 'edubase_get_organization',
-        description: "Get/check organization.",
+        description: "Get the details of an organization: title, external identifier and description.",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
         }),
@@ -34,7 +34,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // POST /organization - Create an organization
     {
         name: 'edubase_post_organization',
-        description: "Create an organization.",
+        description: "Create an organization with a title and optional description, website, contact details and custom fields. Returns the organization identification string.",
         inputSchema: z.object({
             title: z.string().describe('title of the organization'),
             description: z.string().optional().describe('optional short description'),
@@ -51,7 +51,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // PATCH /organization - Update organization
     {
         name: 'edubase_patch_organization',
-        description: "Update organization.",
+        description: "Update the title or custom fields of an organization.",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
             title: z.string().min(1).max(255).optional().describe('title of the organization'),
@@ -62,7 +62,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // DELETE /organization - Remove organization
     {
         name: 'edubase_delete_organization',
-        description: "Remove organization.",
+        description: "Remove an organization. Confirm with the user first.",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
         }),
@@ -71,7 +71,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // GET /organization:members - List all members in an organization
     {
         name: 'edubase_get_organization_members',
-        description: "List all members in an organization.",
+        description: "List the members of an organization, with their names, departments and permission levels (to the organization, its contents and its members).",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
         }),
@@ -106,7 +106,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // DELETE /organization:members - Remove user(s) from an organization
     {
         name: 'edubase_delete_organization_members',
-        description: "Remove user(s) from an organization.",
+        description: "Remove users from an organization by their user identification strings.",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
             users: z.string().describe('comma-separated list of user identification strings'),
@@ -158,7 +158,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // GET /organization:department - Get/check department of an organization
     {
         name: 'edubase_get_organization_department',
-        description: "Get/check department of an organization.",
+        description: "Get a department of an organization, identified by its name or external identifier: its parent, level in the hierarchy and the permissions given to its members.",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
             department: z.string().describe('name of the department (or its external identifier if no department has this name)'),
@@ -365,7 +365,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // GET /user:organizations - List all organizations a user is member of
     {
         name: 'edubase_get_user_organizations',
-        description: "List all organizations a user is member of.",
+        description: "List the organizations a user is member of, with their titles, links, the department of the user and the permission levels.",
         inputSchema: z.object({
             user: z.string().describe('user identification string'),
         }),
@@ -402,7 +402,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // DELETE /user:organizations - Remove user from organization(s)
     {
         name: 'edubase_delete_user_organizations',
-        description: "Remove user from organization(s).",
+        description: "Remove a user from organizations by their organization identification strings.",
         inputSchema: z.object({
             user: z.string().describe('user identification string'),
             organizations: z.string().describe('comma-separated list of organization identification strings'),
@@ -412,7 +412,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // GET /organization:webhook - Get/check webhook configured in organization
     {
         name: 'edubase_get_organization_webhook',
-        description: "Get/check webhook configured in organization.",
+        description: "Get a webhook of an organization: its title and whether it is active.",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
             webhook: z.string().describe('webhook identification string'),
@@ -427,7 +427,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // POST /organization:webhook - Create a webhook for an organization
     {
         name: 'edubase_post_organization_webhook',
-        description: "Create a webhook for an organization.",
+        description: "Create a webhook for an organization, called on exam results, Quiz practice results or manual API triggers, with optional authentication and retries. Returns the webhook identification string. Test it with edubase_post_organization_webhook_trigger.",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
             title: z.string().describe('title of the webhook'),
@@ -451,7 +451,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // PATCH /organization:webhook - Update organizational webhook
     {
         name: 'edubase_patch_organization_webhook',
-        description: "Update organizational webhook.",
+        description: "Enable or disable a webhook of an organization.",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
             webhook: z.string().describe('webhook identification string'),
@@ -462,7 +462,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // DELETE /organization:webhook - Remove webhook from organization
     {
         name: 'edubase_delete_organization_webhook',
-        description: "Remove organizational webhook.",
+        description: "Remove a webhook from an organization, no more notifications are sent to its endpoint. Use edubase_patch_organization_webhook to only disable it.",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
             webhook: z.string().describe('webhook identification string'),

@@ -4,7 +4,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 	// GET /integrations - List owned and managed integrations
 	{
 		name: 'edubase_get_integrations',
-		description: "List owned and managed integrations.",
+		description: "List owned and managed integrations. Returns integration identification strings, external identifiers and titles.",
 		inputSchema: z.object({
 			search: z.string().optional().describe('search string to filter results'),
 			limit: z.number().int().optional().describe('limit number of results (default: 16)'),
@@ -22,7 +22,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 	// GET /integration - Get/check integration
 	{
 		name: 'edubase_get_integration',
-		description: "Get/check integration.",
+		description: "Get the details of an integration: title, type (api, moodle, canvas, d2l, schoology, lms), whether it is active and its LTI version.",
 		inputSchema: z.object({
 			integration: z.string().describe('integration identification string'),
 		}),
@@ -39,7 +39,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 	// POST /integration - Create a new API or LMS integration
 	{
 		name: 'edubase_post_integration',
-		description: "Create a new API or LMS integration.",
+		description: "Create a new API or LMS (LTI 1.0/1.1 or 1.3) integration. Returns the integration identification string, get its keys with edubase_get_integration_keys.",
 		inputSchema: z.object({
 			title: z.string().describe('title of the integration'),
 			description: z.string().optional().describe('optional short description'),
@@ -73,7 +73,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 	// PATCH /integration - Update integration
 	{
 		name: 'edubase_patch_integration',
-		description: "Update integration.",
+		description: "Enable or disable an integration, or move it to another organization.",
 		inputSchema: z.object({
 			integration: z.string().describe('integration identification string'),
 			active: z.boolean().optional().describe('enable or disable the integration'),
@@ -85,7 +85,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 	// DELETE /integration - Remove integration
 	{
 		name: 'edubase_delete_integration',
-		description: "Remove integration.",
+		description: "Remove an integration. Confirm with the user first.",
 		inputSchema: z.object({
 			integration: z.string().describe('integration identification string'),
 		}),
@@ -95,7 +95,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 	// GET /integration:keys - Get integration keys/secrets
 	{
 		name: 'edubase_get_integration_keys',
-		description: "Get integration keys/secrets.",
+		description: "Get the keys and secrets of an integration: the app and secret of API integrations, the consumer key and secret (LTI 1.0/1.1) or the JWK set URL and public key (LTI 1.3) of LMS integrations. Treat the secrets as confidential.",
 		inputSchema: z.object({
 			integration: z.string().describe('integration identification string'),
 		}),
@@ -111,7 +111,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 	// POST /integration:keys - Rotate integration keys/secrets
 	{
 		name: 'edubase_post_integration_keys',
-		description: "Rotate integration keys/secrets.",
+		description: "Rotate the keys and secrets of an integration and return the new ones, the previous keys stop working. Confirm with the user first.",
 		inputSchema: z.object({
 			integration: z.string().describe('integration identification string'),
 		}),

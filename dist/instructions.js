@@ -43,7 +43,7 @@ const EDUBASE_TOOLSET_GUIDES = {
         ],
     },
     users: {
-        summary: 'users, their names, groups, login links and assumed users',
+        summary: 'users, their names, groups and login links',
         tools: ['edubase_get_user_me', 'edubase_get_user_search', 'edubase_get_users', 'edubase_post_user'],
         notes: [
             'Use edubase_get_user_me to identify the current user and edubase_get_user_search to look up a user by email, username or code.',
@@ -65,16 +65,17 @@ const EDUBASE_TOOLSET_GUIDES = {
         tools: ['edubase_get_integrations', 'edubase_get_integration_keys'],
     },
     tags: {
-        summary: 'tags and their attachments',
-        tools: ['edubase_get_tags'],
+        summary: 'tags and their attachments to contents',
+        tools: ['edubase_get_tags', 'edubase_get_content_tags', 'edubase_post_content_tag'],
         notes: [
-            'Tag attachments follow the same pattern for every content type (class, course, event, exam, integration, organization, quiz, scorm, video): edubase_get_<type>_tags lists the tags, edubase_get_<type>_tag checks a tag, edubase_post_<type>_tag and edubase_delete_<type>_tag attach and remove a tag.',
+            'Tag attachments are handled by the same tools for every content type (class, course, event, exam, integration, organization, quiz, scorm, video): pass the content type in type and its identification string in content.',
         ],
     },
     permissions: {
-        summary: 'user permissions on content and ownership transfers',
+        summary: 'user permissions on contents and ownership transfers',
+        tools: ['edubase_get_content_permission', 'edubase_post_content_permission', 'edubase_post_content_transfer'],
         notes: [
-            'Permissions follow the same pattern for every content type (class, course, event, exam, integration, organization, quiz, scorm, tag, video): edubase_get_<type>_permission checks, edubase_post_<type>_permission grants and edubase_delete_<type>_permission removes a permission, edubase_post_<type>_transfer transfers the ownership.',
+            'Permissions and ownership transfers are handled by the same tools for every content type (class, course, event, exam, integration, organization, quiz, scorm, tag, video): pass the content type in type and its identification string in content.',
         ],
     },
     metrics: {
@@ -82,12 +83,16 @@ const EDUBASE_TOOLSET_GUIDES = {
         tools: ['edubase_post_metrics_custom'],
     },
 };
+/* Short description of a toolset */
+export function getToolsetSummary(toolset) {
+    return EDUBASE_TOOLSET_GUIDES[toolset].summary;
+}
 /* Server instructions (sent to the client once during initialization, so shared knowledge does not have to be repeated in every tool description) */
-export function getServerInstructions(toolsets, readOnly) {
+export function getServerInstructions(toolsets, readOnly, dynamic = false) {
     const sections = [
         `# EduBase MCP server
 
-EduBase is an assessment and e-learning platform. Each tool maps to one EduBase API endpoint and is named edubase_<method>_<endpoint> (e.g. edubase_get_user_me for GET /user:me). Tools with the get method only read data.`,
+EduBase is an assessment and e-learning platform. Tools map to EduBase API endpoints and are named edubase_<method>_<endpoint> (e.g. edubase_get_user_me for GET /user:me), the edubase_*_content_* tools cover the same endpoint of every content type. Tools with the get method only read data.`,
         `## Quiz hierarchy
 
 1. Questions (lowest level): the building blocks, with many types (choice, numerical, expression, text, etc.), can be parametrized.
@@ -125,6 +130,9 @@ Exams are always created from an existing Quiz set, questions can never be added
     const limits = [];
     if (disabled.length > 0) {
         limits.push(`Tools of the other toolsets (${disabled.join(', ')}) are not available in this session.`);
+    }
+    if (dynamic) {
+        limits.push('Toolsets are enabled on demand: only the file upload tools are available at the start. Enable the toolsets needed for the task with edubase_enable_toolsets before using their tools, and check the enabled toolsets with edubase_list_toolsets.');
     }
     if (readOnly) {
         limits.push('The server runs in read-only mode: only tools that read data are available, nothing can be created, modified or deleted in this session. Tell the user if a request needs changes.');

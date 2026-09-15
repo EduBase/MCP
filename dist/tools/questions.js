@@ -17,7 +17,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
     // GET /questions - List owned and managed Quiz questions
     {
         name: 'edubase_get_questions',
-        description: "List owned and managed Quiz questions.",
+        description: "List owned and managed Quiz questions. Returns the question identification strings and external identifiers. Use edubase_post_question_export to read the content of a question.",
         inputSchema: z.object({
             search: z.string().describe('search string to filter results'),
             limit: z.number().int().describe('limit number of results (default: 16)'),
@@ -141,7 +141,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
     // DELETE /question - Permanently delete a question
     {
         name: 'edubase_delete_question',
-        description: "Permanently delete a Quiz question.",
+        description: "Permanently delete a Quiz question, identified by its external unique question identifier. This cannot be undone, confirm with the user first.",
         inputSchema: z.object({
             id: z.string().describe('external unique question identifier'),
         }),

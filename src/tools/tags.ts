@@ -1,193 +1,24 @@
 import * as z from 'zod/v4';
+import { contentRequest } from './content.js';
 
-type TagEntityConfig = {
-	key: string;
-	paramDescription: string;
-	listDescription: string;
-	checkDescription: string;
-	attachDescription: string;
-	removeDescription: string;
-	contentType: string;
-	contentCodeDescription: string;
-	contentIdDescription: string;
-	statusDescription: string;
+/* Content types supporting tags (the tag and permission endpoints of every content type work the same way, so they are exposed as a single tool per method) */
+const TAG_CONTENT_TYPES = ['class', 'course', 'event', 'exam', 'integration', 'organization', 'quiz', 'scorm', 'video'] as const;
+const tagContentInputSchema = {
+	type: z.enum(TAG_CONTENT_TYPES).describe('type of the content (scorm: SCORM learning material, quiz: Quiz set)'),
+	content: z.string().describe('identification string of the content (e.g. the exam identification string if type is exam)'),
 };
-const tagRelationContentSchema = (entity: TagEntityConfig) => z.object({
-	type: z.literal(entity.contentType).describe(`will be "${entity.contentType}"`),
-	code: z.string().describe(entity.contentCodeDescription),
-	id: z.string().nullable().describe(entity.contentIdDescription),
+const tagContentOutputSchema = z.object({
+	type: z.enum(TAG_CONTENT_TYPES).describe('type of the content'),
+	code: z.string().describe('the content identification string'),
+	id: z.string().nullable().describe('external unique content identifier (if set for the content)'),
 });
-const createEntityTagTools = (entity: TagEntityConfig) => [
-	{
-		name: `edubase_get_${entity.key}_tags`,
-		description: entity.listDescription,
-		inputSchema: z.object({
-			[entity.key]: z.string().describe(entity.paramDescription),
-		}),
-		outputSchema: z.object({
-			tags: z.array(z.object({
-				tag: z.string().describe('tag identification string'),
-				title: z.string().describe('title of the tag'),
-			})),
-		}),
-	},
-	{
-		name: `edubase_get_${entity.key}_tag`,
-		description: entity.checkDescription,
-		inputSchema: z.object({
-			[entity.key]: z.string().describe(entity.paramDescription),
-			tag: z.string().describe('tag identification string'),
-		}),
-		outputSchema: z.object({
-			tag: z.string().describe('the tag identification string'),
-			content: tagRelationContentSchema(entity),
-			status: z.boolean().describe(entity.statusDescription),
-		}),
-	},
-	{
-		name: `edubase_post_${entity.key}_tag`,
-		description: entity.attachDescription,
-		inputSchema: z.object({
-			[entity.key]: z.string().describe(entity.paramDescription),
-			tag: z.string().describe('tag identification string'),
-		}),
-		outputSchema: z.object({
-			tag: z.string().describe('the tag identification string'),
-			content: tagRelationContentSchema(entity),
-			success: z.boolean().describe('operation was successful'),
-		}),
-	},
-	{
-		name: `edubase_delete_${entity.key}_tag`,
-		description: entity.removeDescription,
-		inputSchema: z.object({
-			[entity.key]: z.string().describe(entity.paramDescription),
-			tag: z.string().describe('tag identification string'),
-		}),
-		outputSchema: z.object({
-			tag: z.string().describe('the tag identification string'),
-			content: tagRelationContentSchema(entity),
-			success: z.boolean().describe('operation was successful'),
-		}),
-	},
-];
-const TAG_ENTITIES: TagEntityConfig[] = [
-	{
-		key: 'class',
-		paramDescription: 'class identification string',
-		listDescription: 'List all attached tags of a class.',
-		checkDescription: 'Check if tag is attached to a class.',
-		attachDescription: 'Attach tag to a class.',
-		removeDescription: 'Remove a tag attachment from a class.',
-		contentType: 'class',
-		contentCodeDescription: 'the class identification string',
-		contentIdDescription: 'external unique class identifier (if set for the class)',
-		statusDescription: 'tag is attached to this class',
-	},
-	{
-		key: 'course',
-		paramDescription: 'course identification string',
-		listDescription: 'List all attached tags of a course.',
-		checkDescription: 'Check if tag is attached to a course.',
-		attachDescription: 'Attach tag to a course.',
-		removeDescription: 'Remove a tag attachment from a course.',
-		contentType: 'course',
-		contentCodeDescription: 'the course identification string',
-		contentIdDescription: 'external unique course identifier (if set for the course)',
-		statusDescription: 'tag is attached to this course',
-	},
-	{
-		key: 'event',
-		paramDescription: 'event identification string',
-		listDescription: 'List all attached tags of an event.',
-		checkDescription: 'Check if tag is attached to an event.',
-		attachDescription: 'Attach tag to an event.',
-		removeDescription: 'Remove a tag attachment from an event.',
-		contentType: 'event',
-		contentCodeDescription: 'the event identification string',
-		contentIdDescription: 'external unique event identifier (if set for the event)',
-		statusDescription: 'tag is attached to this event',
-	},
-	{
-		key: 'exam',
-		paramDescription: 'exam identification string',
-		listDescription: 'List all attached tags of an exam.',
-		checkDescription: 'Check if tag is attached to an exam.',
-		attachDescription: 'Attach tag to an exam.',
-		removeDescription: 'Remove a tag attachment from an exam.',
-		contentType: 'exam',
-		contentCodeDescription: 'the exam identification string',
-		contentIdDescription: 'external unique exam identifier (if set for the exam)',
-		statusDescription: 'tag is attached to this exam',
-	},
-	{
-		key: 'integration',
-		paramDescription: 'integration identification string',
-		listDescription: 'List all attached tags of an integration.',
-		checkDescription: 'Check if tag is attached to an integration.',
-		attachDescription: 'Attach tag to an integration.',
-		removeDescription: 'Remove a tag attachment from an integration.',
-		contentType: 'integration',
-		contentCodeDescription: 'the integration identification string',
-		contentIdDescription: 'external unique integration identifier (if set for the integration)',
-		statusDescription: 'tag is attached to this integration',
-	},
-	{
-		key: 'organization',
-		paramDescription: 'organization identification string',
-		listDescription: 'List all attached tags of an organization.',
-		checkDescription: 'Check if tag is attached to an organization.',
-		attachDescription: 'Attach tag to an organization.',
-		removeDescription: 'Remove a tag attachment from an organization.',
-		contentType: 'organization',
-		contentCodeDescription: 'the organization identification string',
-		contentIdDescription: 'external unique organization identifier (if set for the organization)',
-		statusDescription: 'tag is attached to this organization',
-	},
-	{
-		key: 'quiz',
-		paramDescription: 'Quiz identification string',
-		listDescription: 'List all attached tags of a Quiz.',
-		checkDescription: 'Check if tag is attached to a Quiz.',
-		attachDescription: 'Attach tag to a Quiz.',
-		removeDescription: 'Remove a tag attachment from a Quiz.',
-		contentType: 'quiz',
-		contentCodeDescription: 'the Quiz identification string',
-		contentIdDescription: 'external unique Quiz identifier (if set for the Quiz)',
-		statusDescription: 'tag is attached to this quiz',
-	},
-	{
-		key: 'scorm',
-		paramDescription: 'SCORM identification string',
-		listDescription: 'List all attached tags of a SCORM learning material.',
-		checkDescription: 'Check if tag is attached to a SCORM learning material.',
-		attachDescription: 'Attach tag to a SCORM learning material.',
-		removeDescription: 'Remove a tag attachment from a SCORM learning material.',
-		contentType: 'scorm',
-		contentCodeDescription: 'the SCORM identification string',
-		contentIdDescription: 'external unique SCORM identifier (if set for the SCORM)',
-		statusDescription: 'tag is attached to this SCORM learning material',
-	},
-	{
-		key: 'video',
-		paramDescription: 'video identification string',
-		listDescription: 'List all attached tags of a video.',
-		checkDescription: 'Check if tag is attached to a video.',
-		attachDescription: 'Attach tag to a video.',
-		removeDescription: 'Remove a tag attachment from a video.',
-		contentType: 'video',
-		contentCodeDescription: 'the video identification string',
-		contentIdDescription: 'external unique video identifier (if set for the video)',
-		statusDescription: 'tag is attached to this video',
-	},
-];
 
 /* Tool definitions */
 export const EDUBASE_API_TOOLS_TAGS = [
 	// GET /tags - List owned and managed tags
 	{
 		name: 'edubase_get_tags',
-		description: 'List owned and managed tags.',
+		description: "List owned and managed tags. Returns tag identification strings, external identifiers and titles. Attach tags to contents with edubase_post_content_tag.",
 		inputSchema: z.object({
 			search: z.string().describe('search string to filter results').optional(),
 			limit: z.number().int().describe('limit number of results (default: 16)').optional(),
@@ -205,7 +36,7 @@ export const EDUBASE_API_TOOLS_TAGS = [
 	// GET /tag - Get/check tag
 	{
 		name: 'edubase_get_tag',
-		description: 'Get/check tag.',
+		description: "Get the details of a tag: title, external identifier, color and icon.",
 		inputSchema: z.object({
 			tag: z.string().describe('tag identification string'),
 		}),
@@ -217,5 +48,68 @@ export const EDUBASE_API_TOOLS_TAGS = [
 			icon: z.string().describe('Font Awesome icon class name'),
 		}),
 	},
-	...TAG_ENTITIES.flatMap(createEntityTagTools),
+
+	// GET /{type}:tags - List all attached tags of a content
+	{
+		name: 'edubase_get_content_tags',
+		description: "List the tags attached to a content (class, course, event, exam, integration, organization, Quiz set, SCORM learning material or video).",
+		inputSchema: z.object({
+			...tagContentInputSchema,
+		}),
+		outputSchema: z.object({
+			tags: z.array(z.object({
+				tag: z.string().describe('tag identification string'),
+				title: z.string().describe('title of the tag'),
+			})),
+		}),
+		request: contentRequest('tags'),
+	},
+
+	// GET /{type}:tag - Check if tag is attached to a content
+	{
+		name: 'edubase_get_content_tag',
+		description: "Check if a tag is attached to a content (class, course, event, exam, integration, organization, Quiz set, SCORM learning material or video).",
+		inputSchema: z.object({
+			...tagContentInputSchema,
+			tag: z.string().describe('tag identification string'),
+		}),
+		outputSchema: z.object({
+			tag: z.string().describe('the tag identification string'),
+			content: tagContentOutputSchema,
+			status: z.boolean().describe('tag is attached to the content'),
+		}),
+		request: contentRequest('tag'),
+	},
+
+	// POST /{type}:tag - Attach tag to a content
+	{
+		name: 'edubase_post_content_tag',
+		description: "Attach a tag to a content (class, course, event, exam, integration, organization, Quiz set, SCORM learning material or video). List the available tags with edubase_get_tags.",
+		inputSchema: z.object({
+			...tagContentInputSchema,
+			tag: z.string().describe('tag identification string'),
+		}),
+		outputSchema: z.object({
+			tag: z.string().describe('the tag identification string'),
+			content: tagContentOutputSchema,
+			success: z.boolean().describe('operation was successful'),
+		}),
+		request: contentRequest('tag'),
+	},
+
+	// DELETE /{type}:tag - Remove a tag attachment from a content
+	{
+		name: 'edubase_delete_content_tag',
+		description: "Remove a tag from a content (class, course, event, exam, integration, organization, Quiz set, SCORM learning material or video). The tag itself is kept.",
+		inputSchema: z.object({
+			...tagContentInputSchema,
+			tag: z.string().describe('tag identification string'),
+		}),
+		outputSchema: z.object({
+			tag: z.string().describe('the tag identification string'),
+			content: tagContentOutputSchema,
+			success: z.boolean().describe('operation was successful'),
+		}),
+		request: contentRequest('tag'),
+	},
 ];

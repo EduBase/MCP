@@ -30,6 +30,11 @@ startCommand:
         title: Read-only
         description: Only expose the tools that read data
         default: false
+      edubaseDynamicToolsets:
+        type: boolean
+        title: Dynamic toolsets
+        description: Start with only the critical tools and enable toolsets on demand
+        default: false
   exampleConfig:
     edubaseApiUrl: https://domain.edubase.net/api
     edubaseApiApp: your_integration_app_id
@@ -39,3 +44,4 @@ build:
   dockerBuildPath: .
 env:
   EDUBASE_STREAMABLE_HTTP_MODE: 'true'
+  EDUBASE_CONFIG_PROVIDERS: 'smithery'

@@ -5,7 +5,7 @@ export const EDUBASE_API_TOOLS_CLASSES = [
 	// GET /classes - List owned and managed classes
 	{
 		name: 'edubase_get_classes',
-		description: "List owned and managed classes.",
+		description: "List owned and managed classes. Returns class identification strings, external identifiers and titles.",
 		inputSchema: z.object({
 			search: z.string().optional().describe('search string to filter results'),
 			limit: z.number().int().optional().describe('limit number of results (default: 16)'),
@@ -23,7 +23,7 @@ export const EDUBASE_API_TOOLS_CLASSES = [
 	// GET /class - Get/check class
 	{
 		name: 'edubase_get_class',
-		description: "Get/check class.",
+		description: "Get the details of a class: title, external identifier, and start and end dates.",
 		inputSchema: z.object({
 			class: z.string().describe('class identification string'),
 		}),
@@ -39,7 +39,7 @@ export const EDUBASE_API_TOOLS_CLASSES = [
 	// GET /class:assignments - List all assignments in a class
 	{
 		name: 'edubase_get_class_assignments',
-		description: "List all assignments in a class.",
+		description: "List the assignments of a class, with their titles, links, status (INACTIVE, ACTIVE, STARTED, SUBMITTED, GRADED) and submission period.",
 		inputSchema: z.object({
 			class: z.string().describe('class identification string'),
 		}),
@@ -58,7 +58,7 @@ export const EDUBASE_API_TOOLS_CLASSES = [
 	// GET /class:members - List all members in a class
 	{
 		name: 'edubase_get_class_members',
-		description: "List all members in a class.",
+		description: "List the members of a class, with their names and whether their membership is active (approved and not expired).",
 		inputSchema: z.object({
 			class: z.string().describe('class identification string'),
 		}),
@@ -87,7 +87,7 @@ export const EDUBASE_API_TOOLS_CLASSES = [
 	// DELETE /class:members - Remove user(s) from a class
 	{
 		name: 'edubase_delete_class_members',
-		description: "Remove user(s) from a class.",
+		description: "Remove users from a class by their user identification strings.",
 		inputSchema: z.object({
 			class: z.string().describe('class identification string'),
 			users: z.string().describe('comma-separated list of user identification strings'),
@@ -111,7 +111,7 @@ export const EDUBASE_API_TOOLS_CLASSES = [
 	// GET /user:classes - List all classes a user is member of
 	{
 		name: 'edubase_get_user_classes',
-		description: "List all classes a user is member of.",
+		description: "List the classes a user is member of, with their titles, links and whether the membership is active.",
 		inputSchema: z.object({
 			user: z.string().describe('user identification string'),
 		}),
@@ -142,7 +142,7 @@ export const EDUBASE_API_TOOLS_CLASSES = [
 	// DELETE /user:classes - Remove user from class(es)
 	{
 		name: 'edubase_delete_user_classes',
-		description: "Remove user from class(es).",
+		description: "Remove a user from classes by their class identification strings.",
 		inputSchema: z.object({
 			user: z.string().describe('user identification string'),
 			classes: z.string().describe('comma-separated list of class identification strings'),

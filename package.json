@@ -1,7 +1,7 @@
 {
   "name": "@edubase/mcp",
   "mcpName": "io.github.EduBase/MCP",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "description": "EduBase MCP server",
   "repository": {
     "type": "git",
@@ -21,7 +21,8 @@
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
     "prepare": "npm run build",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "test": "npm run build && node --test test/*.test.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",

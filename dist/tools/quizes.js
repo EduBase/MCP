@@ -54,7 +54,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
     // PATCH /quiz - Update the details of an existing Quiz set
     {
         name: 'edubase_patch_quiz',
-        description: 'Update the details of an existing Quiz set.',
+        description: "Update the details of an existing Quiz set: title, external identifier, language, description and organization. Use edubase_post_quiz_settings to change its settings and edubase_post_quiz_questions to add questions.",
         inputSchema: z.object({
             quiz: z.string().describe('Quiz identification string'),
             title: z.string().min(1).max(255).describe('title of the Quiz set').optional(),
@@ -68,7 +68,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
     // GET /quiz:settings - Get the settings of a Quiz set
     {
         name: 'edubase_get_quiz_settings',
-        description: 'Get the settings of a Quiz set.',
+        description: "Get the settings of a Quiz set: question shuffling, time limits and grading. Change them with edubase_post_quiz_settings.",
         inputSchema: z.object({
             quiz: z.string().describe('Quiz identification string'),
         }),
@@ -84,7 +84,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
     // POST /quiz:settings - Change individual settings of a Quiz set
     {
         name: 'edubase_post_quiz_settings',
-        description: 'Change individual settings of a Quiz set.',
+        description: "Change individual settings of a Quiz set: question shuffling, time limits, grading and grading threshold. Only the given settings are changed, and the updated settings are returned. List the available grading presets with edubase_get_quiz_grading_presets.",
         inputSchema: z.object({
             quiz: z.string().describe('Quiz identification string'),
             shuffle: z.boolean().describe('shuffle questions for every play, when disabled the current order of the questions is kept').optional(),
@@ -137,7 +137,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
     // DELETE /quiz - Remove/archive Quiz set
     {
         name: 'edubase_delete_quiz',
-        description: 'Remove/archive Quiz set.',
+        description: "Delete a Quiz set, or archive it when the user is not allowed to delete it. Confirm with the user first.",
         inputSchema: z.object({
             quiz: z.string().describe('Quiz identification string'),
         }),
@@ -171,7 +171,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
     // GET /quiz:grading-preset - Get a grading preset with its thresholds and grades
     {
         name: 'edubase_get_quiz_grading_preset',
-        description: 'Get a grading preset with its thresholds and grades.',
+        description: "Get a grading preset with its thresholds and grades, including whether its threshold is configurable and whether certificates can be issued with it. List the presets with edubase_get_quiz_grading_presets.",
         inputSchema: z.object({
             preset: z.string().describe('grading preset identification string'),
         }),
@@ -254,7 +254,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
     // GET /quiz:skills - Get skills defined in a Quiz set
     {
         name: 'edubase_get_quiz_skills',
-        description: "Get skills defined in a Quiz set.",
+        description: "Get the skills defined in a Quiz set, with the identifier, title and description of each skill.",
         inputSchema: z.object({
             quiz: z.string().describe('Quiz identification string'),
         }),

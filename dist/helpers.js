@@ -190,3 +190,47 @@ export function expandCustomFields(args) {
     }
     return rest;
 }
+/* Rebuild a Zod schema without the descriptions of its fields (the structure, types, required fields and allowed values are kept) */
+export function stripSchemaDescriptions(schema) {
+    const zod = schema?._zod;
+    if (!zod) {
+        return schema;
+    }
+    const def = { ...zod.def };
+    switch (def.type) {
+        case 'object':
+            def.shape = Object.fromEntries(Object.entries(zod.def.shape).map(([key, value]) => [key, stripSchemaDescriptions(value)]));
+            if (def.catchall)
+                def.catchall = stripSchemaDescriptions(def.catchall);
+            break;
+        case 'array':
+            def.element = stripSchemaDescriptions(def.element);
+            break;
+        case 'union':
+            def.options = def.options.map((option) => stripSchemaDescriptions(option));
+            break;
+        case 'intersection':
+            def.left = stripSchemaDescriptions(def.left);
+            def.right = stripSchemaDescriptions(def.right);
+            break;
+        case 'record':
+            def.keyType = stripSchemaDescriptions(def.keyType);
+            def.valueType = stripSchemaDescriptions(def.valueType);
+            break;
+        case 'tuple':
+            def.items = def.items.map((item) => stripSchemaDescriptions(item));
+            if (def.rest)
+                def.rest = stripSchemaDescriptions(def.rest);
+            break;
+        case 'pipe':
+            def.in = stripSchemaDescriptions(def.in);
+            def.out = stripSchemaDescriptions(def.out);
+            break;
+        default:
+            /* Wrappers (optional, nullable, default, readonly, etc.) */
+            if (def.innerType)
+                def.innerType = stripSchemaDescriptions(def.innerType);
+    }
+    /* Cloning creates a new instance, which is not registered with the description in the global registry */
+    return schema.clone(def);
+}
