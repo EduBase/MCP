@@ -84,7 +84,7 @@ The MCP server can be configured using environment variables. The following vari
 | `EDUBASE_TOOLSETS` | Comma-separated list of the enabled [toolsets](#toolsets), or `all`. | No | `all` |
 | `EDUBASE_READONLY` | Only expose the tools that read data. Value must be `true`. | No | `false` |
 | `EDUBASE_OUTPUT_SCHEMAS` | Output schemas of the tools and structured tool results: `off` lists the tools without output schemas and returns the results as JSON text only, `on` includes the complete output schemas, `fields` includes the output schemas without the field descriptions (keeping the structured results, but saving most of the tokens of the schemas). | No | `fields` |
-| `EDUBASE_PROVIDERS` | Comma-separated list of the hosting providers allowed to supply session configuration in the requests when an HTTP transport is used. Currently only `smithery` is supported (the base64-encoded `config` query parameter). | No | - |
+| `EDUBASE_CONFIG_PROVIDERS` | Comma-separated list of the hosting providers allowed to supply session configuration in the requests when an HTTP transport is used. Currently only `smithery` is supported (the base64-encoded `config` query parameter). | No | - |
 | `EDUBASE_DYNAMIC_TOOLSETS` | Start sessions with only the file upload tools and let the model enable [toolsets](#toolsets) on demand. Value must be `true`. | No | `false` |
 | `EDUBASE_HTTP_PORT` | HTTP server will listen on this port if SSE or streamable HTTP transport mode is used. | No | 3000 |
 | `EDUBASE_OAUTH` | Enables OAuth 2.1 protected-resource behaviour: unauthenticated requests are rejected with `401 + WWW-Authenticate` pointing at `/.well-known/oauth-protected-resource`, and bearer tokens are forwarded to the EduBase API. | No | `false` |
