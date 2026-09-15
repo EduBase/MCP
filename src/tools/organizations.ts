@@ -102,7 +102,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 		inputSchema: z.object({
 			organization: z.string().describe('organization identification string'),
 			users: z.string().describe('comma-separated list of user identification strings'),
-			department: z.string().optional().describe('optional name of department, the competency assignments of the members moved to another department are updated, the competencies they only had through their previous department are lost'),
+			department: z.string().optional().describe('optional name of department (or its external identifier if no department has this name), the competency assignments of the members moved to another department are updated, the competencies they only had through their previous department are lost'),
 			permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
 			permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
 			permission_members: z.enum(['none', 'department', 'organization']).optional().describe('optional permission level to members in organization (none / department / organization) (default: none)'),
@@ -129,13 +129,255 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 		inputSchema: z.object({
 			organizations: z.string().describe('comma-separated list of organization identification strings'),
 			users: z.string().describe('comma-separated list of user identification strings'),
-			department: z.string().optional().describe('optional name of department, the competency assignments of the members moved to another department are updated, the competencies they only had through their previous department are lost'),
+			department: z.string().optional().describe('optional name of department (or its external identifier if no department has this name), the competency assignments of the members moved to another department are updated, the competencies they only had through their previous department are lost'),
 			permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
 			permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
 			permission_members: z.enum(['none', 'department', 'organization']).optional().describe('optional permission level to members in organization (none / department / organization) (default: none)'),
 			notify: z.boolean().optional().describe('notify users (default: false)'),
 		}),
 		outputSchema: z.object({}).optional(),
+	},
+
+	// GET /organization:departments - List all departments in an organization
+	{
+		name: 'edubase_get_organization_departments',
+		description: "List all departments in an organization, ordered by their hierarchy.",
+		inputSchema: z.object({
+			organization: z.string().describe('organization identification string'),
+		}),
+		outputSchema: z.object({
+			organization: z.string().describe('organization identification string'),
+			departments: z.array(z.object({
+				department: z.string().describe('name of the department'),
+				id: z.string().nullable().optional().describe('external unique department identifier (if set for the department)'),
+				parent: z.string().nullable().optional().describe('name of the parent department (null for root level departments)'),
+				level: z.number().int().describe('depth of the department within the hierarchy (0 for root level departments)'),
+				permission: z.object({
+					organization: z.string().describe('permission level to organization'),
+					content: z.string().describe('permission level to contents in organization'),
+					members: z.string().describe('permission level to members in organization'),
+				}).describe('permissions given to the members of the department'),
+				members: z.number().int().describe('number of (visible) members in the department'),
+				leaders: z.array(z.object({
+					user: z.string().describe('user identification string'),
+					name: z.string().describe('name of the leader'),
+				})).describe('leaders of the department'),
+			})),
+		}),
+	},
+
+	// GET /organization:department - Get/check department of an organization
+	{
+		name: 'edubase_get_organization_department',
+		description: "Get/check department of an organization.",
+		inputSchema: z.object({
+			organization: z.string().describe('organization identification string'),
+			department: z.string().describe('name of the department (or its external identifier if no department has this name)'),
+		}),
+		outputSchema: z.object({
+			organization: z.string().describe('organization identification string'),
+			department: z.string().describe('name of the department'),
+			id: z.string().nullable().optional().describe('external unique department identifier (if set for the department)'),
+			parent: z.string().nullable().optional().describe('name of the parent department (null for root level departments)'),
+			level: z.number().int().describe('depth of the department within the hierarchy (0 for root level departments)'),
+			permission: z.object({
+				organization: z.string().describe('permission level to organization'),
+				content: z.string().describe('permission level to contents in organization'),
+				members: z.string().describe('permission level to members in organization'),
+			}).describe('permissions given to the members of the department'),
+			members: z.number().int().describe('number of (visible) members in the department'),
+			leaders: z.array(z.object({
+				user: z.string().describe('user identification string'),
+				name: z.string().describe('name of the leader'),
+			})).describe('leaders of the department'),
+		}),
+	},
+
+	// POST /organization:department - Create a department in an organization
+	{
+		name: 'edubase_post_organization_department',
+		description: "Create a department in an organization. Members of a department can see the members of the departments below it, but permissions are not inherited.",
+		inputSchema: z.object({
+			organization: z.string().describe('organization identification string'),
+			title: z.string().min(1).max(255).describe('name of the department, must be unique within the organization'),
+			id: z.string().max(64).optional().describe('optional external unique department identifier'),
+			parent: z.string().optional().describe('optional name (or external identifier) of the parent department'),
+			permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization given to the members (member / teacher / reporter / supervisor / admin) (default: member)'),
+			permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization given to the members (none / view / report / control / modify / grant / admin) (default: none)'),
+			permission_members: z.enum(['none', 'department', 'organization']).optional().describe('optional permission level to members in organization given to the members (none / department / organization) (default: none)'),
+			leaders: z.string().optional().describe('optional comma-separated list of user identification strings of the leaders (must be members of the organization, maximum 5)'),
+		}),
+		outputSchema: z.object({
+			organization: z.string().describe('organization identification string'),
+			department: z.string().describe('name of the department'),
+			id: z.string().nullable().optional().describe('external unique department identifier (if set for the department)'),
+		}),
+	},
+
+	// PATCH /organization:department - Update department of an organization
+	{
+		name: 'edubase_patch_organization_department',
+		description: "Update department of an organization. Changed permissions are applied to every member of the department.",
+		inputSchema: z.object({
+			organization: z.string().describe('organization identification string'),
+			department: z.string().describe('name of the department (or its external identifier if no department has this name)'),
+			title: z.string().min(1).max(255).optional().describe('new name of the department, must be unique within the organization'),
+			id: z.string().max(64).optional().describe('external unique department identifier, empty string removes it'),
+			parent: z.string().optional().describe('name (or external identifier) of the parent department, empty string moves the department to the root level, the department itself or a department below it cannot be the parent'),
+			permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('permission level to organization given to the members (member / teacher / reporter / supervisor / admin)'),
+			permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('permission level to contents in organization given to the members (none / view / report / control / modify / grant / admin)'),
+			permission_members: z.enum(['none', 'department', 'organization']).optional().describe('permission level to members in organization given to the members (none / department / organization)'),
+			leaders: z.string().optional().describe('comma-separated list of user identification strings of the leaders (must be members of the organization, maximum 5), replaces the current leaders, empty string removes every leader'),
+		}),
+		outputSchema: z.object({}).optional(),
+	},
+
+	// DELETE /organization:department - Remove department from an organization
+	{
+		name: 'edubase_delete_organization_department',
+		description: "Remove department from an organization. Members of the department are left without a department and lose the permissions and competencies given by it, departments below it are moved one level up.",
+		inputSchema: z.object({
+			organization: z.string().describe('organization identification string'),
+			department: z.string().describe('name of the department (or its external identifier if no department has this name)'),
+		}),
+		outputSchema: z.object({}).optional(),
+	},
+
+	// GET /organization:competencies - List all competencies of an organization
+	{
+		name: 'edubase_get_organization_competencies',
+		description: "List all competencies of an organization. Library and competencies must be enabled for the organization.",
+		inputSchema: z.object({
+			organization: z.string().describe('organization identification string'),
+		}),
+		outputSchema: z.object({
+			organization: z.string().describe('organization identification string'),
+			competencies: z.array(z.object({
+				competency: z.string().describe('competency identification string'),
+				id: z.string().nullable().optional().describe('external unique competency identifier (if set for the competency)'),
+				title: z.string().describe('title of the competency'),
+				description: z.string().nullable().optional().describe('description of the competency (if set)'),
+				requirements: z.number().int().describe('number of requirements'),
+				documents: z.number().int().describe('number of library documents attached'),
+				assignments: z.object({
+					all: z.boolean().describe('assigned to every member of the organization'),
+					departments: z.number().int().describe('number of departments assigned to'),
+					members: z.number().int().describe('number of members assigned to individually'),
+				}),
+				assigned: z.number().int().describe('number of visible members assigned to the competency'),
+				status: z.object({
+					completed: z.number().int().describe('completed'),
+					progress: z.number().int().describe('in progress'),
+					waiting: z.number().int().describe('waiting for completion'),
+					expired: z.number().int().describe('expired'),
+					due: z.number().int().describe('due soon'),
+					overdue: z.number().int().describe('past the deadline'),
+					outdated: z.number().int().describe('outdated'),
+				}).describe('number of assigned members by their competency status'),
+			})),
+		}),
+	},
+
+	// GET /organization:competency:requirements - List the requirements of a competency
+	{
+		name: 'edubase_get_organization_competency_requirements',
+		description: "List the requirements of a competency, ordered by their priority. Library and competencies must be enabled for the organization of the competency.",
+		inputSchema: z.object({
+			competency: z.string().describe('competency identification string (or its external identifier when organization is specified)'),
+			organization: z.string().optional().describe('optional organization identification string'),
+		}),
+		outputSchema: z.object({
+			organization: z.string().describe('organization identification string'),
+			competency: z.string().describe('competency identification string'),
+			id: z.string().nullable().optional().describe('external unique competency identifier (if set for the competency)'),
+			title: z.string().describe('title of the competency'),
+			requirements: z.array(z.object({
+				requirement: z.string().describe('requirement identification string'),
+				title: z.string().nullable().describe('title of the requirement'),
+				type: z.enum(['exam', 'class', 'document', 'todo']).describe('type of the requirement'),
+				optional: z.boolean().describe('requirement is optional'),
+				description: z.string().optional().describe('description of the requirement (only present if set for the requirement)'),
+				deadline: z.object({
+					type: z.enum(['date', 'days']).describe('type of the deadline'),
+					date: z.string().optional().describe('fixed deadline (only if type is date)'),
+					days: z.number().int().optional().describe('number of days available to complete the requirement (only if type is days)'),
+				}).optional().describe('deadline of the requirement (only present if a deadline is configured)'),
+				exam: z.object({
+					exam: z.string().describe('exam identification string'),
+					id: z.string().nullable().optional().describe('external unique exam identifier (if set for the exam)'),
+					title: z.string().describe('title of the exam'),
+				}).nullable().optional().describe('the required exam (only present if type is exam, null if the exam is not available)'),
+				class: z.object({
+					class: z.string().describe('class identification string'),
+					id: z.string().nullable().optional().describe('external unique class identifier (if set for the class)'),
+					title: z.string().describe('title of the class'),
+				}).nullable().optional().describe('the required class (only present if type is class, null if the class is not available)'),
+				document: z.object({
+					document: z.string().describe('document identification string'),
+					prefix: z.string().nullable().optional().describe('prefix of the document'),
+					title: z.string().describe('title of the document'),
+					archived: z.boolean().describe('document is archived'),
+				}).nullable().optional().describe('the required library document (only present if type is document, null if the document is not available)'),
+				todo: z.object({
+					type: z.enum(['default', 'document', 'exam', 'training']).describe('type of the task'),
+					attachments: z.boolean().describe('attachments can be uploaded'),
+					educators: z.array(z.object({
+						user: z.string().describe('user identification string'),
+						name: z.string().describe('name of the educator'),
+					})).optional().describe('educators of the training (only present if type is training, visible users only)'),
+					fields: z.array(z.string()).optional().describe('labels of the fields to fill (only present if type is default)'),
+				}).optional().describe('the required task (only present if type is todo)'),
+				documents: z.array(z.string()).optional().describe('identification strings of the library documents attached to the requirement (only present if there are any)'),
+			})).describe('requirements ordered by their priority'),
+		}),
+	},
+
+	// GET /organization:compliance - Get the competency compliance overview of an organization
+	{
+		name: 'edubase_get_organization_compliance',
+		description: "Get the competency compliance overview of an organization, grouped by departments. Organization reporters see every visible member, department leaders only the members of the departments they lead. Library and competencies must be enabled for the organization.",
+		inputSchema: z.object({
+			organization: z.string().describe('organization identification string'),
+		}),
+		outputSchema: z.object({
+			organization: z.string().describe('organization identification string'),
+			scope: z.enum(['organization', 'departments']).describe('scope of the overview: organization (whole organization) / departments (only the departments led by the user)'),
+			competencies: z.array(z.object({
+				competency: z.string().describe('competency identification string'),
+				id: z.string().nullable().optional().describe('external unique competency identifier (if set for the competency)'),
+				title: z.string().describe('title of the competency'),
+			})).describe('competencies with any assigned member within the scope'),
+			departments: z.array(z.object({
+				department: z.string().nullable().describe('name of the department (null for the members without a department, in organization scope only)'),
+				id: z.string().nullable().optional().describe('external unique department identifier (if set for the department)'),
+				parent: z.string().nullable().optional().describe('name of the parent department (null for root level departments)'),
+				level: z.number().int().describe('depth of the department within the hierarchy (0 for root level departments)'),
+				members: z.number().int().describe('number of members in the department'),
+				competencies: z.array(z.object({
+					competency: z.string().describe('competency identification string'),
+					assigned: z.number().int().describe('number of members assigned to the competency'),
+					status: z.object({
+						completed: z.number().int().describe('completed'),
+						progress: z.number().int().describe('in progress'),
+						waiting: z.number().int().describe('waiting for completion'),
+						expired: z.number().int().describe('expired'),
+						due: z.number().int().describe('due soon'),
+						overdue: z.number().int().describe('past the deadline'),
+						outdated: z.number().int().describe('outdated'),
+					}).describe('number of assigned members by their competency status'),
+				})).describe('competency statistics of the department (only competencies with assigned members are listed)'),
+			})).describe('departments with any member or progress within the scope, ordered by their hierarchy'),
+			assigned: z.number().int().describe('total number of competency assignments within the scope'),
+			status: z.object({
+				completed: z.number().int().describe('completed'),
+				progress: z.number().int().describe('in progress'),
+				waiting: z.number().int().describe('waiting for completion'),
+				expired: z.number().int().describe('expired'),
+				due: z.number().int().describe('due soon'),
+				overdue: z.number().int().describe('past the deadline'),
+				outdated: z.number().int().describe('outdated'),
+			}).describe('total number of competency assignments by their status'),
+		}),
 	},
 
 	// GET /user:organizations - List all organizations a user is member of
@@ -168,7 +410,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 		inputSchema: z.object({
 			user: z.string().describe('user identification string'),
 			organizations: z.string().describe('comma-separated list of organization identification strings'),
-			department: z.string().optional().describe('optional name of department, the competency assignments of the members moved to another department are updated, the competencies they only had through their previous department are lost'),
+			department: z.string().optional().describe('optional name of department (or its external identifier if no department has this name), the competency assignments of the members moved to another department are updated, the competencies they only had through their previous department are lost'),
 			permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
 			permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
 			permission_members: z.enum(['none', 'department', 'organization']).optional().describe('optional permission level to members in organization (none / department / organization) (default: none)'),
