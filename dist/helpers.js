@@ -190,6 +190,14 @@ export function expandCustomFields(args) {
     }
     return rest;
 }
+/* Check whether a Zod schema is an object without fields (wrappers like optional are unwrapped) */
+export function isEmptyObjectSchema(schema) {
+    let def = schema?._zod?.def;
+    while (def?.innerType) {
+        def = def.innerType._zod?.def;
+    }
+    return (def?.type == 'object' && Object.keys(def.shape).length == 0);
+}
 /* Rebuild a Zod schema without the descriptions of its fields (the structure, types, required fields and allowed values are kept) */
 export function stripSchemaDescriptions(schema) {
     const zod = schema?._zod;

@@ -102,7 +102,9 @@ export function getServerInstructions(toolsets: EduBaseToolset[], readOnly: bool
 	const sections: string[] = [
 		`# EduBase MCP server
 
-EduBase is an assessment and e-learning platform. Tools map to EduBase API endpoints and are named edubase_<method>_<endpoint> (e.g. edubase_get_user_me for GET /user:me), the edubase_*_content_* tools cover the same endpoint of every content type. Tools with the get method only read data.`,
+EduBase is an assessment and e-learning platform. Tools map to EduBase API endpoints and are named edubase_<method>_<endpoint> (e.g. edubase_get_user_me for GET /user:me), the edubase_*_content_* tools cover the same endpoint of every content type. Tools with the get method only read data.
+
+When talking to the user, always call this integration and the data it reaches "EduBase" (e.g. "your EduBase account", "I found 3 exams in EduBase"), never "the MCP server", "the API", "the connector", "the tools" or other made-up names.`,
 
 		`## Quiz hierarchy
 

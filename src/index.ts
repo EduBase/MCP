@@ -10,7 +10,7 @@ import { InMemoryEventStore } from '@modelcontextprotocol/sdk/examples/shared/in
 import express from "express";
 import { Request, Response } from "express";
 import bodyParser from "body-parser";
-import { getClientIp, getHeaderValue, getFileBuffer, guardedRequest, expandCustomFields, stripSchemaDescriptions } from "./helpers.js";
+import { getClientIp, getHeaderValue, getFileBuffer, guardedRequest, expandCustomFields, isEmptyObjectSchema, stripSchemaDescriptions } from "./helpers.js";
 import { configureProviders, getProviderConfig, getProviderOverride, rejectInvalidProviderConfig } from "./providers.js";
 import { MANIFEST } from "./manifest.js";
 import packageJson from '../package.json' with { type: "json" };
@@ -75,6 +75,10 @@ if (!EDUBASE_OUTPUT_SCHEMAS_MODES.includes(EDUBASE_OUTPUT_SCHEMAS)) {
 	process.exit(1);
 }
 function withOutputSchema<T>(schema: T): T | undefined {
+	/* Endpoints without output (the SDK does not list optional schemas, but would still require and validate their structured content) */
+	if (isEmptyObjectSchema(schema)) {
+		return undefined;
+	}
 	switch (EDUBASE_OUTPUT_SCHEMAS) {
 		case 'on': return schema;
 		case 'fields': return stripSchemaDescriptions(schema);
@@ -299,7 +303,7 @@ function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAu
 				const response = await sendEduBaseApiRequest(method, (apiUrl || EDUBASE_API_URL) + '/' + request.endpoint, expandCustomFields(request.args), effectiveAuth);
 
 				/* Return response */
-				if (z.object({}).strict().safeParse(tool.outputSchema).success) {
+				if (isEmptyObjectSchema(tool.outputSchema)) {
 					/* Endpoint with empty output schema */
 					return {
 						content: [{ type: 'text', text: '{}' }],

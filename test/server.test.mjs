@@ -209,6 +209,31 @@ test('content tools are routed to the endpoint of the content type', async () =>
 	}
 });
 
+test('tools with an empty output schema return structured content', async () => {
+	/* Fake EduBase API answering with an empty body (like PATCH /exam) or with an object */
+	let body = '';
+	const api = createServer((req, res) => {
+		req.resume();
+		req.on('end', () => {
+			res.setHeader('Content-Type', 'application/json');
+			res.end(body);
+		});
+	});
+	api.listen(0, '127.0.0.1');
+	await once(api, 'listening');
+	const client = await connect({ EDUBASE_API_URL: `http://127.0.0.1:${api.address().port}/api` });
+	try {
+		for (body of ['', '{"exam":"EXAM"}']) {
+			const result = await client.callTool({ name: 'edubase_patch_exam', arguments: { exam: 'EXAM', end: '2028-01-31 22:59:00' } });
+			assert.ok(!result.isError, JSON.stringify(result.content));
+			assert.deepEqual(result.structuredContent, {});
+		}
+	} finally {
+		await client.close();
+		api.close();
+	}
+});
+
 /* Start the server with Streamable HTTP transport */
 async function startHttp(env = {}) {
 	const port = 20000 + Math.floor(Math.random() * 20000);

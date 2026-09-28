@@ -175,6 +175,15 @@ export function expandCustomFields(args: Record<string, unknown>): Record<string
 	return rest;
 }
 
+/* Check whether a Zod schema is an object without fields (wrappers like optional are unwrapped) */
+export function isEmptyObjectSchema(schema: unknown): boolean {
+	let def = (schema as { _zod?: { def: Record<string, any> } })?._zod?.def;
+	while (def?.innerType) {
+		def = def.innerType._zod?.def;
+	}
+	return (def?.type == 'object' && Object.keys(def.shape).length == 0);
+}
+
 /* Rebuild a Zod schema without the descriptions of its fields (the structure, types, required fields and allowed values are kept) */
 export function stripSchemaDescriptions<T>(schema: T): T {
 	const zod = (schema as { _zod?: { def: Record<string, any> } })?._zod;
