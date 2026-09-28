@@ -312,7 +312,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
         outputSchema: z.object({
             exam: z.string().describe('exam identification string'),
             autologin: z.boolean().describe('automatic login is enabled'),
-            pin: z.string().optional().describe('PIN code of the exam (only present if autologin is true)'),
+            pin: z.string().nullable().optional().describe('PIN code of the exam (only present if autologin is true and a PIN code is set)'),
             url: z.url().optional().describe('login URL of the exam, the shortlink or the Safe Exam Browser launch URL if configured (only present if autologin is true)'),
             results_url: z.url().optional().describe('URL where examinees can look up their own results (only present if autologin is true and results can be viewed with an identifier)'),
             autoadd: z.boolean().optional().describe('new exam accounts are generated automatically on demand (only present if autologin is true)'),
@@ -334,7 +334,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
         outputSchema: z.object({
             exam: z.string().describe('exam identification string'),
             autologin: z.boolean().describe('automatic login is enabled'),
-            pin: z.string().optional().describe('PIN code of the exam (only present if autologin is true)'),
+            pin: z.string().nullable().optional().describe('PIN code of the exam (only present if autologin is true and a PIN code is set)'),
             url: z.url().optional().describe('login URL of the exam, the shortlink or the Safe Exam Browser launch URL if configured (only present if autologin is true)'),
             results_url: z.url().optional().describe('URL where examinees can look up their own results (only present if autologin is true and results can be viewed with an identifier)'),
             autoadd: z.boolean().optional().describe('new exam accounts are generated automatically on demand (only present if autologin is true)'),
@@ -406,8 +406,8 @@ export const EDUBASE_API_TOOLS_EXAMS = [
             ]).describe('the phone number of the examinee is requested (false: the field is not used, true: the field is used with its default label, otherwise the custom label of the field)'),
             fields: z.array(z.object({
                 label: z.string().describe('label of the field, shown to the examinee'),
-                type: z.string().describe('type of the field'),
-                required: z.boolean().describe('the field has to be filled in'),
+                type: z.string().optional().describe('type of the field (default: text)'),
+                required: z.boolean().optional().describe('the field has to be filled in (default: true)'),
                 description: z.string().optional().describe('description shown under the field (if set)'),
                 icon: z.string().optional().describe('Font Awesome icon class name of the field (if set)'),
                 options: z.array(z.string()).optional().describe('the selectable options (select fields only)'),
@@ -473,8 +473,8 @@ export const EDUBASE_API_TOOLS_EXAMS = [
             ]).describe('the phone number of the examinee is requested (false: the field is not used, true: the field is used with its default label, otherwise the custom label of the field)'),
             fields: z.array(z.object({
                 label: z.string().describe('label of the field, shown to the examinee'),
-                type: z.string().describe('type of the field'),
-                required: z.boolean().describe('the field has to be filled in'),
+                type: z.string().optional().describe('type of the field (default: text)'),
+                required: z.boolean().optional().describe('the field has to be filled in (default: true)'),
                 description: z.string().optional().describe('description shown under the field (if set)'),
                 icon: z.string().optional().describe('Font Awesome icon class name of the field (if set)'),
                 options: z.array(z.string()).optional().describe('the selectable options (select fields only)'),
