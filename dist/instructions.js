@@ -14,7 +14,7 @@ const EDUBASE_TOOLSET_GUIDES = {
             'To read the full content of a question, use edubase_post_question_export, edubase_get_question only checks that the question exists.',
         ],
         writeNotes: [
-            'edubase_post_question both publishes new questions and updates existing ones (identified by their external id). Use LaTeX for mathematical notation, but NEVER with single dollar sign delimiters ($...$).',
+            'edubase_post_question both publishes new questions and updates existing ones (identified by their external id), use the edubase-question-creator skill (if available) to write them. Use LaTeX for mathematical notation, but NEVER with single dollar sign delimiters ($...$).',
         ],
     },
     quizzes: {
@@ -28,11 +28,12 @@ const EDUBASE_TOOLSET_GUIDES = {
         ],
     },
     exams: {
-        summary: 'exams, their settings, users, user data fields, status, rounds, certificates and branding',
+        summary: 'exams, their settings, users, user data fields, status, rounds, certificates, branding and journeys',
         tools: ['edubase_get_exams', 'edubase_post_exam', 'edubase_post_exam_users', 'edubase_get_exam_settings', 'edubase_get_exam_certificates'],
         writeNotes: [
             'edubase_post_exam_users assigns existing users to an exam, edubase_post_exam_users_generate creates new exam accounts from patterns.',
             'edubase_post_exam_status only controls whether new tests can be started, the exam stays active. edubase_post_exam_round closes the running tests and detaches the previous results.',
+            'Exam journeys are edited as a draft with edubase_put_exam_journey_graph and only reach the users once published with edubase_post_exam_journey_publish, use the edubase-exam-journeys skill (if available) to design them.',
         ],
     },
     results: {

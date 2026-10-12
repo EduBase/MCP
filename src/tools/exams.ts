@@ -77,6 +77,58 @@ const EXAM_CERTIFICATES_OUTPUT_SCHEMA = z.object({
 	branding_edubase: z.boolean().optional().describe('the EduBase logo is displayed (only present if show_custom_branding is enabled)'),
 });
 
+/* Journey status counts, returned by the journey overview for the whole journey and for each step */
+const EXAM_JOURNEY_STATUS_OUTPUT_SCHEMA = z.object({
+	active: z.number().int(),
+	waiting: z.number().int(),
+	error: z.number().int(),
+	completed: z.number().int(),
+	stopped: z.number().int(),
+}).describe('number of users by their status (active: working on a step, waiting: waiting before they can continue, error: stuck on a step that cannot be completed, completed: finished the journey, stopped: stopped by an educator)');
+
+/* Step (node) of a journey, returned by every /exam:journey endpoint listing steps */
+const EXAM_JOURNEY_STEP_OUTPUT_SCHEMA = {
+	step: z.string().describe('key of the step (node)'),
+	marker: z.string().nullable().optional().describe('marker letter of the step (A, B, ..., Z, AA, ...), ordered by their position on the canvas'),
+	type: z.string().nullable().describe('type of the step (start, exam, class, quiz, wait, end)'),
+	title: z.string().nullable().describe('title of the step (the title of its content, unless a custom label is set)'),
+	content: z.object({
+		type: z.enum(['exam', 'class', 'quiz']).describe('type of the content'),
+		exam: z.string().optional(),
+		class: z.string().optional(),
+		quiz: z.string().optional(),
+		id: z.string().nullable().optional().describe('external unique identifier of the content'),
+		title: z.string(),
+	}).nullable().describe('content of the step (the starting exam for the start step), keyed by its type, null if not selected or not available anymore'),
+	outcome: z.string().optional().describe('outcome given by the step (only present for end steps)'),
+};
+
+/* Problems of a journey draft */
+const EXAM_JOURNEY_ISSUES_OUTPUT_SCHEMA = z.array(z.object({
+	level: z.enum(['error', 'warning']).describe('severity of the problem (error: blocks publishing, warning: informative only)'),
+	code: z.string().describe('code of the problem'),
+	node: z.string().nullable().optional().describe('key of the node with the problem'),
+	output: z.string().nullable().optional().describe('output of the node with the problem'),
+	message: z.string().describe('readable description of the problem'),
+}));
+
+/* Portable JSON format of a journey, returned by GET and PUT /exam:journey:graph (the format is left to the edubase-exam-journeys skill) */
+const EXAM_JOURNEY_GRAPH_OUTPUT_SCHEMA = z.object({
+	$schema: z.url(),
+	schema: z.number().int(),
+	exam: z.string(),
+	journey: z.string(),
+	active: z.boolean(),
+	version: z.number().int(),
+	published: z.string().nullable(),
+	graph: z.enum(['draft', 'published']),
+	unpublished_changes: z.boolean(),
+	settings: z.record(z.string(), z.unknown()),
+	nodes: z.array(z.record(z.string(), z.unknown())),
+	issues: EXAM_JOURNEY_ISSUES_OUTPUT_SCHEMA.optional(),
+	publishable: z.boolean().optional(),
+});
+
 export const EDUBASE_API_TOOLS_EXAMS = [
 	// GET /exams - List owned and managed exams
 	{
@@ -183,6 +235,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 			exam: z.string().describe('exam identification string'),
 			nonblocking: z.boolean().describe('exam accounts are exclusively assigned to the exam and cannot be assigned to other exams during the exam period'),
 			pausable: z.boolean().describe('tests can be paused and continued later during the exam period'),
+			questionless: z.boolean().optional().describe('the test has no questions, the examinees complete it right away by starting it (only present if not a survey or championship)'),
 			timelimit: z.number().int().nullable().describe('time limit of the whole test in seconds (as a number), null if the setting of the Quiz set is used, or 0 if there is no time limit'),
 			roundtime: z.number().int().nullable().describe('time limit of a single question in seconds (as a number), turn based Quiz sets only, null if the setting of the Quiz set is used, or 0 if there is no time limit'),
 			freeze_round: z.boolean().describe('the current round of the exam is frozen, no new round can be started'),
@@ -208,6 +261,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 			export_custom_fields: z.boolean().optional().describe('the user data fields filled in by the examinees are exported (see edubase_get_exam_fields), never returned for surveys'),
 			export_skills: z.boolean().optional().describe('the skill results of the examinees are exported, only exported when the Quiz set of the exam has skills (never returned for surveys)'),
 			export_gender: z.boolean().optional().describe('the gender of the registered examinees is exported (never returned for surveys)'),
+			export_journey: z.boolean().optional().describe('the journey status of the examinees is exported, only exported when the exam starts a journey (see edubase_get_exam_journey), never returned for surveys'),
 			export_attendance: z.boolean().optional().describe('the attendance of the examinees is exported, read only as the attendance is configured together with its source on the interface (never returned for surveys)'),
 		}),
 	},
@@ -220,6 +274,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 			exam: z.string().describe('exam identification string'),
 			nonblocking: z.boolean().optional().describe('exam accounts are exclusively assigned to the exam and cannot be assigned to other exams during the exam period, always true for homeworks and surveys, cannot be disabled when the exam already has results or when some tests are currently paused'),
 			pausable: z.boolean().optional().describe('allow tests to be paused and continued later during the exam period, only available for non-blocking exams and always true for homeworks, cannot be disabled when some tests are currently paused, automatically disabled when nonblocking is disabled'),
+			questionless: z.boolean().optional().describe('do not show the questions of the Quiz set, the examinees complete the test right away by starting it, only available if not a survey or championship, cannot be changed anymore when the current round already has results, until a new round is started (see edubase_post_exam_round)'),
 			timelimit: z.union([
 				z.number().int().min(0),
 				z.string().regex(/^(\d+|default)$/i),
@@ -250,11 +305,13 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 			export_custom_fields: z.boolean().optional().describe('export the user data fields filled in by the examinees (see edubase_get_exam_fields), not available for surveys (default: true)'),
 			export_skills: z.boolean().optional().describe('export the skill results of the examinees, only exported when the Quiz set of the exam has skills, not available for surveys (default: true)'),
 			export_gender: z.boolean().optional().describe('export the gender of the registered examinees, needs special privileges to enable, not available for surveys (default: false)'),
+			export_journey: z.boolean().optional().describe('export the journey status of the examinees, only exported when the exam starts a journey (see edubase_get_exam_journey), not available for surveys (default: false)'),
 		}),
 		outputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 			nonblocking: z.boolean().describe('exam accounts are exclusively assigned to the exam and cannot be assigned to other exams during the exam period'),
 			pausable: z.boolean().describe('tests can be paused and continued later during the exam period'),
+			questionless: z.boolean().optional().describe('the test has no questions, the examinees complete it right away by starting it (only present if not a survey or championship)'),
 			timelimit: z.number().int().nullable().describe('time limit of the whole test in seconds (as a number), null if the setting of the Quiz set is used, or 0 if there is no time limit'),
 			roundtime: z.number().int().nullable().describe('time limit of a single question in seconds (as a number), turn based Quiz sets only, null if the setting of the Quiz set is used, or 0 if there is no time limit'),
 			freeze_round: z.boolean().describe('the current round of the exam is frozen, no new round can be started'),
@@ -280,6 +337,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 			export_custom_fields: z.boolean().optional().describe('the user data fields filled in by the examinees are exported (see edubase_get_exam_fields), never returned for surveys'),
 			export_skills: z.boolean().optional().describe('the skill results of the examinees are exported, only exported when the Quiz set of the exam has skills (never returned for surveys)'),
 			export_gender: z.boolean().optional().describe('the gender of the registered examinees is exported (never returned for surveys)'),
+			export_journey: z.boolean().optional().describe('the journey status of the examinees is exported, only exported when the exam starts a journey (see edubase_get_exam_journey), never returned for surveys'),
 			export_attendance: z.boolean().optional().describe('the attendance of the examinees is exported, read only as the attendance is configured together with its source on the interface (never returned for surveys)'),
 		}),
 	},
@@ -287,7 +345,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 	// PUT /exam:settings - Replace the complete configuration of an exam with the configuration of another exam
 	{
 		name: 'edubase_put_exam_settings',
-		description: "Replace the complete configuration of an exam with the configuration of another exam. Exam specific data and state (automatic account generation, rounds, notifications, login settings and previously used patterns) is never copied. Branding, and the attached learning materials (course, SCORM package and video) of the target exam are kept as well.",
+		description: "Replace the complete configuration of an exam with the configuration of another exam. Exam specific data and state (automatic account generation, rounds, notifications, login settings and previously used patterns) is never copied. Branding, and the attached learning materials (course, SCORM package and video) of the target exam are kept as well. The questionless setting is only copied if not a survey or championship, and it is kept unchanged while the current round of the target exam already has results.",
 		inputSchema: z.object({
 			exam: z.string().describe('exam identification string (the target exam)'),
 			source: z.string().describe('exam identification string to copy the settings from, must be different from the target exam'),
@@ -808,6 +866,149 @@ export const EDUBASE_API_TOOLS_EXAMS = [
 			users: z.string().describe('comma-separated list of user identification strings'),
 		}),
 		outputSchema: z.object({}).optional(),
+	},
+
+	// GET /exam:journey - Get the status of the journey started by an exam
+	{
+		name: 'edubase_get_exam_journey',
+		description: "Get the status of the journey started by an exam: the number of users at the steps, their statuses, and the outcomes of the finished journeys. Exam journeys chain exams, classes and Quiz sets into a learning path with decisions, starting when the users start the exam. Only the visible organizational members are counted. Use edubase_get_exam_journey_user for a single user and edubase_get_exam_journey_graph for the structure.",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string (the starting exam)'),
+		}),
+		outputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			journey: z.string().describe('title of the journey (the title of the exam, unless a custom title is set)'),
+			active: z.boolean().describe('the journey is enabled, users enter it when they start the exam'),
+			published: z.string().nullable().describe('date and time the journey was last published at, null if not published yet'),
+			users: z.number().int().describe('number of users on the journey'),
+			status: EXAM_JOURNEY_STATUS_OUTPUT_SCHEMA,
+			outcomes: z.array(z.object({
+				outcome: z.string().nullable().describe('the outcome'),
+				users: z.number().int().describe('number of users finishing with the outcome'),
+			})).describe('outcomes of the finished (completed or stopped) journeys'),
+			steps: z.array(z.object({
+				...EXAM_JOURNEY_STEP_OUTPUT_SCHEMA,
+				users: z.number().int().describe('number of users currently at the step'),
+				status: EXAM_JOURNEY_STATUS_OUTPUT_SCHEMA,
+				passed_users: z.number().int().optional().describe('number of users who already passed the step (not present for end steps)'),
+				passed_visits: z.number().int().optional().describe('number of times the step was passed, including the repeated visits (not present for end steps)'),
+				result_average: z.number().nullable().optional().describe('average result of the completed step in percentage (not present for end steps)'),
+				time_spent_average: z.number().int().nullable().optional().describe('average time spent at the step in seconds (not present for end steps)'),
+			})).describe('steps of the journey (every node except the decisions and actions), in the order of their markers'),
+		}),
+	},
+
+	// GET /exam:journey:user - Get the journey of a user started by an exam
+	{
+		name: 'edubase_get_exam_journey_user',
+		description: "Get the journey of a user started by an exam: the status, the current step, the history of the visited steps with their results and the decisions taken, and the manual changes made by the educators.",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string (the starting exam)'),
+			user: z.string().describe('user identification string'),
+		}),
+		outputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			journey: z.string().describe('title of the journey'),
+			user: z.string().describe('user identification string'),
+			status: z.enum(['active', 'waiting', 'error', 'completed', 'stopped']).nullable().describe('status of the journey of the user, null if the user has not entered the journey yet (by starting the exam), no other fields are returned then'),
+			outcome: z.string().nullable().optional().describe('outcome of the journey (only set if status is completed or stopped)'),
+			error: z.string().optional().describe('code of the error, e.g. content-invalid, content-archived, content-locked, content-closed, class-not-progressive, class-membership-missing, class-membership-expired, attempts-exhausted, enroll-failed (only present if status is error)'),
+			run: z.number().int().optional().describe('index of the current run of the journey (increased when the journey is restarted)'),
+			step: z.object({
+				...EXAM_JOURNEY_STEP_OUTPUT_SCHEMA,
+				time_start: z.string().nullable().describe('date and time the step was entered at'),
+			}).nullable().optional().describe('the current step of the user, null if the journey is finished'),
+			wait_until: z.string().optional().describe('date and time the waiting ends at (only present if status is waiting and the end is known)'),
+			time_start: z.string().optional().describe('date and time the user entered the journey at'),
+			time_end: z.string().nullable().optional().describe('date and time the user finished the journey at'),
+			steps_completed: z.number().int().optional().describe('number of the different exam, class and Quiz set steps completed in the current run (the start step included)'),
+			steps_total: z.number().int().optional().describe('number of the exam, class and Quiz set steps of the journey (the start step included)'),
+			steps_remaining: z.number().int().nullable().optional().describe('estimated number of steps still to be completed on the shortest way to the end (a lower bound), null if the journey is not running or no end can be reached'),
+			flags: z.unknown().optional().describe('flags set for the user by the flag actions of the journey, keyed by their name (only present if there are any)'),
+			history: z.array(z.object({
+				run: z.number().int().describe('index of the run'),
+				visit: z.number().int().describe('index of the visit of the step within the run'),
+				...EXAM_JOURNEY_STEP_OUTPUT_SCHEMA,
+				status: z.enum(['active', 'waiting', 'completed', 'moved', 'stopped', 'error']).describe('status of the visit'),
+				time_start: z.string().nullable().describe('date and time the step was entered at'),
+				time_end: z.string().nullable().describe('date and time the step was left at'),
+				time_spent: z.number().int().nullable().describe('time spent taking the test of the step in minutes'),
+				result: z.number().optional().describe('result in percentage (only present if available)'),
+				successful: z.boolean().optional().describe('the test was successful (only present if available)'),
+				grade: z.string().optional().describe('grade of the test (only present if available)'),
+				play: z.string().optional().describe('Quiz play identification string of the test completing the step (only present if available, see edubase_get_quiz_results_play)'),
+				skills: z.unknown().optional().describe('skill results of the test, keyed by the skill identifier (only present if available)'),
+				decisions: z.array(z.object({
+					decision: z.string().describe('key of the decision or action node'),
+					type: z.enum(['condition', 'split', 'notify', 'flag', 'mark']).nullable().describe('type of the node'),
+					title: z.string().nullable().describe('title of the node'),
+					output: z.string().nullable().describe('output taken (the key of a branch, else or next)'),
+					label: z.string().nullable().describe('label of the branch taken (if set)'),
+				})).optional().describe('decisions and actions passed after the step, with the outputs taken (only present if there are any)'),
+			})).optional().describe('the visited steps of every run, in the order they were entered'),
+			events: z.array(z.object({
+				run: z.number().int().describe('index of the run'),
+				type: z.enum(['move', 'stop', 'resume', 'restart']).describe('type of the change'),
+				source: z.enum(['operator', 'publish']).describe('source of the change (operator: made by an educator, publish: made by publishing a new version of the journey, the user was on a removed step)'),
+				from: z.object({
+					step: z.string().nullable(),
+					status: z.string().nullable(),
+				}).describe('the step key and the journey status before the change'),
+				to: z.object({
+					step: z.string().nullable(),
+					status: z.string().nullable(),
+				}).describe('the step key and the journey status after the change'),
+				operator: z.string().nullable().describe('user identification string of the educator making the change'),
+				time: z.string().describe('date and time of the change'),
+			})).optional().describe('manual changes of the journey of the user'),
+		}),
+	},
+
+	// GET /exam:journey:graph - Export the journey started by an exam in the portable format
+	{
+		name: 'edubase_get_exam_journey_graph',
+		description: "Export the draft or the published journey started by an exam in the portable JSON format. Use the edubase-exam-journeys skill (if available) to work with the format.",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string (the starting exam)'),
+			graph: z.enum(['draft', 'published']).optional().describe('version to export (default: draft)'),
+		}),
+		outputSchema: EXAM_JOURNEY_GRAPH_OUTPUT_SCHEMA,
+	},
+
+	// PUT /exam:journey:graph - Replace the draft of the journey started by an exam
+	{
+		name: 'edubase_put_exam_journey_graph',
+		description: "Replace the draft of the journey started by an exam with a journey in the portable JSON format (creating and enabling the journey if needed). Publish it with edubase_post_exam_journey_publish. Use the edubase-exam-journeys skill (if available) to build the nodes and settings.",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string (the starting exam)'),
+			nodes: z.array(z.record(z.string(), z.unknown())).min(1).max(200).describe('nodes of the journey in the portable format'),
+			settings: z.record(z.string(), z.unknown()).optional().describe('settings of the journey in the portable format, merged over the current settings'),
+			schema: z.number().int().optional().describe('version of the format (default: 1)'),
+		}),
+		outputSchema: EXAM_JOURNEY_GRAPH_OUTPUT_SCHEMA.extend({
+			ignored: z.array(z.string()).optional(),
+		}),
+	},
+
+	// POST /exam:journey:publish - Publish the draft of the journey started by an exam
+	{
+		name: 'edubase_post_exam_journey_publish',
+		description: "Publish the draft of the journey started by an exam, so the users continue on the new version. The draft can only be published if it has no errors (see the issues of edubase_get_exam_journey_graph). If some users are on nodes removed from the draft, a new node has to be specified for each of them with remap, otherwise the journey is not published and the affected nodes are listed in the error message. Needs the exam journeys feature to be enabled.",
+		inputSchema: z.object({
+			exam: z.string().describe('exam identification string (the starting exam)'),
+			remap: z.record(z.string(), z.string()).optional().describe('the users on the removed nodes are moved to these nodes, keyed by the key of the removed node, the value is the key of an existing node of the draft, or an empty string to stop the journeys of the users'),
+		}),
+		outputSchema: z.object({
+			exam: z.string().describe('exam identification string'),
+			journey: z.string().describe('title of the journey'),
+			active: z.boolean().describe('the journey is enabled'),
+			version: z.number().int().describe('number of the published version'),
+			published: z.string().nullable().describe('date and time the journey was published at'),
+			unchanged: z.boolean().optional().describe('the draft equals the published version, so nothing was published (only present if true, remapped and issues are not returned then)'),
+			remapped: z.record(z.string(), z.string().nullable()).optional().describe('the removed nodes the users were moved from, with the keys of their new nodes (null if their journeys were stopped, only present if any users were moved)'),
+			issues: EXAM_JOURNEY_ISSUES_OUTPUT_SCHEMA.optional().describe('remaining warnings of the published version'),
+			warning: z.string().optional().describe('the journey is published but disabled, the users do not enter it until it is enabled in the settings of the exam (only present if the journey is disabled)'),
+		}),
 	},
 
 	// POST /exam:summary - Submit a new exam summary

@@ -16,7 +16,7 @@ const BUDGET = {
 	toolsCount: 150,
 	toolsListSize: 250_000,
 	toolsListSizeWithoutOutputSchemas: 175_000,
-	toolsListSizeWithOutputSchemas: 300_000,
+	toolsListSizeWithOutputSchemas: 320_000,
 	toolSize: 20_000,
 	instructionsSize: 7_000,
 	descriptionMinLength: 40,

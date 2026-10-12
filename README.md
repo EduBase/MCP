@@ -54,7 +54,7 @@ Tools are grouped into toolsets, so you can expose only the tools you need. Fewe
 | `files` | Temporary file uploads (always enabled) |
 | `questions` | Questions |
 | `quizzes` | Quiz sets, their questions, settings and grading presets |
-| `exams` | Exams, their settings, users, certificates and branding |
+| `exams` | Exams, their settings, users, certificates, branding and journeys |
 | `results` | Quiz and exam results, certificate downloads |
 | `users` | Users, their names, groups and login links |
 | `classes` | Classes and class memberships |

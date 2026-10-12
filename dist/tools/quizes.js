@@ -190,6 +190,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
                 grade: z.string().describe('the grade itself'),
                 text: z.string().optional().describe('text shown under the grade on the results page (if set)'),
             })),
+            successful_all: z.boolean().describe('every grade means success, even the lowest one (custom presets only)'),
         }),
     },
     // POST /quiz:grading-preset - Create a new custom grading preset
@@ -205,6 +206,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
                 grade: z.string().optional().describe('the grade itself, only used with the custom type where every item needs a unique, non-empty grade, the grades of the other types are fixed by the type'),
                 text: z.string().optional().describe('optional text shown under the grade on the results page, text between asterisks (*) is displayed in bold and three or more consecutive spaces start a new line'),
             })).describe('thresholds and grades of the preset, in ascending order'),
+            successful_all: z.boolean().optional().describe('every grade means success, even the lowest one, only used with the custom type where the grades are labels rather than pass or fail levels (default: false)'),
         }),
         outputSchema: z.object({
             preset: z.string().describe('grading preset identification string'),
@@ -224,6 +226,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
                 grade: z.string().optional().describe('the grade itself, only used with the custom type where every item needs a unique, non-empty grade, the grades of the other types are fixed by the type'),
                 text: z.string().optional().describe('optional text shown under the grade on the results page, text between asterisks (*) is displayed in bold and three or more consecutive spaces start a new line'),
             })).describe('thresholds and grades of the preset, in ascending order, the complete list is replaced').optional(),
+            successful_all: z.boolean().optional().describe('every grade means success, even the lowest one, only used with the custom type and dropped when the preset is changed to another type, kept unchanged if not specified'),
         }),
         outputSchema: z.object({
             preset: z.string().describe('grading preset identification string'),
@@ -240,6 +243,7 @@ export const EDUBASE_API_TOOLS_QUIZES = [
                 grade: z.string().describe('the grade itself'),
                 text: z.string().optional().describe('text shown under the grade on the results page (if set)'),
             })),
+            successful_all: z.boolean().describe('every grade means success, even the lowest one (custom presets only)'),
         }),
     },
     // DELETE /quiz:grading-preset - Remove a custom grading preset

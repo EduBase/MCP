@@ -278,7 +278,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             requirements: z.array(z.object({
                 requirement: z.string().describe('requirement identification string'),
                 title: z.string().nullable().describe('title of the requirement'),
-                type: z.enum(['exam', 'class', 'document', 'todo']).describe('type of the requirement'),
+                type: z.enum(['exam', 'class', 'document', 'journey', 'todo']).describe('type of the requirement'),
                 optional: z.boolean().describe('requirement is optional'),
                 description: z.string().optional().describe('description of the requirement (only present if set for the requirement)'),
                 deadline: z.object({
@@ -302,6 +302,12 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
                     title: z.string().describe('title of the document'),
                     archived: z.boolean().describe('document is archived'),
                 }).nullable().optional().describe('the required library document (only present if type is document, null if the document is not available)'),
+                journey: z.object({
+                    exam: z.string().describe('exam identification string of the starting exam (see edubase_get_exam_journey)'),
+                    title: z.string().describe('title of the journey'),
+                    active: z.boolean().describe('the journey is enabled'),
+                    outcomes: z.array(z.string()).describe('outcomes the journey has to be finished with to fulfill the requirement (empty if any outcome is accepted)'),
+                }).nullable().optional().describe('the required exam journey (only present if type is journey, null if the journey is not available)'),
                 todo: z.object({
                     type: z.enum(['default', 'document', 'exam', 'training']).describe('type of the task'),
                     attachments: z.boolean().describe('attachments can be uploaded'),
@@ -427,11 +433,11 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // POST /organization:webhook - Create a webhook for an organization
     {
         name: 'edubase_post_organization_webhook',
-        description: "Create a webhook for an organization, called on exam results, Quiz practice results or manual API triggers, with optional authentication and retries. Returns the webhook identification string. Test it with edubase_post_organization_webhook_trigger.",
+        description: "Create a webhook for an organization, called on exam results, Quiz practice results, finished exam journeys or manual API triggers, with optional authentication and retries. Returns the webhook identification string. Test it with edubase_post_organization_webhook_trigger.",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
             title: z.string().describe('title of the webhook'),
-            trigger_event: z.enum(['exam-play-result', 'quiz-play-result', 'api']).describe('Type of event to trigger webhook: - exam-play-result: triggers when a user (must be member of the organization) completes an exam in the organization - quiz-play-result: triggers when a user (must be member of the organization) completes a quiz in practice mode in the organization - api: triggers when a manual API call is made (useful for testing and debugging)'),
+            trigger_event: z.enum(['exam-play-result', 'quiz-play-result', 'journey-completed', 'api']).describe('Type of event to trigger webhook: - exam-play-result: triggers when a user (must be member of the organization) completes an exam in the organization - quiz-play-result: triggers when a user (must be member of the organization) completes a quiz in practice mode in the organization - journey-completed: triggers when a user (must be member of the organization) finishes an exam journey started by an exam of the organization (see edubase_get_exam_journey) - api: triggers when a manual API call is made (useful for testing and debugging)'),
             endpoint: z.url().describe('URL to send webhook notifications to'),
             method: z.enum(['POST', 'GET']).optional().describe('HTTP method to use for webhook notifications (default: POST) - POST - GET'),
             authentication: z.enum(['none', 'key']).optional().describe('Type of authentication (default: none): - none: no authentication - key: use a secret key (or password) for authentication'),
