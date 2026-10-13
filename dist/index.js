@@ -45,8 +45,10 @@ const EDUBASE_OAUTH_AUTHORIZATION_SERVER = (process.env.EDUBASE_OAUTH_AUTHORIZAT
 const EDUBASE_OAUTH_RESOURCE_URL = (process.env.EDUBASE_OAUTH_RESOURCE_URL || EDUBASE_API_URL.replace(/\/api\/?$/, '/mcp') || 'https://www.edubase.net/mcp').replace(/\/$/, '');
 const EDUBASE_OAUTH = ((process.env.EDUBASE_OAUTH || 'false') == 'true' && STREAMABLE_HTTP && EDUBASE_OAUTH_AUTHORIZATION_SERVER.length > 0 && EDUBASE_OAUTH_RESOURCE_URL.length > 0);
 /* Supported tools and prompts */
-import { EDUBASE_TOOLSETS_ALWAYS_ENABLED, parseToolsets, selectTools } from "./tools.js";
-import { EDUBASE_API_PROMPTS } from "./prompts.js";
+import { EDUBASE_TOOLSETS_ALWAYS_ENABLED, EDUBASE_TOOLS_CONFIRM, parseToolsets, selectTools } from "./tools.js";
+import { selectPrompts, getPromptResult } from "./prompts.js";
+import { registerResources, selectReferences, getReferenceUri } from "./resources.js";
+import { getSiteUrl, getContentLinks } from "./links.js";
 import { getServerInstructions, getToolsetSummary } from "./instructions.js";
 const EDUBASE_FILTER_TOOLSETS = parseToolsets(process.env.EDUBASE_TOOLSETS);
 if (EDUBASE_FILTER_TOOLSETS.unknown.length > 0) {
@@ -56,6 +58,8 @@ if (EDUBASE_FILTER_TOOLSETS.unknown.length > 0) {
 const EDUBASE_FILTER_READ_ONLY = ((process.env.EDUBASE_READONLY || 'false') == 'true');
 const EDUBASE_FILTER_DYNAMIC = ((process.env.EDUBASE_DYNAMIC_TOOLSETS || 'false') == 'true');
 const EDUBASE_TOOL_OPTIONS = { toolsets: EDUBASE_FILTER_TOOLSETS.toolsets, readOnly: EDUBASE_FILTER_READ_ONLY, dynamic: EDUBASE_FILTER_DYNAMIC };
+/* Ask the user through the client (elicitation) to confirm the changes that cannot be undone, and to pick the question types of the prompts (only with clients supporting it) */
+const EDUBASE_ELICITATION = ((process.env.EDUBASE_ELICITATION || 'true') == 'true');
 /* Output schemas and structured tool results (fields by default, keeping the structure without the field descriptions, as the complete output schemas make up a large part of the tool list) */
 const EDUBASE_OUTPUT_SCHEMAS_MODES = ['off', 'on', 'fields'];
 const EDUBASE_OUTPUT_SCHEMAS = (process.env.EDUBASE_OUTPUT_SCHEMAS || 'fields').trim().toLowerCase();
@@ -137,6 +141,17 @@ function getEduBaseToolOptions(req) {
     };
 }
 function createMcpServer(apiUrl = null, authentication = null, toolOptions = EDUBASE_TOOL_OPTIONS) {
+    /* EduBase API requests outside the tool calls (completions, resources): the bearer of the request is preferred, as in the tool calls, and the last one seen is used when the request has none (the completions do not get the request context) */
+    let sessionAuthentication = authentication;
+    const getRequestAuthentication = (extra) => {
+        const requestBearer = extra?._meta?.bearer ?? extra?._meta?.override?.EDUBASE_OAUTH_BEARER;
+        if (typeof requestBearer === 'string' && requestBearer.length > 0) {
+            sessionAuthentication = { bearer: requestBearer };
+        }
+        return sessionAuthentication;
+    };
+    const apiRequest = (method, endpoint, data, extra) => sendEduBaseApiRequest(method, (apiUrl || EDUBASE_API_URL) + '/' + endpoint, data, getRequestAuthentication(extra));
+    const siteUrl = getSiteUrl(apiUrl || EDUBASE_API_URL);
     /* Create MCP server instance */
     const server = new McpServer({
         name: MANIFEST.name,
@@ -147,20 +162,65 @@ function createMcpServer(apiUrl = null, authentication = null, toolOptions = EDU
         websiteUrl: MANIFEST.websiteUrl,
     }, {
         capabilities: {
-            prompts: {
-                listChanged: true
-            },
             tools: {
                 listChanged: true
             },
         },
         instructions: getServerInstructions(toolOptions.toolsets, toolOptions.readOnly, toolOptions.dynamic),
     });
+    /* Ask the user with a form (null if the client does not support it, or the user declined) */
+    const elicitForm = (extra) => {
+        if (!EDUBASE_ELICITATION || !server.server.getClientCapabilities()?.elicitation?.form) {
+            return undefined;
+        }
+        return async (message, properties, required) => {
+            const result = await server.server.elicitInput({ mode: 'form', message, requestedSchema: { type: 'object', properties: properties, required } }, { relatedRequestId: extra?.requestId });
+            return (result.action == 'accept') ? (result.content || {}) : null;
+        };
+    };
     /* Configure request handlers */
-    Object.values(EDUBASE_API_PROMPTS).forEach((prompt) => {
+    const searchLists = { exam: 'exams', quiz: 'quizes', class: 'classes' };
+    selectPrompts(toolOptions.toolsets, toolOptions.readOnly, {
+        searchContents: async (type, search) => {
+            /* Suggest the titles of the matching contents */
+            const response = await apiRequest('get', searchLists[type], { search: search || undefined, limit: 10 });
+            return [...new Set((response?.[searchLists[type]] || []).map((item) => item.title))];
+        },
+    }).forEach((prompt) => {
         /* Register prompts */
-        server.registerPrompt(prompt.name, { description: prompt.description, argsSchema: prompt.argsSchema }, prompt.handler);
+        server.registerPrompt(prompt.name, { title: prompt.title, description: prompt.description, argsSchema: prompt.argsSchema }, async (args, extra) => {
+            const elicit = elicitForm(extra);
+            return getPromptResult(prompt, args, {
+                dynamic: toolOptions.dynamic,
+                readOnly: toolOptions.readOnly,
+                /* A failed question (e.g. a client without multi-select support) falls back to the defaults */
+                elicit: elicit ? async (...form) => elicit(...form).catch(() => null) : undefined,
+            });
+        });
     });
+    registerResources(server, toolOptions.toolsets, apiRequest);
+    const references = selectReferences(toolOptions.toolsets);
+    if (references.length > 0)
+        server.registerTool('edubase_mcp_reference', {
+            description: 'Read a reference document of EduBase formats, for writing questions and exam journeys without the EduBase skills: ' + references.map((reference) => `${reference.name} (${reference.description})`).join(', '),
+            inputSchema: z.object({
+                reference: z.enum(references.map((reference) => reference.name)).describe('name of the reference document'),
+            }),
+            annotations: {
+                title: 'Read EduBase reference',
+                readOnlyHint: true,
+                destructiveHint: false,
+                idempotentHint: true,
+                openWorldHint: false,
+            },
+        }, async ({ reference }) => {
+            /* The same documents as the reference resources, for the models that cannot read resources */
+            const document = references.find((item) => item.name == reference);
+            return {
+                content: [{ type: 'text', text: `${document.text}\n\n(Also available as the ${getReferenceUri(document)} resource.)` }],
+                isError: false,
+            };
+        });
     server.registerTool('edubase_mcp_server_version', {
         description: 'Get the MCP server version (only use for debugging).',
         annotations: {
@@ -279,17 +339,31 @@ function createMcpServer(apiUrl = null, authentication = null, toolOptions = EDU
                     throw new Error('No arguments provided');
                 }
                 /* Prefer the current request's bearer (threaded via _meta) over the closure-captured authentication, so that refreshed OAuth tokens take effect within an existing session without needing a new MCP session id. */
-                const requestBearer = (ctx?._meta?.bearer ?? ctx?._meta?.override?.EDUBASE_OAUTH_BEARER);
-                const effectiveAuth = (typeof requestBearer === 'string' && requestBearer.length > 0) ? { bearer: requestBearer } : authentication;
+                const effectiveAuth = getRequestAuthentication(ctx);
+                /* Ask the user to confirm the changes that cannot be undone */
+                const elicit = EDUBASE_TOOLS_CONFIRM.has(name) ? elicitForm(ctx) : undefined;
+                if (elicit) {
+                    const details = Object.entries(args).filter(([, value]) => value !== undefined && value !== '').map(([key, value]) => `${key}: ${typeof value == 'string' ? value : JSON.stringify(value)}`).join(', ');
+                    const answer = await elicit(`${tool.annotations?.title || name}${details ? ` (${details})` : ''}. This cannot be undone.`, {
+                        confirm: { type: 'boolean', title: 'Yes, I want to do this', default: false },
+                    }, ['confirm']);
+                    if (answer?.confirm !== true) {
+                        return {
+                            content: [{ type: 'text', text: 'The user did not confirm this change in EduBase, nothing was changed. Do not retry unless the user asks for it again.' }],
+                            isError: true,
+                        };
+                    }
+                }
                 /* Prepare and send API request */
                 const [, method, ...endpoint] = name.split('_');
                 const request = tool.request ? tool.request(args) : { endpoint: endpoint.join(':'), args: args };
                 const response = await sendEduBaseApiRequest(method, (apiUrl || EDUBASE_API_URL) + '/' + request.endpoint, expandCustomFields(request.args), effectiveAuth);
-                /* Return response */
+                /* Return response (with links to the contents in EduBase) */
+                const links = getContentLinks(name, args, response, siteUrl);
                 if (isEmptyObjectSchema(tool.outputSchema)) {
                     /* Endpoint with empty output schema */
                     return {
-                        content: [{ type: 'text', text: '{}' }],
+                        content: [{ type: 'text', text: '{}' }, ...links],
                         ...withStructuredContent({}),
                         isError: false,
                     };
@@ -297,7 +371,7 @@ function createMcpServer(apiUrl = null, authentication = null, toolOptions = EDU
                 else if (response.length == 0) {
                     /* Endpoint without response */
                     return {
-                        content: [{ type: 'text', text: 'Success.' }],
+                        content: [{ type: 'text', text: 'Success.' }, ...links],
                         isError: false,
                     };
                 }
@@ -308,7 +382,7 @@ function createMcpServer(apiUrl = null, authentication = null, toolOptions = EDU
                 else {
                     /* Return response (schema will be validated automatically) */
                     return {
-                        content: [{ type: 'text', text: JSON.stringify(response) }],
+                        content: [{ type: 'text', text: JSON.stringify(response) }, ...links],
                         ...withStructuredContent(response),
                         isError: false,
                     };

@@ -50,7 +50,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
 	// POST /question - Publish or update a question
 	{
 		name: 'edubase_post_question',
-		description: "Publish or update a question, re-posting the same id updates it. Use the edubase-question-creator skill (if available) to choose the type and fill in the fields: the fields named after a question type are needed for that type (e.g. hotspot_image and hotspot_zones for HOTSPOT). Separate multiple values with &&&. File fields take filename=data, where data is a filebin identifier (preferred, see edubase_post_filebin_upload), base64 data or a URL.",
+		description: "Publish or update a question, re-posting the same id updates it. Use the edubase-question-creator skill to choose the type and fill in the fields (or read the questions reference with edubase_mcp_reference if the skill is not available): the fields named after a question type are needed for that type (e.g. hotspot_image and hotspot_zones for HOTSPOT). Separate multiple values with &&&. File fields take filename=data, where data is a filebin identifier (preferred, see edubase_post_filebin_upload), base64 data or a URL.",
 		inputSchema: z.object({
 				id: z.string().max(64).describe('external unique question identifier'),
 				path: z.string().describe('folder in the personal QuestionBase'),

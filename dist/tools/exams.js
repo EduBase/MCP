@@ -926,7 +926,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
     // GET /exam:journey:graph - Export the journey started by an exam in the portable format
     {
         name: 'edubase_get_exam_journey_graph',
-        description: "Export the draft or the published journey started by an exam in the portable JSON format. Use the edubase-exam-journeys skill (if available) to work with the format.",
+        description: "Export the draft or the published journey started by an exam in the portable JSON format. Use the edubase-exam-journeys skill to work with the format, or read the format with edubase_mcp_reference if the skill is not available.",
         inputSchema: z.object({
             exam: z.string().describe('exam identification string (the starting exam)'),
             graph: z.enum(['draft', 'published']).optional().describe('version to export (default: draft)'),
@@ -936,7 +936,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
     // PUT /exam:journey:graph - Replace the draft of the journey started by an exam
     {
         name: 'edubase_put_exam_journey_graph',
-        description: "Replace the draft of the journey started by an exam with a journey in the portable JSON format (creating and enabling the journey if needed). Publish it with edubase_post_exam_journey_publish. Use the edubase-exam-journeys skill (if available) to build the nodes and settings.",
+        description: "Replace the draft of the journey started by an exam with a journey in the portable JSON format (creating and enabling the journey if needed). Publish it with edubase_post_exam_journey_publish. Use the edubase-exam-journeys skill to build the nodes and settings, or read the format with edubase_mcp_reference if the skill is not available.",
         inputSchema: z.object({
             exam: z.string().describe('exam identification string (the starting exam)'),
             nodes: z.array(z.record(z.string(), z.unknown())).min(1).max(200).describe('nodes of the journey in the portable format'),

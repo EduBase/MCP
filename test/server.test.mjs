@@ -7,7 +7,7 @@ import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { ToolListChangedNotificationSchema } from '@modelcontextprotocol/sdk/types.js';
+import { ElicitRequestSchema, ToolListChangedNotificationSchema } from '@modelcontextprotocol/sdk/types.js';
 
 const SERVER = fileURLToPath(new URL('../dist/index.js', import.meta.url));
 
@@ -23,16 +23,34 @@ const BUDGET = {
 };
 
 /* Start the server over stdio with the given environment */
-async function connect(env = {}) {
+async function connect(env = {}, capabilities = {}) {
 	const transport = new StdioClientTransport({
 		command: process.execPath,
 		args: [SERVER],
 		env: { PATH: process.env.PATH, EDUBASE_API_URL: 'http://127.0.0.1:9/api', EDUBASE_API_APP: 'app', EDUBASE_API_KEY: 'secret', ...env },
 		stderr: 'ignore',
 	});
-	const client = new Client({ name: 'edubase-mcp-test', version: '1.0.0' });
+	const client = new Client({ name: 'edubase-mcp-test', version: '1.0.0' }, { capabilities });
 	await client.connect(transport);
 	return client;
+}
+
+/* Fake EduBase API recording the requests, answering with the response of the endpoint (an empty object by default) */
+async function startApi(responses = {}) {
+	const requests = [];
+	const api = createServer((req, res) => {
+		let body = '';
+		req.on('data', (chunk) => body += chunk);
+		req.on('end', () => {
+			const url = new URL(req.url, 'http://localhost');
+			requests.push({ method: req.method, endpoint: url.pathname.replace(/^\/api\//, ''), query: Object.fromEntries(url.searchParams), body: body ? JSON.parse(body) : null });
+			res.setHeader('Content-Type', 'application/json');
+			res.end(JSON.stringify(responses[url.pathname.replace(/^\/api\//, '')] ?? {}));
+		});
+	});
+	api.listen(0, '127.0.0.1');
+	await once(api, 'listening');
+	return { api, requests, url: `http://127.0.0.1:${api.address().port}/api`, site: `http://127.0.0.1:${api.address().port}` };
 }
 async function listTools(client) {
 	return (await client.listTools()).tools;
@@ -123,6 +141,150 @@ test('instructions only reference existing tools', async () => {
 		assert.deepEqual(unknown, [], 'instructions reference unknown tools');
 	} finally {
 		await client.close();
+	}
+});
+
+/* Example arguments of the prompts */
+const PROMPT_EXAMPLES = {
+	edubase_prompt_create_question: { type: 'CHOICE', subject: 'Photosynthesis' },
+	edubase_prompt_questions_from_document: { document: 'attached', questions: '', quiz: 'Biology' },
+	edubase_prompt_create_exam: { topic: 'Photosynthesis', questions: '6', types: 'choice, numerical' },
+	edubase_prompt_create_exam_journey: { topic: 'Photosynthesis', questions: '6' },
+	edubase_prompt_copy_exam: { exam: 'Photosynthesis', schedule: 'next Monday' },
+	edubase_prompt_assign_class_to_exam: { exam: 'Photosynthesis', class: '9.B' },
+	edubase_prompt_summarize_exam_results: { exam: 'Photosynthesis', save: 'yes' },
+	edubase_prompt_exam_journey_status: { exam: 'Photosynthesis' },
+};
+
+test('prompts are described and only reference existing tools', async () => {
+	for (const env of [{}, { EDUBASE_READONLY: 'true' }]) {
+		const client = await connect(env);
+		try {
+			const names = new Set((await listTools(client)).map((tool) => tool.name));
+			const { prompts } = await client.listPrompts();
+			assert.deepEqual(prompts.map((prompt) => prompt.name).sort(), Object.keys(PROMPT_EXAMPLES).filter((name) => !env.EDUBASE_READONLY || ['edubase_prompt_summarize_exam_results', 'edubase_prompt_exam_journey_status'].includes(name)).sort());
+			for (const prompt of prompts) {
+				assert.ok(prompt.title, `${prompt.name} has no title`);
+				assert.ok((prompt.description || '').length >= BUDGET.descriptionMinLength, `${prompt.name} has a too short description`);
+				for (const argument of prompt.arguments || []) {
+					assert.ok((argument.description || '').length >= 20, `${prompt.name} argument ${argument.name} has a too short description`);
+				}
+				const result = await client.getPrompt({ name: prompt.name, arguments: PROMPT_EXAMPLES[prompt.name] });
+				const text = result.messages[0].content.text;
+				const unknown = [...new Set(text.match(/edubase_[a-z_]+[a-z]/g))].filter((name) => !names.has(name));
+				assert.deepEqual(unknown, [], `${prompt.name} references unknown tools`);
+			}
+		} finally {
+			await client.close();
+		}
+	}
+
+	const client = await connect();
+	try {
+		await assert.rejects(client.getPrompt({ name: 'edubase_prompt_create_exam', arguments: { topic: 'Photosynthesis', questions: '6', types: 'choice, unknown' } }), /question type/);
+		await assert.rejects(client.getPrompt({ name: 'edubase_prompt_create_exam', arguments: { topic: 'Photosynthesis', questions: 'many' } }), /whole number/);
+		const types = await client.complete({ ref: { type: 'ref/prompt', name: 'edubase_prompt_create_exam' }, argument: { name: 'types', value: 'choice, mu' } });
+		assert.deepEqual(types.completion.values, ['choice, multiple-choice']);
+	} finally {
+		await client.close();
+	}
+
+	const limited = await connect({ EDUBASE_TOOLSETS: 'tags' });
+	try {
+		assert.equal(limited.getServerCapabilities().prompts, undefined, 'prompts are announced without their toolsets');
+	} finally {
+		await limited.close();
+	}
+});
+
+test('prompt arguments suggest the contents of the account', async () => {
+	const { api, requests, url } = await startApi({ exams: { exams: [{ exam: 'EXAM1', title: 'Photosynthesis' }, { exam: 'EXAM2', title: 'Photosynthesis retake' }] } });
+	const client = await connect({ EDUBASE_API_URL: url });
+	try {
+		const result = await client.complete({ ref: { type: 'ref/prompt', name: 'edubase_prompt_copy_exam' }, argument: { name: 'exam', value: 'photo' } });
+		assert.deepEqual(result.completion.values, ['Photosynthesis', 'Photosynthesis retake']);
+		assert.deepEqual(requests.map(({ method, endpoint, query }) => [method, endpoint, query.search]), [['GET', 'exams', 'photo']]);
+	} finally {
+		await client.close();
+		api.close();
+	}
+});
+
+test('the user is asked with forms if the client supports it', async () => {
+	const { api, requests, url } = await startApi();
+	const client = await connect({ EDUBASE_API_URL: url }, { elicitation: {} });
+	const asked = [];
+	let answer = null;
+	client.setRequestHandler(ElicitRequestSchema, async (request) => {
+		asked.push(request.params);
+		return answer;
+	});
+	try {
+		/* Question types with checkboxes */
+		answer = { action: 'accept', content: { types: ['numerical', 'order'] } };
+		const prompt = await client.getPrompt({ name: 'edubase_prompt_create_exam', arguments: { topic: 'Photosynthesis', questions: '6' } });
+		assert.match(prompt.messages[0].content.text, /question types as evenly as the content allows: numerical, order\./);
+		assert.equal(asked[0].requestedSchema.properties.types.type, 'array');
+		answer = { action: 'cancel' };
+		const defaults = await client.getPrompt({ name: 'edubase_prompt_create_exam', arguments: { topic: 'Photosynthesis', questions: '6' } });
+		assert.match(defaults.messages[0].content.text, /choice, multiple-choice, true\/false\./);
+
+		/* Confirming the changes that cannot be undone */
+		answer = { action: 'accept', content: { confirm: false } };
+		const declined = await client.callTool({ name: 'edubase_delete_exam', arguments: { exam: 'EXAM' } });
+		assert.ok(declined.isError);
+		assert.match(asked[asked.length - 1].message, /exam: EXAM/);
+		assert.equal(requests.length, 0, 'the exam was deleted without confirmation');
+		answer = { action: 'accept', content: { confirm: true } };
+		const confirmed = await client.callTool({ name: 'edubase_delete_exam', arguments: { exam: 'EXAM' } });
+		assert.ok(!confirmed.isError, JSON.stringify(confirmed.content));
+		assert.deepEqual(requests.map(({ method, endpoint }) => [method, endpoint]), [['DELETE', 'exam']]);
+
+		/* Other changes are not confirmed */
+		const count = asked.length;
+		await client.callTool({ name: 'edubase_post_exam_users', arguments: { exam: 'EXAM', users: 'USER' } });
+		assert.equal(asked.length, count);
+	} finally {
+		await client.close();
+		api.close();
+	}
+});
+
+test('tool results link to the contents in EduBase', async () => {
+	const { api, url, site } = await startApi({ exam: { exam: 'EXAM' }, exams: { exams: [] } });
+	const client = await connect({ EDUBASE_API_URL: url });
+	try {
+		const created = await client.callTool({ name: 'edubase_post_exam', arguments: { title: 'Test', quiz: 'QUIZ', start: '2026-01-01 10:00:00', end: '2026-01-02 10:00:00' } });
+		assert.ok(!created.isError, JSON.stringify(created.content));
+		assert.deepEqual(JSON.parse(created.content[0].text), { exam: 'EXAM' });
+		assert.deepEqual(created.content.filter((item) => item.type == 'resource_link').map((item) => item.uri), [`${site}/exam/manager/EXAM`, `${site}/quiz/manager/QUIZ`]);
+		const listed = await client.callTool({ name: 'edubase_get_exams', arguments: {} });
+		assert.equal(listed.content.length, 1, 'lists should not get links');
+	} finally {
+		await client.close();
+		api.close();
+	}
+});
+
+test('reference documents and contents are available as resources', async () => {
+	const { api, requests, url } = await startApi({ exam: { exam: 'EXAM', title: 'Photosynthesis' }, 'exam:settings': { exam: 'EXAM' }, exams: { exams: [{ exam: 'EXAM', title: 'Photosynthesis' }] } });
+	const client = await connect({ EDUBASE_API_URL: url });
+	try {
+		const { resources } = await client.listResources();
+		assert.ok(resources.some((resource) => resource.uri == 'edubase://reference/questions'));
+		assert.ok(resources.some((resource) => resource.uri == 'edubase://exam/EXAM' && resource.name == 'Photosynthesis'));
+		const reference = await client.readResource({ uri: 'edubase://reference/exam-journeys' });
+		assert.match(reference.contents[0].text, /complete_on/);
+		const tool = await client.callTool({ name: 'edubase_mcp_reference', arguments: { reference: 'questions' } });
+		assert.match(tool.content[0].text, /multiple-choice/);
+		const { resourceTemplates } = await client.listResourceTemplates();
+		assert.deepEqual(resourceTemplates.map((template) => template.uriTemplate).sort(), ['edubase://exam/{exam}', 'edubase://quiz/{quiz}']);
+		const exam = await client.readResource({ uri: 'edubase://exam/EXAM' });
+		assert.deepEqual(JSON.parse(exam.contents[0].text), { exam: { exam: 'EXAM', title: 'Photosynthesis' }, settings: { exam: 'EXAM' } });
+		assert.deepEqual(requests.slice(-2).map(({ endpoint, query }) => [endpoint, query.exam]), [['exam', 'EXAM'], ['exam:settings', 'EXAM']]);
+	} finally {
+		await client.close();
+		api.close();
 	}
 });
 

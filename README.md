@@ -70,6 +70,31 @@ Set `EDUBASE_DYNAMIC_TOOLSETS=true` to enable toolsets on demand: sessions start
 
 When an HTTP transport is used, clients can narrow the configuration further for their own session with the `EduBase-Mcp-Toolsets`, `EduBase-Mcp-ReadOnly` and `EduBase-Mcp-Dynamic` headers, or the `toolsets`, `read_only` and `dynamic_toolsets` query parameters (e.g. `https://domain.edubase.net/mcp?toolsets=exams&read_only=true`). A session can never enable toolsets or write tools that the server configuration disables.
 
+## Prompts
+
+Prompts are ready-made workflows you can start from your MCP client (e.g. from the `+` or `/` menu). Clients supporting completions suggest values for the arguments as you type: question types, and your own exams, Quiz sets and classes.
+
+| Prompt | What it does | Arguments |
+|---|---|---|
+| Create a question (`edubase_prompt_create_question`) | Writes a new question and publishes it to your QuestionBase | `type`, `subject`, optional `difficulty` and `language` |
+| Create questions from a document (`edubase_prompt_questions_from_document`) | Turns an attached document (or a file path or URL) into questions, after you approve the plan, optionally adding them to a Quiz set | `document`, optional `questions` (count), `types`, `quiz` and `language` |
+| Create an exam (`edubase_prompt_create_exam`) | Generates questions about a topic, collects them into a new Quiz set and creates an exam from it | `topic`, `questions` (count), optional `types` (comma-separated), `language` and `schedule` |
+| Create an exam with a journey (`edubase_prompt_create_exam_journey`) | Creates an exam like above, then builds and publishes a small exam journey from it, reusing related exams of your account and creating a practice Quiz set and a follow-up exam if needed | the same as *Create an exam* |
+| Copy an exam (`edubase_prompt_copy_exam`) | Creates a new exam from the same Quiz set and settings for a new time window | `exam`, `schedule`, optional `title` |
+| Assign a class to an exam (`edubase_prompt_assign_class_to_exam`) | Assigns the active members of a class to an exam | `exam`, `class` |
+| Summarize exam results (`edubase_prompt_summarize_exam_results`) | Analyzes the results of an exam and optionally saves the summary to the exam | `exam`, optional `focus` and `save` (`ask`, `yes` or `no`) |
+| Check an exam journey (`edubase_prompt_exam_journey_status`) | Shows the progress of the users on an exam journey, and who is stuck | `exam` |
+
+Prompts are only offered when their toolsets are enabled, and in read-only mode only the last two are offered.
+
+When the question types of an exam are left empty, clients supporting elicitation ask for them with checkboxes. These clients also ask you to confirm the changes that cannot be undone (deleting exams, Quiz sets, questions, users, organizations and integrations, transferring ownership, starting a new exam round and rotating integration keys) before they are made. Set `EDUBASE_ELICITATION=false` to turn these questions off.
+
+## Resources
+
+Reference documents are available as resources, and through the `edubase_mcp_reference` tool for models that cannot read resources: `edubase://reference/questions` (the question fields and types) and `edubase://reference/exam-journeys` (the portable exam journey format). They cover what the EduBase skills explain, for clients without the skills. Exams and Quiz sets can be attached as resources too (`edubase://exam/{exam}` and `edubase://quiz/{quiz}`), with your contents listed and suggested.
+
+Tools creating or changing exams, Quiz sets and journeys link to their pages in EduBase.
+
 ## Configuration
 
 The MCP server can be configured using environment variables. The following variables are available:
@@ -86,6 +111,7 @@ The MCP server can be configured using environment variables. The following vari
 | `EDUBASE_OUTPUT_SCHEMAS` | Output schemas of the tools and structured tool results: `off` lists the tools without output schemas and returns the results as JSON text only, `on` includes the complete output schemas, `fields` includes the output schemas without the field descriptions (keeping the structured results, but saving most of the tokens of the schemas). | No | `fields` |
 | `EDUBASE_CONFIG_PROVIDERS` | Comma-separated list of the hosting providers allowed to supply session configuration in the requests when an HTTP transport is used. Currently only `smithery` is supported (the base64-encoded `config` query parameter). | No | - |
 | `EDUBASE_DYNAMIC_TOOLSETS` | Start sessions with only the file upload tools and let the model enable [toolsets](#toolsets) on demand. Value must be `true`. | No | `false` |
+| `EDUBASE_ELICITATION` | Ask the user through the client to confirm the changes that cannot be undone and to pick the question types of the prompts, if the client supports elicitation. Set to `false` to turn it off. | No | `true` |
 | `EDUBASE_HTTP_PORT` | HTTP server will listen on this port if SSE or streamable HTTP transport mode is used. | No | 3000 |
 | `EDUBASE_OAUTH` | Enables OAuth 2.1 protected-resource behaviour: unauthenticated requests are rejected with `401 + WWW-Authenticate` pointing at `/.well-known/oauth-protected-resource`, and bearer tokens are forwarded to the EduBase API. | No | `false` |
 | `EDUBASE_OAUTH_AUTHORIZATION_SERVER` | Public base URL of the EduBase deployment acting as the OAuth IdP. Used to advertise the authorization server in the protected-resource metadata document. | No | derived from `EDUBASE_API_URL` |
@@ -224,6 +250,8 @@ npx -y @smithery/cli install @EduBase/MCP --client claude
 ## Development
 
 Run `npm test` to build the server and check the tool listing: the size budgets of the tool list and the server instructions, the tool descriptions, the toolset, read-only and dynamic toolsets modes, and the configuration handling of the HTTP transport. When new tools exceed a budget, shorten their schemas or raise the budget in `test/server.test.mjs` deliberately, as every client pays for the tool list in every session.
+
+The reference documents in `src/references` are generated from the EduBase developer documentation, regenerate them with `node scripts/sync-references.mjs <path to the developer documentation repository>` when the question fields or the exam journey format change.
 
 ## Contact
 

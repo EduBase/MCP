@@ -63,6 +63,24 @@ function withToolAnnotations(tools: EduBaseApiTool[]): EduBaseApiTool[] {
 	}));
 }
 
+/* Tools making changes that cannot be undone (the user is asked to confirm them, if the client supports it) */
+export const EDUBASE_TOOLS_CONFIRM = new Set([
+	'edubase_delete_exam',
+	'edubase_delete_exam_fields',
+	'edubase_delete_integration',
+	'edubase_delete_organization',
+	'edubase_delete_organization_department',
+	'edubase_delete_organization_webhook',
+	'edubase_delete_question',
+	'edubase_delete_quiz',
+	'edubase_delete_quiz_grading_preset',
+	'edubase_delete_quiz_results_play',
+	'edubase_delete_user',
+	'edubase_post_content_transfer',
+	'edubase_post_exam_round',
+	'edubase_post_integration_keys',
+]);
+
 /* Toolsets (the files toolset is always enabled, as uploads are needed by the other toolsets) */
 export const EDUBASE_TOOLSETS = {
 	files: EDUBASE_API_TOOLS_COMMON,
