@@ -8,6 +8,7 @@ export type EduBaseProviderConfig = {
 	toolsets?: string;
 	readOnly?: boolean;
 	dynamic?: boolean;
+	contentResources?: boolean;
 };
 export class EduBaseConfigError extends Error {
 	constructor(message: string) { super(message); this.name = 'EduBaseConfigError'; }
@@ -54,6 +55,7 @@ const SMITHERY: EduBaseConfigProvider = {
 			toolsets: getString(values, 'edubaseToolsets'),
 			readOnly: getBoolean(values, 'edubaseReadOnly'),
 			dynamic: getBoolean(values, 'edubaseDynamicToolsets'),
+			contentResources: getBoolean(values, 'edubaseContentResources'),
 		};
 	},
 };

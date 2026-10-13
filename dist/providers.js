@@ -37,6 +37,7 @@ const SMITHERY = {
             toolsets: getString(values, 'edubaseToolsets'),
             readOnly: getBoolean(values, 'edubaseReadOnly'),
             dynamic: getBoolean(values, 'edubaseDynamicToolsets'),
+            contentResources: getBoolean(values, 'edubaseContentResources'),
         };
     },
 };

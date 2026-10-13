@@ -91,7 +91,7 @@ When the question types of an exam are left empty, clients supporting elicitatio
 
 ## Resources
 
-Reference documents are available as resources, and through the `edubase_mcp_reference` tool for models that cannot read resources: `edubase://reference/questions` (the question fields and types) and `edubase://reference/exam-journeys` (the portable exam journey format). They cover what the EduBase skills explain, for clients without the skills. Exams and Quiz sets can be attached as resources too (`edubase://exam/{exam}` and `edubase://quiz/{quiz}`), with your contents listed and suggested.
+Reference documents are available as resources, and through the `edubase_mcp_reference` tool for models that cannot read resources: `edubase://reference/questions` (the question fields and types) and `edubase://reference/exam-journeys` (the portable exam journey format). They cover what the EduBase skills explain, for clients without the skills. Exams and Quiz sets can be attached as resources too (`edubase://exam/{exam}` and `edubase://quiz/{quiz}`), with your contents listed and suggested. Turn these off with `EDUBASE_CONTENT_RESOURCES=false`, or for a session with the `EduBase-Mcp-Content-Resources: false` header, the `content_resources=false` query parameter, or the `edubaseContentResources` Smithery setting.
 
 Tools creating or changing exams, Quiz sets and journeys link to their pages in EduBase.
 
@@ -110,6 +110,7 @@ The MCP server can be configured using environment variables. The following vari
 | `EDUBASE_READONLY` | Only expose the tools that read data. Value must be `true`. | No | `false` |
 | `EDUBASE_OUTPUT_SCHEMAS` | Output schemas of the tools and structured tool results: `off` lists the tools without output schemas and returns the results as JSON text only, `on` includes the complete output schemas, `fields` includes the output schemas without the field descriptions (keeping the structured results, but saving most of the tokens of the schemas). | No | `fields` |
 | `EDUBASE_CONFIG_PROVIDERS` | Comma-separated list of the hosting providers allowed to supply session configuration in the requests when an HTTP transport is used. Currently only `smithery` is supported (the base64-encoded `config` query parameter). | No | - |
+| `EDUBASE_CONTENT_RESOURCES` | List the exams and Quiz sets of the account as [resources](#resources). Set to `false` to turn them off, e.g. when the server is inspected without credentials. The reference documents stay available. | No | `true` |
 | `EDUBASE_DYNAMIC_TOOLSETS` | Start sessions with only the file upload tools and let the model enable [toolsets](#toolsets) on demand. Value must be `true`. | No | `false` |
 | `EDUBASE_ELICITATION` | Ask the user through the client to confirm the changes that cannot be undone and to pick the question types of the prompts, if the client supports elicitation. Set to `false` to turn it off. | No | `true` |
 | `EDUBASE_HTTP_PORT` | HTTP server will listen on this port if SSE or streamable HTTP transport mode is used. | No | 3000 |

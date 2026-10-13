@@ -60,7 +60,7 @@ import { getSiteUrl, getContentLinks } from "./links.js";
 import { getServerInstructions, getToolsetSummary } from "./instructions.js";
 
 /* Toolsets and read-only mode (per-session configuration can only narrow these down) */
-type EduBaseToolOptions = { toolsets: EduBaseToolset[]; readOnly: boolean; dynamic: boolean };
+type EduBaseToolOptions = { toolsets: EduBaseToolset[]; readOnly: boolean; dynamic: boolean; contentResources: boolean };
 const EDUBASE_FILTER_TOOLSETS = parseToolsets(process.env.EDUBASE_TOOLSETS);
 if (EDUBASE_FILTER_TOOLSETS.unknown.length > 0) {
 	console.error('Error: EDUBASE_TOOLSETS environment variable contains unknown toolsets: ' + EDUBASE_FILTER_TOOLSETS.unknown.join(', '));
@@ -68,7 +68,9 @@ if (EDUBASE_FILTER_TOOLSETS.unknown.length > 0) {
 }
 const EDUBASE_FILTER_READ_ONLY = ((process.env.EDUBASE_READONLY || 'false') == 'true');
 const EDUBASE_FILTER_DYNAMIC = ((process.env.EDUBASE_DYNAMIC_TOOLSETS || 'false') == 'true');
-const EDUBASE_TOOL_OPTIONS: EduBaseToolOptions = { toolsets: EDUBASE_FILTER_TOOLSETS.toolsets, readOnly: EDUBASE_FILTER_READ_ONLY, dynamic: EDUBASE_FILTER_DYNAMIC };
+/* Exams and Quiz sets of the account as resources (they read the account when listed, so they can be turned off, e.g. for registries inspecting the server without credentials) */
+const EDUBASE_CONTENT_RESOURCES = ((process.env.EDUBASE_CONTENT_RESOURCES || 'true') == 'true');
+const EDUBASE_TOOL_OPTIONS: EduBaseToolOptions = { toolsets: EDUBASE_FILTER_TOOLSETS.toolsets, readOnly: EDUBASE_FILTER_READ_ONLY, dynamic: EDUBASE_FILTER_DYNAMIC, contentResources: EDUBASE_CONTENT_RESOURCES };
 
 /* Ask the user through the client (elicitation) to confirm the changes that cannot be undone, and to pick the question types of the prompts (only with clients supporting it) */
 const EDUBASE_ELICITATION = ((process.env.EDUBASE_ELICITATION || 'true') == 'true');
@@ -132,17 +134,19 @@ function getEduBaseAuthentication(req: Request): EduBaseAuthentication | null {
 	return null;
 }
 function getEduBaseToolOptions(req: Request): EduBaseToolOptions {
-	/* Use toolsets, read-only and dynamic toolsets mode from provider configuration */
+	/* Use toolsets, read-only, dynamic toolsets mode and content resources from provider configuration */
 	const providerConfig = getProviderConfig(req);
 	let toolsets = providerConfig?.toolsets ?? null;
 	let readOnly = providerConfig?.readOnly ?? false;
 	let dynamic = providerConfig?.dynamic ?? false;
+	let contentResources = providerConfig?.contentResources ?? true;
 	if (!toolsets) {
 		/* Use toolsets from request headers or query parameters */
 		toolsets = getHeaderValue(req, 'edubase-mcp-toolsets') || (typeof req.query?.toolsets == 'string' ? req.query.toolsets : null);
 	}
 	readOnly = readOnly || getHeaderValue(req, 'edubase-mcp-readonly') == 'true' || req.query?.read_only == 'true';
 	dynamic = dynamic || getHeaderValue(req, 'edubase-mcp-dynamic') == 'true' || req.query?.dynamic_toolsets == 'true';
+	contentResources = contentResources && getHeaderValue(req, 'edubase-mcp-content-resources') != 'false' && req.query?.content_resources != 'false';
 	const requested = parseToolsets(toolsets);
 	if (requested.unknown.length > 0) {
 		throw new Error('Unknown toolsets: ' + requested.unknown.join(', '));
@@ -151,6 +155,7 @@ function getEduBaseToolOptions(req: Request): EduBaseToolOptions {
 		toolsets: EDUBASE_TOOL_OPTIONS.toolsets.filter((toolset) => requested.toolsets.includes(toolset)),
 		readOnly: EDUBASE_TOOL_OPTIONS.readOnly || readOnly,
 		dynamic: EDUBASE_TOOL_OPTIONS.dynamic || dynamic,
+		contentResources: EDUBASE_TOOL_OPTIONS.contentResources && contentResources,
 	};
 }
 function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAuthentication | null = null, toolOptions: EduBaseToolOptions = EDUBASE_TOOL_OPTIONS) {
@@ -217,7 +222,7 @@ function createMcpServer(apiUrl: string | null = null, authentication: EduBaseAu
 			});
 		});
 	});
-	registerResources(server, toolOptions.toolsets, apiRequest);
+	registerResources(server, toolOptions.toolsets, apiRequest, toolOptions.contentResources);
 	const references = selectReferences(toolOptions.toolsets);
 	if (references.length > 0) server.registerTool('edubase_mcp_reference', {
 		description: 'Read a reference document of EduBase formats, for writing questions and exam journeys without the EduBase skills: ' + references.map((reference) => `${reference.name} (${reference.description})`).join(', '),

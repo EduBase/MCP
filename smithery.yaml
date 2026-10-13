@@ -35,6 +35,11 @@ startCommand:
         title: Dynamic toolsets
         description: Start with only the critical tools and enable toolsets on demand
         default: false
+      edubaseContentResources:
+        type: boolean
+        title: Content resources
+        description: List the exams and Quiz sets of the account as resources
+        default: true
   exampleConfig:
     edubaseApiUrl: https://domain.edubase.net/api
     edubaseApiApp: your_integration_app_id

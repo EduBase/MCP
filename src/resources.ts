@@ -38,8 +38,8 @@ const EDUBASE_CONTENT_RESOURCES = [
 	{ type: 'quiz', toolset: 'quizzes', list: 'quizes', title: 'Quiz set', endpoints: { quiz: 'quiz', questions: 'quiz:questions' }, description: 'Details and questions of a Quiz set in EduBase.' },
 ] as const;
 
-/* Register the reference documents and the content resource templates */
-export function registerResources(server: McpServer, toolsets: EduBaseToolset[], request: EduBaseApiRequest): void {
+/* Register the reference documents and the content resource templates (unless turned off) */
+export function registerResources(server: McpServer, toolsets: EduBaseToolset[], request: EduBaseApiRequest, contentResources: boolean): void {
 	selectReferences(toolsets).forEach((reference) => {
 		server.registerResource(reference.name, getReferenceUri(reference), {
 			title: reference.title,
@@ -50,7 +50,7 @@ export function registerResources(server: McpServer, toolsets: EduBaseToolset[],
 		}));
 	});
 
-	EDUBASE_CONTENT_RESOURCES.filter((content) => toolsets.includes(content.toolset)).forEach((content) => {
+	EDUBASE_CONTENT_RESOURCES.filter((content) => contentResources && toolsets.includes(content.toolset)).forEach((content) => {
 		/* Search the contents of the account by their titles */
 		const search = async (value: string, extra?: unknown): Promise<{ code: string; title: string }[]> => {
 			const response = await request('get', content.list, { search: value || undefined, limit: 16 }, extra);

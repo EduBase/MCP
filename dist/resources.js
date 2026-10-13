@@ -28,8 +28,8 @@ const EDUBASE_CONTENT_RESOURCES = [
     { type: 'exam', toolset: 'exams', list: 'exams', title: 'Exam', endpoints: { exam: 'exam', settings: 'exam:settings' }, description: 'Details and settings of an exam in EduBase.' },
     { type: 'quiz', toolset: 'quizzes', list: 'quizes', title: 'Quiz set', endpoints: { quiz: 'quiz', questions: 'quiz:questions' }, description: 'Details and questions of a Quiz set in EduBase.' },
 ];
-/* Register the reference documents and the content resource templates */
-export function registerResources(server, toolsets, request) {
+/* Register the reference documents and the content resource templates (unless turned off) */
+export function registerResources(server, toolsets, request, contentResources) {
     selectReferences(toolsets).forEach((reference) => {
         server.registerResource(reference.name, getReferenceUri(reference), {
             title: reference.title,
@@ -39,7 +39,7 @@ export function registerResources(server, toolsets, request) {
             contents: [{ uri: uri.href, mimeType: 'text/markdown', text: reference.text }],
         }));
     });
-    EDUBASE_CONTENT_RESOURCES.filter((content) => toolsets.includes(content.toolset)).forEach((content) => {
+    EDUBASE_CONTENT_RESOURCES.filter((content) => contentResources && toolsets.includes(content.toolset)).forEach((content) => {
         /* Search the contents of the account by their titles */
         const search = async (value, extra) => {
             const response = await request('get', content.list, { search: value || undefined, limit: 16 }, extra);

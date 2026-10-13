@@ -284,6 +284,17 @@ test('reference documents and contents are available as resources', async () => 
 		assert.deepEqual(requests.slice(-2).map(({ endpoint, query }) => [endpoint, query.exam]), [['exam', 'EXAM'], ['exam:settings', 'EXAM']]);
 	} finally {
 		await client.close();
+	}
+
+	/* Content resources turned off: only the reference documents remain, and the account is not read */
+	const count = requests.length;
+	const off = await connect({ EDUBASE_API_URL: url, EDUBASE_CONTENT_RESOURCES: 'false' });
+	try {
+		assert.deepEqual((await off.listResources()).resources.map((resource) => resource.uri).sort(), ['edubase://reference/exam-journeys', 'edubase://reference/questions']);
+		assert.deepEqual((await off.listResourceTemplates()).resourceTemplates, []);
+		assert.equal(requests.length, count, 'the account was read');
+	} finally {
+		await off.close();
 		api.close();
 	}
 });
@@ -449,6 +460,23 @@ test('HTTP mode rejects invalid Smithery configuration and applies session optio
 		const names = JSON.parse(data.slice(6)).result.tools.map((tool) => tool.name);
 		assert.ok(names.includes('edubase_post_metrics_custom'));
 		assert.ok(!names.includes('edubase_get_exams'));
+
+		/* Content resources are turned off by the session configuration */
+		const listTemplates = async (sessionConfig) => {
+			const query = `?config=${encodeURIComponent(Buffer.from(JSON.stringify(sessionConfig)).toString('base64'))}`;
+			const response = await initialize(query);
+			const id = response.headers.get('mcp-session-id');
+			await response.text();
+			const templates = await fetch(`${base}/mcp${query}`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream', 'mcp-session-id': id },
+				body: JSON.stringify({ jsonrpc: '2.0', id: 3, method: 'resources/templates/list' }),
+			});
+			const line = (await templates.text()).split('\n').find((line) => line.startsWith('data: '));
+			return JSON.parse(line.slice(6)).result.resourceTemplates.map((template) => template.uriTemplate);
+		};
+		assert.deepEqual(await listTemplates({ edubaseToolsets: 'exams' }), ['edubase://exam/{exam}']);
+		assert.deepEqual(await listTemplates({ edubaseToolsets: 'exams', edubaseContentResources: false }), []);
 	} finally {
 		child.kill();
 	}
