@@ -69,7 +69,7 @@ The MCP server is a Resource Server. The Authorization Server is EduBase itself.
 | Scopes | `mcp` (single broad scope mirroring the user's manual API integration permissions; see **Scope transparency** under *What it does*) |
 
 **End-to-end flow**:
-1. The MCP client (Claude Desktop, Claude.ai connector, ChatGPT App, …) POSTs `/mcp` with no auth. The MCP server replies `401` with `WWW-Authenticate: Bearer realm="edubase-mcp", resource_metadata="…/.well-known/oauth-protected-resource"`.
+1. The MCP client (Claude Desktop, Claude.ai connector, ChatGPT App, …) POSTs `/mcp` with no auth. The MCP server replies `401` with `WWW-Authenticate: Bearer realm="edubase-mcp", resource_metadata="…/.well-known/oauth-protected-resource/mcp"`.
 2. The client fetches the resource metadata document, learns the EduBase Authorization Server, then fetches `/.well-known/oauth-authorization-server` from EduBase.
 3. The client either dynamically registers itself (RFC 7591) or uses pre-registered credentials.
 4. The client redirects the user to `/oauth/authorize` with PKCE; the user logs into their EduBase account if needed and approves access on a consent screen that shows the requesting app's name.

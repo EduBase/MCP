@@ -625,14 +625,14 @@ async function sendEduBaseApiRequest(method, endpoint, data, authentication) {
         return await clonedResponse.text();
     }
 }
-/* OAuth 2.1 metadata */
+/* OAuth 2.1 metadata (RFC 9728: the well-known path is inserted between the host and the path of the resource, e.g. /.well-known/oauth-protected-resource/mcp) */
 function getProtectedResourceMetadataUrl() {
     try {
         const u = new URL(EDUBASE_OAUTH_RESOURCE_URL);
-        return `${u.protocol}//${u.host}/.well-known/oauth-protected-resource`;
+        return `${u.protocol}//${u.host}/.well-known/oauth-protected-resource${u.pathname.replace(/\/$/, '')}`;
     }
     catch {
-        return EDUBASE_OAUTH_RESOURCE_URL.replace(/\/[^/]*$/, '') + '/.well-known/oauth-protected-resource';
+        return EDUBASE_OAUTH_RESOURCE_URL.replace(/^(https?:\/\/[^\/]+)(.*)$/, '$1/.well-known/oauth-protected-resource$2');
     }
 }
 function getProtectedResourceMetadata() {
