@@ -81,12 +81,12 @@ const EXAM_JOURNEY_STATUS_OUTPUT_SCHEMA = z.object({
     error: z.number().int(),
     completed: z.number().int(),
     stopped: z.number().int(),
-}).describe('number of users by their status (active: working on a step, waiting: waiting before they can continue, error: stuck on a step that cannot be completed, completed: finished the journey, stopped: stopped by an educator)');
+}).describe('number of users by their status (active: working on a step, waiting: waiting before they can continue, including the users waiting for an approval at a gate step, error: stuck on a step that cannot be completed, completed: finished the journey, stopped: stopped by an educator)');
 /* Step (node) of a journey, returned by every /exam:journey endpoint listing steps */
 const EXAM_JOURNEY_STEP_OUTPUT_SCHEMA = {
     step: z.string().describe('key of the step (node)'),
     marker: z.string().nullable().optional().describe('marker letter of the step (A, B, ..., Z, AA, ...), ordered by their position on the canvas'),
-    type: z.string().nullable().describe('type of the step (start, exam, class, quiz, wait, end)'),
+    type: z.string().nullable().describe('type of the step (start, exam, class, quiz, wait, gate, end)'),
     title: z.string().nullable().describe('title of the step (the title of its content, unless a custom label is set)'),
     content: z.object({
         type: z.enum(['exam', 'class', 'quiz']).describe('type of the content'),
@@ -244,9 +244,9 @@ export const EDUBASE_API_TOOLS_EXAMS = [
             export_stats: z.boolean().optional().describe('the statistics of every question are exported (never returned for surveys)'),
             export_answers: z.boolean().optional().describe('the answers given by the examinees are exported (never returned for surveys)'),
             export_points: z.boolean().optional().describe('the points scored on every question are exported (never returned for surveys)'),
-            export_suspicion: z.boolean().optional().describe('the suspicious test taking indicator is exported (never returned for surveys)'),
+            export_suspicion: z.boolean().optional().describe('the suspicious test taking indicator is exported, never exported when the Suspicion Score is disabled for the exam (never returned for surveys)'),
             export_finished_only: z.boolean().optional().describe('only the examinees who finished their test are exported (never returned for surveys)'),
-            export_custom_fields: z.boolean().optional().describe('the user data fields filled in by the examinees are exported (see edubase_get_exam_fields), never returned for surveys'),
+            export_custom_fields: z.boolean().optional().describe('the user data fields filled in by the examinees are exported (see edubase_get_exam_fields), when the exam starts a journey and export_journey is enabled, the fields requested by the exams along the journey are exported too, never returned for surveys'),
             export_skills: z.boolean().optional().describe('the skill results of the examinees are exported, only exported when the Quiz set of the exam has skills (never returned for surveys)'),
             export_gender: z.boolean().optional().describe('the gender of the registered examinees is exported (never returned for surveys)'),
             export_journey: z.boolean().optional().describe('the journey status of the examinees is exported, only exported when the exam starts a journey (see edubase_get_exam_journey), never returned for surveys'),
@@ -287,12 +287,12 @@ export const EDUBASE_API_TOOLS_EXAMS = [
             export_stats: z.boolean().optional().describe('export the statistics of every question, not available for surveys (default: false)'),
             export_answers: z.boolean().optional().describe('export the answers given by the examinees, not available for surveys (default: false)'),
             export_points: z.boolean().optional().describe('export the points scored on every question, not available for surveys (default: false)'),
-            export_suspicion: z.boolean().optional().describe('export the suspicious test taking indicator, not available for surveys (default: false)'),
+            export_suspicion: z.boolean().optional().describe('export the suspicious test taking indicator, never exported when the Suspicion Score is disabled in the settings of the exam, not available for surveys (default: false)'),
             export_finished_only: z.boolean().optional().describe('only export the examinees who finished their test, not available for surveys (default: false)'),
-            export_custom_fields: z.boolean().optional().describe('export the user data fields filled in by the examinees (see edubase_get_exam_fields), not available for surveys (default: true)'),
+            export_custom_fields: z.boolean().optional().describe('export the user data fields filled in by the examinees (see edubase_get_exam_fields), when the exam starts a journey and export_journey is enabled, the fields requested by the exams along the journey are exported too (fields with the same label share a column, with the value given last), not available for surveys (default: true)'),
             export_skills: z.boolean().optional().describe('export the skill results of the examinees, only exported when the Quiz set of the exam has skills, not available for surveys (default: true)'),
             export_gender: z.boolean().optional().describe('export the gender of the registered examinees, needs special privileges to enable, not available for surveys (default: false)'),
-            export_journey: z.boolean().optional().describe('export the journey status of the examinees, only exported when the exam starts a journey (see edubase_get_exam_journey), not available for surveys (default: false)'),
+            export_journey: z.boolean().optional().describe('export the journey status of the examinees, only exported when the exam starts a journey (see edubase_get_exam_journey), not available for surveys (default: true)'),
         }),
         outputSchema: z.object({
             exam: z.string().describe('exam identification string'),
@@ -319,9 +319,9 @@ export const EDUBASE_API_TOOLS_EXAMS = [
             export_stats: z.boolean().optional().describe('the statistics of every question are exported (never returned for surveys)'),
             export_answers: z.boolean().optional().describe('the answers given by the examinees are exported (never returned for surveys)'),
             export_points: z.boolean().optional().describe('the points scored on every question are exported (never returned for surveys)'),
-            export_suspicion: z.boolean().optional().describe('the suspicious test taking indicator is exported (never returned for surveys)'),
+            export_suspicion: z.boolean().optional().describe('the suspicious test taking indicator is exported, never exported when the Suspicion Score is disabled for the exam (never returned for surveys)'),
             export_finished_only: z.boolean().optional().describe('only the examinees who finished their test are exported (never returned for surveys)'),
-            export_custom_fields: z.boolean().optional().describe('the user data fields filled in by the examinees are exported (see edubase_get_exam_fields), never returned for surveys'),
+            export_custom_fields: z.boolean().optional().describe('the user data fields filled in by the examinees are exported (see edubase_get_exam_fields), when the exam starts a journey and export_journey is enabled, the fields requested by the exams along the journey are exported too, never returned for surveys'),
             export_skills: z.boolean().optional().describe('the skill results of the examinees are exported, only exported when the Quiz set of the exam has skills (never returned for surveys)'),
             export_gender: z.boolean().optional().describe('the gender of the registered examinees is exported (never returned for surveys)'),
             export_journey: z.boolean().optional().describe('the journey status of the examinees is exported, only exported when the exam starts a journey (see edubase_get_exam_journey), never returned for surveys'),
@@ -677,7 +677,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
             signature_left_image: z.union([
                 z.boolean(),
                 z.string(),
-            ]).optional().describe('image of the first signature, the identifier of an image uploaded to the filebin replaces the image (supported formats: JPEG, WebP, PNG), the white background of the signatures and the stamp is removed automatically, but transparent PNG images are recommended (true: display the image that is already uploaded, false: keep the uploaded image, but do not display it)'),
+            ]).optional().describe('image of the first signature, a new image replaces the current one: a URL, base64-encoded data (optionally as a data URL), or the identifier of an image uploaded to the filebin (supported formats: JPEG, WebP, PNG), the white background of the signatures and the stamp is removed automatically, but transparent PNG images are recommended (true: display the image that is already uploaded, false: keep the uploaded image, but do not display it)'),
             signature_right: z.boolean().optional().describe('display the signature of the second organizer, the same way as with signature_left'),
             signature_right_line1: z.string().min(1).max(40).optional().describe('name of the second organizer, mandatory when the signature is displayed'),
             signature_right_line2: z.string().max(50).optional().describe('second line of the second signature'),
@@ -777,11 +777,11 @@ export const EDUBASE_API_TOOLS_EXAMS = [
     // POST /exam:branding - Configure or update exam branding
     {
         name: 'edubase_post_exam_branding',
-        description: "Configure or update the branding of an exam with an image (base64-encoded or URL, used as a logo or as a cover) and a color.",
+        description: "Configure or update the branding of an exam with an image (used as a logo or as a cover) and a color.",
         inputSchema: z.object({
             exam: z.string().describe('exam identification string'),
             type: z.enum(['foreground', 'background']).optional().describe('branding image type (foreground: image is used as a logo, background: image is used as a cover), default: foreground'),
-            image: z.string().describe('branding image, either a base64-encoded image or a URL, supported formats: PNG, JPEG, WebP'),
+            image: z.string().describe('branding image, a URL, base64-encoded data (optionally as a data URL), or the identifier of an image uploaded to the filebin, supported formats: PNG, JPEG, WebP'),
             color: z.enum(['branding', 'red', 'blue', 'yellow', 'green', 'purple', 'gray']).describe('branding color'),
         }),
         outputSchema: z.object({}).optional(),
@@ -879,6 +879,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
                 time_start: z.string().nullable().describe('date and time the step was entered at'),
             }).nullable().optional().describe('the current step of the user, null if the journey is finished'),
             wait_until: z.string().optional().describe('date and time the waiting ends at (only present if status is waiting and the end is known)'),
+            awaiting_approval: z.boolean().optional().describe('the user waits for an educator to approve or decline them at a gate step (only present if true)'),
             time_start: z.string().optional().describe('date and time the user entered the journey at'),
             time_end: z.string().nullable().optional().describe('date and time the user finished the journey at'),
             steps_completed: z.number().int().optional().describe('number of the different exam, class and Quiz set steps completed in the current run (the start step included)'),
@@ -898,18 +899,20 @@ export const EDUBASE_API_TOOLS_EXAMS = [
                 grade: z.string().optional().describe('grade of the test (only present if available)'),
                 play: z.string().optional().describe('Quiz play identification string of the test completing the step (only present if available, see edubase_get_quiz_results_play)'),
                 skills: z.unknown().optional().describe('skill results of the test, keyed by the skill identifier (only present if available)'),
+                approval: z.enum(['approved', 'declined']).optional().describe('decision made at a gate step (only present for decided approvals)'),
+                operator: z.string().nullable().optional().describe('user identification string of the educator making the decision at a gate step (only present for decided approvals)'),
                 decisions: z.array(z.object({
                     decision: z.string().describe('key of the decision or action node'),
                     type: z.enum(['condition', 'split', 'notify', 'flag', 'mark']).nullable().describe('type of the node'),
                     title: z.string().nullable().describe('title of the node'),
                     output: z.string().nullable().describe('output taken (the key of a branch, else or next)'),
                     label: z.string().nullable().describe('label of the branch taken (if set)'),
-                })).optional().describe('decisions and actions passed after the step, with the outputs taken (only present if there are any)'),
+                })).optional().describe('decisions and actions passed after the step, with the outputs taken (only present if there are any, the organizer nodes only shaping the edges are never listed)'),
             })).optional().describe('the visited steps of every run, in the order they were entered'),
             events: z.array(z.object({
                 run: z.number().int().describe('index of the run'),
                 type: z.enum(['move', 'stop', 'resume', 'restart']).describe('type of the change'),
-                source: z.enum(['operator', 'publish']).describe('source of the change (operator: made by an educator, publish: made by publishing a new version of the journey, the user was on a removed step)'),
+                source: z.enum(['operator', 'publish', 'result']).describe('source of the change (operator: made by an educator, publish: made by publishing a new version of the journey, the user was on a removed step, result: made by a changed result of a completed step, e.g. re-evaluation, manual scoring, extra points or invalidation, the user was routed again with the current result, because they had not done anything since the step)'),
                 from: z.object({
                     step: z.string().nullable(),
                     status: z.string().nullable(),

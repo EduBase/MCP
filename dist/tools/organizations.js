@@ -71,7 +71,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // GET /organization:members - List all members in an organization
     {
         name: 'edubase_get_organization_members',
-        description: "List the members of an organization, with their names, departments and permission levels (to the organization, its contents and its members).",
+        description: "List the members of an organization, with their names, departments, job roles and permission levels (to the organization, its contents and its members).",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
         }),
@@ -80,6 +80,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
                 user: z.string().describe('user identification string'),
                 name: z.string().describe('name of the member'),
                 department: z.string().nullable().optional().describe('name of the department (if member)'),
+                job: z.string().nullable().optional().describe('name of the job role (if set)'),
                 permission: z.object({
                     organization: z.string().describe('permission level to organization'),
                     content: z.string().describe('permission level to contents in organization'),
@@ -96,6 +97,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             organization: z.string().describe('organization identification string'),
             users: z.string().describe('comma-separated list of user identification strings'),
             department: z.string().optional().describe('optional name of department (or its external identifier if no department has this name), the competency assignments of the members moved to another department are updated, the competencies they only had through their previous department are lost'),
+            job: z.string().optional().describe('optional name of job role (or its external identifier if no job role has this name), empty string removes the job role, the job role is kept when not specified, an unknown job role is an error, the competency assignments of the members with another job role are updated, the competencies they only had through their previous job role are lost'),
             permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
             permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
             permission_members: z.enum(['none', 'department', 'organization']).optional().describe('optional permission level to members in organization (none / department / organization) (default: none)'),
@@ -121,6 +123,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             organizations: z.string().describe('comma-separated list of organization identification strings'),
             users: z.string().describe('comma-separated list of user identification strings'),
             department: z.string().optional().describe('optional name of department (or its external identifier if no department has this name), the competency assignments of the members moved to another department are updated, the competencies they only had through their previous department are lost'),
+            job: z.string().optional().describe('optional name of job role (or its external identifier if no job role has this name), empty string removes the job role, the job role is kept when not specified or unknown in an organization, the competency assignments of the members with another job role are updated, the competencies they only had through their previous job role are lost'),
             permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
             permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
             permission_members: z.enum(['none', 'department', 'organization']).optional().describe('optional permission level to members in organization (none / department / organization) (default: none)'),
@@ -228,6 +231,74 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
         }),
         outputSchema: z.object({}).optional(),
     },
+    // GET /organization:jobs - List all job roles in an organization
+    {
+        name: 'edubase_get_organization_jobs',
+        description: "List all job roles in an organization, ordered by their name. Competencies can be assigned to job roles, so every member with the job role gets them automatically.",
+        inputSchema: z.object({
+            organization: z.string().describe('organization identification string'),
+        }),
+        outputSchema: z.object({
+            organization: z.string().describe('organization identification string'),
+            jobs: z.array(z.object({
+                job: z.string().describe('name of the job role'),
+                id: z.string().nullable().optional().describe('external unique job role identifier (if set for the job role)'),
+                members: z.number().int().describe('number of members with the job role'),
+            })),
+        }),
+    },
+    // GET /organization:job - Get/check job role of an organization
+    {
+        name: 'edubase_get_organization_job',
+        description: "Get a job role of an organization, identified by its name or external identifier.",
+        inputSchema: z.object({
+            organization: z.string().describe('organization identification string'),
+            job: z.string().describe('name of the job role (or its external identifier if no job role has this name)'),
+        }),
+        outputSchema: z.object({
+            organization: z.string().describe('organization identification string'),
+            job: z.string().describe('name of the job role'),
+            id: z.string().nullable().optional().describe('external unique job role identifier (if set for the job role)'),
+            members: z.number().int().describe('number of members with the job role'),
+        }),
+    },
+    // POST /organization:job - Create a job role in an organization
+    {
+        name: 'edubase_post_organization_job',
+        description: "Create a job role in an organization. Members can have one job role each, which can be used to assign competencies automatically.",
+        inputSchema: z.object({
+            organization: z.string().describe('organization identification string'),
+            title: z.string().min(1).max(255).describe('name of the job role, must be unique within the organization'),
+            id: z.string().max(64).optional().describe('optional external unique job role identifier'),
+        }),
+        outputSchema: z.object({
+            organization: z.string().describe('organization identification string'),
+            job: z.string().describe('name of the job role'),
+            id: z.string().nullable().optional().describe('external unique job role identifier (if set for the job role)'),
+        }),
+    },
+    // PATCH /organization:job - Update job role of an organization
+    {
+        name: 'edubase_patch_organization_job',
+        description: "Update the name or the external identifier of a job role in an organization. Members keep the job role and its competencies.",
+        inputSchema: z.object({
+            organization: z.string().describe('organization identification string'),
+            job: z.string().describe('name of the job role (or its external identifier if no job role has this name)'),
+            title: z.string().min(1).max(255).optional().describe('new name of the job role, must be unique within the organization'),
+            id: z.string().max(64).optional().describe('external unique job role identifier, empty string removes it'),
+        }),
+        outputSchema: z.object({}).optional(),
+    },
+    // DELETE /organization:job - Remove job role from an organization
+    {
+        name: 'edubase_delete_organization_job',
+        description: "Remove job role from an organization. Members with the job role are left without a job role and lose the competencies given by it.",
+        inputSchema: z.object({
+            organization: z.string().describe('organization identification string'),
+            job: z.string().describe('name of the job role (or its external identifier if no job role has this name)'),
+        }),
+        outputSchema: z.object({}).optional(),
+    },
     // GET /organization:competencies - List all competencies of an organization
     {
         name: 'edubase_get_organization_competencies',
@@ -247,6 +318,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
                 assignments: z.object({
                     all: z.boolean().describe('assigned to every member of the organization'),
                     departments: z.number().int().describe('number of departments assigned to'),
+                    jobs: z.number().int().describe('number of job roles assigned to (members get the competency through their department or their job role)'),
                     members: z.number().int().describe('number of members assigned to individually'),
                 }),
                 assigned: z.number().int().describe('number of visible members assigned to the competency'),
@@ -324,9 +396,10 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // GET /organization:compliance - Get the competency compliance overview of an organization
     {
         name: 'edubase_get_organization_compliance',
-        description: "Get the competency compliance overview of an organization, grouped by departments. Organization reporters see every visible member, department leaders only the members of the departments they lead. Library and competencies must be enabled for the organization.",
+        description: "Get the competency compliance overview of an organization, grouped by departments. Organization reporters see every visible member, department leaders only the members of the departments they lead. Can be limited to the members of a job role. Library and competencies must be enabled for the organization.",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
+            job: z.string().optional().describe('optional name of job role (or its external identifier if no job role has this name) to limit the overview to its members'),
         }),
         outputSchema: z.object({
             organization: z.string().describe('organization identification string'),
@@ -382,6 +455,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
                 title: z.string().describe('title of the organization'),
                 link: z.string().describe('link to the organization manager page'),
                 department: z.string().nullable().optional().describe('name of the department (if member)'),
+                job: z.string().nullable().optional().describe('name of the job role (if set)'),
                 permission: z.object({
                     organization: z.string().describe('permission level to organization'),
                     content: z.string().describe('permission level to contents in organization'),
@@ -398,6 +472,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             user: z.string().describe('user identification string'),
             organizations: z.string().describe('comma-separated list of organization identification strings'),
             department: z.string().optional().describe('optional name of department (or its external identifier if no department has this name), the competency assignments of the members moved to another department are updated, the competencies they only had through their previous department are lost'),
+            job: z.string().optional().describe('optional name of job role (or its external identifier if no job role has this name), empty string removes the job role, the job role is kept when not specified or unknown in an organization, the competency assignments of the members with another job role are updated, the competencies they only had through their previous job role are lost'),
             permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
             permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
             permission_members: z.enum(['none', 'department', 'organization']).optional().describe('optional permission level to members in organization (none / department / organization) (default: none)'),

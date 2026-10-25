@@ -58,7 +58,7 @@ Tools are grouped into toolsets, so you can expose only the tools you need. Fewe
 | `results` | Quiz and exam results, certificate downloads |
 | `users` | Users, their names, groups and login links |
 | `classes` | Classes and class memberships |
-| `organizations` | Organizations, members, departments, competencies and webhooks |
+| `organizations` | Organizations, members, departments, job roles, competencies and webhooks |
 | `integrations` | Integrations and their keys |
 | `tags` | Tags and tag attachments of contents |
 | `permissions` | User permissions on contents and ownership transfers |
@@ -253,6 +253,9 @@ npx -y @smithery/cli install @EduBase/MCP --client claude
 Run `npm test` to build the server and check the tool listing: the size budgets of the tool list and the server instructions, the tool descriptions, the toolset, read-only and dynamic toolsets modes, and the configuration handling of the HTTP transport. When new tools exceed a budget, shorten their schemas or raise the budget in `test/server.test.mjs` deliberately, as every client pays for the tool list in every session.
 
 The reference documents in `src/references` are generated from the EduBase developer documentation, regenerate them with `node scripts/sync-references.mjs <path to the developer documentation repository>` when the question fields or the exam journey format change.
+
+> **Documentation sync point:** tools, prompts and references last synced **2026-10-25** against the **Developer documentation** at commit `ec4ccb1505`.
+> To bring the server forward, run `git log --oneline ec4ccb1505..HEAD` and `git diff ec4ccb1505..HEAD -- docs/api/endpoints` in the developer documentation repository, update the affected tools in `src/tools` (and their prompts and toolset guides), regenerate the reference documents, and move this marker to the new HEAD commit.
 
 ## Contact
 

@@ -66,8 +66,8 @@ const EDUBASE_TOOLSET_GUIDES: Record<EduBaseToolset, EduBaseToolsetGuide> = {
 		],
 	},
 	organizations: {
-		summary: 'organizations, their members, departments, competencies, compliance and webhooks',
-		tools: ['edubase_get_organizations', 'edubase_get_organization_members', 'edubase_get_organization_departments', 'edubase_get_organization_compliance'],
+		summary: 'organizations, their members, departments, job roles, competencies, compliance and webhooks',
+		tools: ['edubase_get_organizations', 'edubase_get_organization_members', 'edubase_get_organization_departments', 'edubase_get_organization_jobs', 'edubase_get_organization_compliance'],
 	},
 	integrations: {
 		summary: 'API and LMS integrations and their keys',

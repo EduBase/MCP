@@ -19,7 +19,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
 	// GET /questions - List owned and managed Quiz questions
 	{
 		name: 'edubase_get_questions',
-		description: "List owned and managed Quiz questions. Returns the question identification strings and external identifiers. Use edubase_post_question_export to read the content of a question.",
+		description: "List owned and managed Quiz questions. Returns the question identification strings, external identifiers and AI generated markings. Use edubase_post_question_export to read the content of a question.",
 		inputSchema: z.object({
 			search: z.string().describe('search string to filter results'),
 			limit: z.number().int().describe('limit number of results (default: 16)'),
@@ -29,6 +29,8 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
 			questions: z.array(z.object({
 				question: z.string().describe('question identification string'),
 				id: z.string().nullable().optional().describe('external unique question identifier (if set for the question)'),
+				ai: z.boolean().describe('question is marked as AI generated (even if partially)'),
+				ai_reviewed: z.string().nullable().describe('date and time an educator reviewed the AI generated question, null if not reviewed yet (or not AI generated)'),
 			})),
 		}),
 	},
@@ -44,6 +46,8 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
 			question: z.string().describe('question identification string'),
 			id: z.string().nullable().optional().describe('external unique question identifier (if set for the question)'),
 			active: z.boolean().describe('question is active'),
+			ai: z.boolean().describe('question is marked as AI generated (even if partially)'),
+			ai_reviewed: z.string().nullable().describe('date and time an educator reviewed the AI generated question, null if not reviewed yet (or not AI generated)'),
 		}),
 	},
 
@@ -105,7 +109,7 @@ export const EDUBASE_API_TOOLS_QUESTIONS = [
 				attachment: z.string(),
 				media_audio: z.string(),
 				media_video: z.string().describe('EduBase video code'),
-				ai: z.string().describe('marks the question as AI generated, set it to your model name'),
+				ai: z.boolean().describe('marks the question as AI generated (even if partially), set it to true for the questions you write or change, false only for questions transcribed as-is from human-written sources, changing the content of an AI generated question clears its review'),
 				note: z.string(),
 				private_note: z.string(),
 				explanation: z.string(),

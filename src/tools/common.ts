@@ -4,7 +4,7 @@ export const EDUBASE_API_TOOLS_COMMON = [
 	// POST /filebin:upload - Generate upload link for a temporary file storage
 	{
 		name: 'edubase_post_filebin_upload',
-		description: "Generate an upload link for the temporary file storage (filebin). Returns the filebin identifier, the upload link, its expiration and the maximum file size. Upload the file with edubase_filebin, then reference the filebin identifier in the fields accepting files (e.g. question images and attachments). A previous valid link is returned unless force is set.",
+		description: "Generate an upload link for the temporary file storage (filebin). Returns the filebin identifier, the upload link, its expiration and the maximum file size. Upload the file with edubase_filebin, then reference the filebin identifier (optionally prefixed with filebin:) in the fields accepting files: question images, attachments and audio, exam branding images, and the signature, stamp and logo images of exam certificates. Only the uploading user can use the file. A previous valid link is returned unless force is set.",
 		inputSchema: z.object({
 			type: z.enum(['IMAGE', 'AUDIO', 'SCORM', 'FILE']).describe('type of file to be uploaded (IMAGE/AUDIO/SCORM/FILE)'),
 			force: z.boolean().optional().describe('force new link for another file even if a previous valid link exists'),

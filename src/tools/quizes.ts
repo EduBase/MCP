@@ -300,6 +300,8 @@ export const EDUBASE_API_TOOLS_QUIZES = [
 				id: z.string().describe('external unique question identifier (if question and present)').optional(),
 				group: z.string().describe('question group title (if group)').optional(),
 				active: z.boolean().describe('active item'),
+				ai: z.boolean().optional().describe('question is marked as AI generated, even if partially (if question)'),
+				ai_reviewed: z.string().nullable().optional().describe('date and time an educator reviewed the AI generated question, null if not reviewed yet (if question)'),
 			})),
 		}),
 	},

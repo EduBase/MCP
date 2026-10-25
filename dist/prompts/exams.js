@@ -158,7 +158,7 @@ If the exam has no results yet, tell me instead of summarizing.`;
 
 1. Get the overview with edubase_get_exam_journey: the users by status, the users at each step, and the outcomes.
 2. If any users are stuck (error status) or waiting, find them: list the examinees with edubase_get_exam_users and check them with edubase_get_exam_journey_user (at most 30 users, say so if there are more).
-3. Show the steps as a table by their marker letters (step, users active, waiting and in error), then the outcomes, then the users needing attention with their current step and what blocks them.
+3. Show the steps as a table by their marker letters (step, users active, waiting and in error), then the outcomes, then the users needing attention with their current step and what blocks them (users waiting at a gate step wait for an educator to approve or decline them on the interface).
 4. Suggest what to do about the stuck users, but do not change anything.
 
 If the exam has no journey, tell me and offer to build one.`,
