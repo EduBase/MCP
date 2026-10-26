@@ -254,8 +254,8 @@ Run `npm test` to build the server and check the tool listing: the size budgets 
 
 The reference documents in `src/references` are generated from the EduBase developer documentation, regenerate them with `node scripts/sync-references.mjs <path to the developer documentation repository>` when the question fields or the exam journey format change.
 
-> **Documentation sync point:** tools, prompts and references last synced **2026-10-25** against the **Developer documentation** at commit `ec4ccb1505`.
-> To bring the server forward, run `git log --oneline ec4ccb1505..HEAD` and `git diff ec4ccb1505..HEAD -- docs/api/endpoints` in the developer documentation repository, update the affected tools in `src/tools` (and their prompts and toolset guides), regenerate the reference documents, and move this marker to the new HEAD commit.
+> **Documentation sync point:** tools, prompts and references last synced **2026-10-26** against the **Developer documentation** at commit `fe995a62a2` (*Organization permission improvements*), checked against the EduBase `develop` branch at commit `9fd4968d26` (*Organization member restrictions*, after release 8.6.0).
+> To bring the server forward, run `git log --oneline fe995a62a2..HEAD` and `git diff fe995a62a2..HEAD -- docs/api/endpoints` in the developer documentation repository and `git log --oneline 9fd4968d26..HEAD -- system/do/api.do.php` in the EduBase repository, update the affected tools in `src/tools` (and their prompts and toolset guides), regenerate the reference documents, and move this marker to the new HEAD commits. Where the two differ, the EduBase repository wins.
 
 ## Contact
 

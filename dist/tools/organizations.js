@@ -71,7 +71,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // GET /organization:members - List all members in an organization
     {
         name: 'edubase_get_organization_members',
-        description: "List the members of an organization, with their names, departments, job roles and permission levels (to the organization, its contents and its members).",
+        description: "List the members of an organization, with their names, departments, job roles, permission levels (to the organization, its contents and its members) and management restrictions.",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
         }),
@@ -85,7 +85,12 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
                     organization: z.string().describe('permission level to organization'),
                     content: z.string().describe('permission level to contents in organization'),
                     members: z.string().describe('permission level to members in organization'),
+                    custom: z.boolean().describe('permission levels are customized for the member, not following the ones of the department'),
                 }).describe('permissions'),
+                restriction: z.object({
+                    library: z.boolean().optional().describe('member is restricted from managing the library of the organization'),
+                    competencies: z.boolean().optional().describe('member is restricted from managing the competencies of the organization and its members'),
+                }).optional().describe('management restrictions of the member (only if the library is enabled in the organization)'),
             })),
         }),
     },
@@ -96,11 +101,14 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
             users: z.string().describe('comma-separated list of user identification strings'),
-            department: z.string().optional().describe('optional name of department (or its external identifier if no department has this name), the competency assignments of the members moved to another department are updated, the competencies they only had through their previous department are lost'),
+            department: z.string().optional().describe('optional name of department (or its external identifier if no department has this name), the competency assignments of the members moved to another department are updated, the competencies they only had through their previous department are lost, should not be used together with the permission_ fields, unless permission_custom is set'),
             job: z.string().optional().describe('optional name of job role (or its external identifier if no job role has this name), empty string removes the job role, the job role is kept when not specified, an unknown job role is an error, the competency assignments of the members with another job role are updated, the competencies they only had through their previous job role are lost'),
             permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
             permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
             permission_members: z.enum(['none', 'department', 'organization']).optional().describe('optional permission level to members in organization (none / department / organization) (default: none)'),
+            permission_custom: z.boolean().optional().describe('customize the permission levels of the members inside the department (only used together with department, the permission_ fields not specified default to the ones of the department), members with custom permission levels keep them when the permission levels of the department are changed, set to false to make the members follow the permission levels of the department again, when not specified, custom permission levels are kept for the members staying in the same department and removed when moved to another department'),
+            restriction_library: z.boolean().optional().describe('restrict the members from managing the library of the organization (documents, versions and types), even with a sufficient permission level (only available if the library is enabled in the organization, ignored otherwise), left unchanged when not specified (default for new members: false)'),
+            restriction_competencies: z.boolean().optional().describe('restrict the members from managing the competencies of the organization and its members (competencies, requirements, assignments, completions, expiry dates and attachments), even with a sufficient permission level (only available if the library is enabled in the organization, ignored otherwise), left unchanged when not specified (default for new members: false)'),
             notify: z.boolean().optional().describe('notify users (default: false)'),
         }),
         outputSchema: z.object({}).optional(),
@@ -127,6 +135,9 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
             permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
             permission_members: z.enum(['none', 'department', 'organization']).optional().describe('optional permission level to members in organization (none / department / organization) (default: none)'),
+            permission_custom: z.boolean().optional().describe('customize the permission levels of the members inside the department (only used together with department, the permission_ fields not specified default to the ones of the department), members with custom permission levels keep them when the permission levels of the department are changed, set to false to make the members follow the permission levels of the department again, when not specified, custom permission levels are kept for the members staying in the same department and removed when moved to another department'),
+            restriction_library: z.boolean().optional().describe('restrict the members from managing the library of the organization (documents, versions and types), even with a sufficient permission level (only available if the library is enabled in the organization, ignored otherwise), left unchanged when not specified (default for new members: false)'),
+            restriction_competencies: z.boolean().optional().describe('restrict the members from managing the competencies of the organization and its members (competencies, requirements, assignments, completions, expiry dates and attachments), even with a sufficient permission level (only available if the library is enabled in the organization, ignored otherwise), left unchanged when not specified (default for new members: false)'),
             notify: z.boolean().optional().describe('notify users (default: false)'),
         }),
         outputSchema: z.object({}).optional(),
@@ -151,6 +162,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
                     members: z.string().describe('permission level to members in organization'),
                 }).describe('permissions given to the members of the department'),
                 members: z.number().int().describe('number of (visible) members in the department'),
+                members_custom: z.number().int().describe('number of (visible) members in the department with custom permission levels'),
                 leaders: z.array(z.object({
                     user: z.string().describe('user identification string'),
                     name: z.string().describe('name of the leader'),
@@ -178,6 +190,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
                 members: z.string().describe('permission level to members in organization'),
             }).describe('permissions given to the members of the department'),
             members: z.number().int().describe('number of (visible) members in the department'),
+            members_custom: z.number().int().describe('number of (visible) members in the department with custom permission levels'),
             leaders: z.array(z.object({
                 user: z.string().describe('user identification string'),
                 name: z.string().describe('name of the leader'),
@@ -207,7 +220,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // PATCH /organization:department - Update department of an organization
     {
         name: 'edubase_patch_organization_department',
-        description: "Update department of an organization. Changed permissions are applied to every member of the department.",
+        description: "Update department of an organization. Changed permissions are applied to the members of the department, except for the ones with custom permission levels.",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
             department: z.string().describe('name of the department (or its external identifier if no department has this name)'),
@@ -217,6 +230,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('permission level to organization given to the members (member / teacher / reporter / supervisor / admin)'),
             permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('permission level to contents in organization given to the members (none / view / report / control / modify / grant / admin)'),
             permission_members: z.enum(['none', 'department', 'organization']).optional().describe('permission level to members in organization given to the members (none / department / organization)'),
+            permission_reset: z.boolean().optional().describe('reset the custom permission levels of the members, so every member follows the permission levels of the department (default: false)'),
             leaders: z.string().optional().describe('comma-separated list of user identification strings of the leaders (must be members of the organization, maximum 5), replaces the current leaders, empty string removes every leader'),
         }),
         outputSchema: z.object({}).optional(),
@@ -224,7 +238,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // DELETE /organization:department - Remove department from an organization
     {
         name: 'edubase_delete_organization_department',
-        description: "Remove department from an organization. Members of the department are left without a department and lose the permissions and competencies given by it, departments below it are moved one level up.",
+        description: "Remove department from an organization. Members of the department are left without a department and lose the permissions (except for the custom ones, which are kept) and competencies given by it, departments below it are moved one level up.",
         inputSchema: z.object({
             organization: z.string().describe('organization identification string'),
             department: z.string().describe('name of the department (or its external identifier if no department has this name)'),
@@ -444,7 +458,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
     // GET /user:organizations - List all organizations a user is member of
     {
         name: 'edubase_get_user_organizations',
-        description: "List the organizations a user is member of, with their titles, links, the department of the user and the permission levels.",
+        description: "List the organizations a user is member of, with their titles, links, the department of the user, the permission levels and the management restrictions.",
         inputSchema: z.object({
             user: z.string().describe('user identification string'),
         }),
@@ -460,7 +474,12 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
                     organization: z.string().describe('permission level to organization'),
                     content: z.string().describe('permission level to contents in organization'),
                     members: z.string().describe('permission level to members in organization'),
+                    custom: z.boolean().describe('permission levels are customized for the member, not following the ones of the department'),
                 }).describe('permissions'),
+                restriction: z.object({
+                    library: z.boolean().optional().describe('member is restricted from managing the library of the organization'),
+                    competencies: z.boolean().optional().describe('member is restricted from managing the competencies of the organization and its members'),
+                }).optional().describe('management restrictions of the member (only if the library is enabled in the organization)'),
             })),
         }),
     },
@@ -476,6 +495,9 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
             permission_organization: z.enum(['member', 'teacher', 'reporter', 'supervisor', 'admin']).optional().describe('optional permission level to organization (member / teacher / reporter / supervisor / admin) (default: member)'),
             permission_content: z.enum(['none', 'view', 'report', 'control', 'modify', 'grant', 'admin']).optional().describe('optional permission level to contents in organization (none / view / report / control / modify / grant / admin) (default: none)'),
             permission_members: z.enum(['none', 'department', 'organization']).optional().describe('optional permission level to members in organization (none / department / organization) (default: none)'),
+            permission_custom: z.boolean().optional().describe('customize the permission levels of the members inside the department (only used together with department, the permission_ fields not specified default to the ones of the department), members with custom permission levels keep them when the permission levels of the department are changed, set to false to make the members follow the permission levels of the department again, when not specified, custom permission levels are kept for the members staying in the same department and removed when moved to another department'),
+            restriction_library: z.boolean().optional().describe('restrict the members from managing the library of the organization (documents, versions and types), even with a sufficient permission level (only available if the library is enabled in the organization, ignored otherwise), left unchanged when not specified (default for new members: false)'),
+            restriction_competencies: z.boolean().optional().describe('restrict the members from managing the competencies of the organization and its members (competencies, requirements, assignments, completions, expiry dates and attachments), even with a sufficient permission level (only available if the library is enabled in the organization, ignored otherwise), left unchanged when not specified (default for new members: false)'),
             notify: z.boolean().optional().describe('notify user (default: false)'),
         }),
         outputSchema: z.object({}).optional(),
