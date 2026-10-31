@@ -395,13 +395,14 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
                     outcomes: z.array(z.string()).describe('outcomes the journey has to be finished with to fulfill the requirement (empty if any outcome is accepted)'),
                 }).nullable().optional().describe('the required exam journey (only present if type is journey, null if the journey is not available)'),
                 todo: z.object({
-                    type: z.enum(['default', 'document', 'exam', 'training']).describe('type of the task'),
+                    type: z.enum(['default', 'document', 'exam', 'training', 'attestation']).describe('type of the task (attestation: the member signs a statement by typing their full name)'),
                     attachments: z.boolean().describe('attachments can be uploaded'),
                     educators: z.array(z.object({
                         user: z.string().describe('user identification string'),
                         name: z.string().describe('name of the educator'),
                     })).optional().describe('educators of the training (only present if type is training, visible users only)'),
-                    fields: z.array(z.string()).optional().describe('labels of the fields to fill (only present if type is default)'),
+                    statement: z.string().optional().describe('statement to sign, with the requirement and competency titles filled in (only present if type is attestation)'),
+                    fields: z.array(z.string()).optional().describe('labels of the fields to fill (only present if type is not default or attestation)'),
                 }).optional().describe('the required task (only present if type is todo)'),
                 documents: z.array(z.string()).optional().describe('identification strings of the library documents attached to the requirement (only present if there are any)'),
             })).describe('requirements ordered by their priority'),

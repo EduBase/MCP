@@ -82,20 +82,23 @@ const EXAM_JOURNEY_STATUS_OUTPUT_SCHEMA = z.object({
     completed: z.number().int(),
     stopped: z.number().int(),
 }).describe('number of users by their status (active: working on a step, waiting: waiting before they can continue, including the users waiting for an approval at a gate step, error: stuck on a step that cannot be completed, completed: finished the journey, stopped: stopped by an educator)');
+/* Content of a journey step, keyed by its type */
+const EXAM_JOURNEY_CONTENT_OUTPUT_SCHEMA = z.object({
+    type: z.enum(['exam', 'class', 'quiz']),
+    exam: z.string().optional(),
+    class: z.string().optional(),
+    quiz: z.string().optional(),
+    id: z.string().nullable().optional().describe('external identifier'),
+    title: z.string(),
+});
 /* Step (node) of a journey, returned by every /exam:journey endpoint listing steps */
 const EXAM_JOURNEY_STEP_OUTPUT_SCHEMA = {
     step: z.string().describe('key of the step (node)'),
     marker: z.string().nullable().optional().describe('marker letter of the step (A, B, ..., Z, AA, ...), ordered by their position on the canvas'),
-    type: z.string().nullable().describe('type of the step (start, exam, class, quiz, wait, gate, end)'),
+    type: z.string().nullable().describe('type of the step (start, exam, class, quiz, bundle, wait, gate, end)'),
     title: z.string().nullable().describe('title of the step (the title of its content, unless a custom label is set)'),
-    content: z.object({
-        type: z.enum(['exam', 'class', 'quiz']).describe('type of the content'),
-        exam: z.string().optional(),
-        class: z.string().optional(),
-        quiz: z.string().optional(),
-        id: z.string().nullable().optional().describe('external unique identifier of the content'),
-        title: z.string(),
-    }).nullable().describe('content of the step (the starting exam for the start step), keyed by its type, null if not selected or not available anymore'),
+    content: EXAM_JOURNEY_CONTENT_OUTPUT_SCHEMA.nullable().describe('content of the step (the starting exam for the start step), keyed by its type, null if not selected, not available anymore or a bundle step'),
+    contents: z.array(EXAM_JOURNEY_CONTENT_OUTPUT_SCHEMA).optional().describe('available contents (only present for bundle steps)'),
     outcome: z.string().optional().describe('outcome given by the step (only present for end steps)'),
 };
 /* Problems of a journey draft */
@@ -861,7 +864,7 @@ export const EDUBASE_API_TOOLS_EXAMS = [
     // GET /exam:journey:user - Get the journey of a user started by an exam
     {
         name: 'edubase_get_exam_journey_user',
-        description: "Get the journey of a user started by an exam: the status, the current step, the history of the visited steps with their results and the decisions taken, and the manual changes made by the educators.",
+        description: "Get the journey of a user started by an exam: the status, the current step (with its deadline and the progress of a bundle), the history of the visited steps with their results and the decisions taken, and the manual changes made by the educators.",
         inputSchema: z.object({
             exam: z.string().describe('exam identification string (the starting exam)'),
             user: z.string().describe('user identification string'),
@@ -880,17 +883,25 @@ export const EDUBASE_API_TOOLS_EXAMS = [
             }).nullable().optional().describe('the current step of the user, null if the journey is finished'),
             wait_until: z.string().optional().describe('date and time the waiting ends at (only present if status is waiting and the end is known)'),
             awaiting_approval: z.boolean().optional().describe('the user waits for an educator to approve or decline them at a gate step (only present if true)'),
+            deadline: z.string().optional().describe('deadline of the current step (only present if status is active and the step has one)'),
+            bundle: z.object({
+                required: z.number().int().describe('number of contents to complete'),
+                completed: z.number().int().describe('number of contents already completed'),
+                items: z.array(EXAM_JOURNEY_CONTENT_OUTPUT_SCHEMA.extend({
+                    completed: z.boolean(),
+                })).describe('contents of the bundle and whether they are completed'),
+            }).optional().describe('progress at the current bundle step (only present if status is active)'),
             time_start: z.string().optional().describe('date and time the user entered the journey at'),
             time_end: z.string().nullable().optional().describe('date and time the user finished the journey at'),
-            steps_completed: z.number().int().optional().describe('number of the different exam, class and Quiz set steps completed in the current run (the start step included)'),
-            steps_total: z.number().int().optional().describe('number of the exam, class and Quiz set steps of the journey (the start step included)'),
+            steps_completed: z.number().int().optional().describe('number of the different exam, class, Quiz set and bundle steps completed in the current run (the start step included, the steps left by their deadline are not counted)'),
+            steps_total: z.number().int().optional().describe('number of the exam, class, Quiz set and bundle steps of the journey (the start step included)'),
             steps_remaining: z.number().int().nullable().optional().describe('estimated number of steps still to be completed on the shortest way to the end (a lower bound), null if the journey is not running or no end can be reached'),
-            flags: z.unknown().optional().describe('flags set for the user by the flag actions of the journey, keyed by their name (only present if there are any)'),
+            flags: z.unknown().optional().describe('flags and counters set by the flag and counter actions, keyed by their name (only present if any)'),
             history: z.array(z.object({
                 run: z.number().int().describe('index of the run'),
                 visit: z.number().int().describe('index of the visit of the step within the run'),
                 ...EXAM_JOURNEY_STEP_OUTPUT_SCHEMA,
-                status: z.enum(['active', 'waiting', 'completed', 'moved', 'stopped', 'error']).describe('status of the visit'),
+                status: z.enum(['active', 'waiting', 'completed', 'expired', 'moved', 'stopped', 'error']).describe('status of the visit (expired: left on the timeout output when the deadline passed)'),
                 time_start: z.string().nullable().describe('date and time the step was entered at'),
                 time_end: z.string().nullable().describe('date and time the step was left at'),
                 time_spent: z.number().int().nullable().describe('time spent taking the test of the step in minutes'),
@@ -899,11 +910,19 @@ export const EDUBASE_API_TOOLS_EXAMS = [
                 grade: z.string().optional().describe('grade of the test (only present if available)'),
                 play: z.string().optional().describe('Quiz play identification string of the test completing the step (only present if available, see edubase_get_quiz_results_play)'),
                 skills: z.unknown().optional().describe('skill results of the test, keyed by the skill identifier (only present if available)'),
+                timeout: z.boolean().optional().describe('the step was left because its deadline passed (only present if true)'),
+                items: z.array(EXAM_JOURNEY_CONTENT_OUTPUT_SCHEMA.extend({
+                    result: z.number().optional(),
+                    successful: z.boolean().optional(),
+                    grade: z.string().optional(),
+                    play: z.string().optional(),
+                    time_completed: z.string().optional(),
+                })).optional().describe('completed contents of a bundle step, with the test results like the visit (if available) and the completion time (only present if any)'),
                 approval: z.enum(['approved', 'declined']).optional().describe('decision made at a gate step (only present for decided approvals)'),
                 operator: z.string().nullable().optional().describe('user identification string of the educator making the decision at a gate step (only present for decided approvals)'),
                 decisions: z.array(z.object({
                     decision: z.string().describe('key of the decision or action node'),
-                    type: z.enum(['condition', 'split', 'notify', 'flag', 'mark']).nullable().describe('type of the node'),
+                    type: z.enum(['condition', 'split', 'notify', 'flag', 'counter', 'mark']).nullable().describe('type of the node'),
                     title: z.string().nullable().describe('title of the node'),
                     output: z.string().nullable().describe('output taken (the key of a branch, else or next)'),
                     label: z.string().nullable().describe('label of the branch taken (if set)'),
