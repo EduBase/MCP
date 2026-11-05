@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
-# Set the next version in package.json and server.json and print it, from the newest release tag and
-# the given level (major, minor or patch). A package.json already ahead of the tags is kept as it is.
+# Set the next version in package.json and server.json and print it, counting up by the given level
+# (major, minor or patch) from the newest release tag or the version on main, whichever is higher: a
+# release on main is only tagged once it is published. A version the pull request set by hand, given
+# as the second argument, is kept when it is still the current one and ahead of the tags.
 set -e -u -o pipefail
 level="$1"
+requested="${2:-}"
 newest="$(git tag --list --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)"
 current="$(jq -r .version package.json)"
-if [[ "$current" != "$newest" && "$(printf '%s\n' "$newest" "$current" | sort -V | tail -n 1)" == "$current" ]]; then
+highest="$(printf '%s\n' "$newest" "$current" | sort -V | tail -n 1)"
+if [[ "$requested" == "$current" && "$current" != "$newest" && "$highest" == "$current" ]]; then
 	version="$current"
 else
-	IFS=. read -r major minor patch <<<"$newest"
+	IFS=. read -r major minor patch <<<"$highest"
 	case "$level" in
 		major) version="$((major + 1)).0.0" ;;
 		minor) version="$major.$((minor + 1)).0" ;;

@@ -1,9 +1,9 @@
 ---
 # Release the server when a pull request labelled major, minor or patch is merged: the next version
-# is committed to main and tagged, and the tag starts the Publish workflow. Without one of these
-# labels nothing happens.
+# is committed to main and the Publish workflow is started, which tags the commit once everything is
+# published. Without one of these labels nothing happens.
 # pull_request_target also has the secrets for pull requests from forks. It is safe here, as the job
-# only runs after the merge and only checks out main.
+# only runs after the merge and only runs code from main: the pull request's package.json is only read.
 # The release app can skip the pull request rule of main, so it is only available in this job: its
 # credentials live in the release environment, which only main can use.
 name: Release
@@ -30,7 +30,7 @@ jobs:
     environment: release
     timeout-minutes: 5
     steps:
-      # Tags pushed with GITHUB_TOKEN would start no workflows
+      # Pushes with GITHUB_TOKEN could not skip the rule, and its events would start no workflows
       - name: Create token
         id: app
         uses: actions/create-github-app-token@v3
@@ -44,12 +44,14 @@ jobs:
           ref: main
           fetch-depth: 0
           token: ${{ steps.app.outputs.token }}
-      - name: Commit and tag release
+      - name: Commit release version
+        id: release
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           APP_SLUG: ${{ steps.app.outputs.app-slug }}
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
-          TITLE: ${{ github.event.pull_request.title }}
+          NUMBER: ${{ github.event.pull_request.number }}
+          BASE: ${{ github.event.pull_request.base.sha }}
         run: |
           # The largest label wins (labels match case-insensitively in the job condition too)
           case ",${LABELS,,}," in
@@ -57,25 +59,41 @@ jobs:
             *,minor,*) level="minor" ;;
             *) level="patch" ;;
           esac
+          # A version set by hand is one this pull request changed, whichever way it was merged
+          git fetch --quiet origin "refs/pull/$NUMBER/head"
+          proposed="$(git show FETCH_HEAD:package.json | jq -r .version)"
+          before="$(git show "$(git merge-base "$BASE" FETCH_HEAD):package.json" | jq -r .version)"
+          requested=""
+          if [[ "$proposed" != "$before" ]]; then
+            requested="$proposed"
+          fi
           user_id="$(gh api "/users/${APP_SLUG}[bot]" --jq .id)"
           git config user.name "${APP_SLUG}[bot]"
           git config user.email "${user_id}+${APP_SLUG}[bot]@users.noreply.github.com"
-          # Start over when another merge reaches main first. The commit and the tag land together or not at all.
+          # Start over when another merge reaches main first
           for attempt in 1 2 3 4 5; do
             git fetch --quiet origin main
             git reset --quiet --hard origin/main
-            version="$(.github/scripts/release-version.sh "$level")"
-            if ! git diff --quiet -- package.json server.json; then
-              git commit --quiet -m "Release $version" -- package.json server.json
-            fi
-            git tag -a "$version" -m "$TITLE"
-            if git push --atomic origin HEAD:main "refs/tags/$version"; then
-              echo "Released [$version]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$version) ($level)" >> "$GITHUB_STEP_SUMMARY"
+            version="$(.github/scripts/release-version.sh "$level" "$requested")"
+            if git diff --quiet -- package.json server.json; then
+              echo "version=$version" >> "$GITHUB_OUTPUT"
               exit 0
             fi
-            git tag -d "$version"
+            git commit --quiet -m "Release $version" -- package.json server.json
+            if git push origin HEAD:main; then
+              echo "version=$version" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
             echo "Push attempt $attempt/5 failed, trying again..."
             sleep 5
           done
           echo "::error::Could not push the release to main"
           exit 1
+      - name: Start publishing
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          VERSION: ${{ steps.release.outputs.version }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/dispatches" -f event_type=release -f "client_payload[version]=$VERSION" -f "client_payload[title]=$TITLE"
+          echo "Publishing $VERSION" >> "$GITHUB_STEP_SUMMARY"
