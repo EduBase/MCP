@@ -3,7 +3,7 @@
 # EduBase MCP server
 
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/EduBase/MCP/main.svg)](https://results.pre-commit.ci/latest/github/EduBase/MCP/main)
-[![Publish to MCP Registry](https://github.com/EduBase/MCP/actions/workflows/publish-mcp.yml/badge.svg)](https://github.com/EduBase/MCP/actions/workflows/publish-mcp.yml)
+[![Publish](https://github.com/EduBase/MCP/actions/workflows/publish.yml/badge.svg)](https://github.com/EduBase/MCP/actions/workflows/publish.yml)
 
 This repository contains the **implementation of the Model Context Protocol** (MCP) server **for the EduBase platform**. It allows MCP clients (for example Claude Desktop) and LLMs to interact with your EduBase account and perform tasks on your behalf. It supports stdio, SSE and streamable HTTP transport protocols.
 
@@ -254,7 +254,7 @@ Run `npm test` to build the server and check the tool listing: the size budgets 
 
 The reference documents in `src/references` are generated from the EduBase developer documentation, regenerate them with `node scripts/sync-references.mjs <path to the developer documentation repository>` when the question fields or the exam journey format change.
 
-Merging a pull request labelled `major`, `minor` or `patch` creates the next version tag on a release commit with the new version: the tag publishes the package to npm and the MCP Registry, and the container image to Docker Hub and GitHub Packages. Without one of these labels nothing is released. The version in `package.json` on `main` can stay behind the tags, the newest tag is the current release, and a version set by hand ahead of the tags is released as it is. The image workflow runs the tests, checks the built image and signs in to Docker Hub with OIDC, using the connection in the `DOCKERHUB_OIDC_CONNECTIONID` variable. Run it by hand with a tag to retry or rebuild a release: `latest` only moves for the newest release.
+Merging a pull request labelled `major`, `minor` or `patch` creates the next version tag on a release commit with the new version: the tag publishes the package to npm and the MCP Registry, and the container image to Docker Hub and GitHub Packages. Without one of these labels nothing is released. The version in `package.json` on `main` can stay behind the tags, the newest tag is the current release, and a version set by hand ahead of the tags is released as it is. The Publish workflow runs the tests first, checks the built image before pushing it, and signs in to Docker Hub with OIDC, using the `DOCKERHUB_OIDC_CONNECTIONID` and `DOCKERHUB_OIDC_USERNAME` variables. It pushes to GitHub Packages with the `edubase-automation` GitHub App, which needs the Packages permission. Run it by hand with a tag to retry or rebuild a release: whatever is already on npm and the MCP Registry is skipped, and `latest` only moves for the newest release.
 
 > **Documentation sync point:** tools, prompts and references last synced **2026-11-01** against the **Developer documentation** at commit `7eb3cd8f2c` (*Update llms.txt*, after *Competency and journey improvements*), checked against the EduBase at commit `df0486217`.
 > To bring the server forward, run `git log --oneline 7eb3cd8f2c..HEAD` and `git diff 7eb3cd8f2c..HEAD -- docs/api/endpoints` in the developer documentation repository, update the affected tools in `src/tools` (and their prompts and toolset guides), regenerate the reference documents, and move this marker to the new HEAD commits. Where the two differ, the EduBase repository wins.
