@@ -1,8 +1,11 @@
 ---
 # Release the server when a pull request labelled major, minor or patch is merged: the next version
-# gets its own tag, which starts the Publish workflow. Without one of these labels nothing happens.
+# is committed to main and tagged, and the tag starts the Publish workflow. Without one of these
+# labels nothing happens.
 # pull_request_target also has the secrets for pull requests from forks. It is safe here, as the job
 # only runs after the merge and only checks out main.
+# The release app can skip the pull request rule of main, so it is only available in this job: its
+# credentials live in the release environment, which only main can use.
 name: Release
 run-name: Releasing pull request ${{ github.event.pull_request.number }}
 on:
@@ -24,6 +27,7 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'minor') ||
       contains(github.event.pull_request.labels.*.name, 'patch'))
     runs-on: ubuntu-latest
+    environment: release
     timeout-minutes: 5
     steps:
       # Tags pushed with GITHUB_TOKEN would start no workflows
@@ -31,8 +35,8 @@ jobs:
         id: app
         uses: actions/create-github-app-token@v3
         with:
-          client-id: ${{ vars.EDUBASE_AUTOMATION_CLIENT_ID }}
-          private-key: ${{ secrets.EDUBASE_AUTOMATION_PRIVATE_KEY }}
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           permission-contents: write
       - name: Check out main
         uses: actions/checkout@v7
@@ -40,7 +44,7 @@ jobs:
           ref: main
           fetch-depth: 0
           token: ${{ steps.app.outputs.token }}
-      - name: Create release tag
+      - name: Commit and tag release
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           APP_SLUG: ${{ steps.app.outputs.app-slug }}
@@ -53,14 +57,25 @@ jobs:
             *,minor,*) level="minor" ;;
             *) level="patch" ;;
           esac
-          version="$(.github/scripts/release-version.sh "$level")"
           user_id="$(gh api "/users/${APP_SLUG}[bot]" --jq .id)"
           git config user.name "${APP_SLUG}[bot]"
           git config user.email "${user_id}+${APP_SLUG}[bot]@users.noreply.github.com"
-          # main only takes reviewed pull requests, so the version change lives on the tag alone
-          if ! git diff --quiet -- package.json server.json; then
-            git commit -m "Release $version" -- package.json server.json
-          fi
-          git tag -a "$version" -m "$TITLE"
-          git push origin "refs/tags/$version"
-          echo "Released [$version]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$version) ($level)" >> "$GITHUB_STEP_SUMMARY"
+          # Start over when another merge reaches main first. The commit and the tag land together or not at all.
+          for attempt in 1 2 3 4 5; do
+            git fetch --quiet origin main
+            git reset --quiet --hard origin/main
+            version="$(.github/scripts/release-version.sh "$level")"
+            if ! git diff --quiet -- package.json server.json; then
+              git commit --quiet -m "Release $version" -- package.json server.json
+            fi
+            git tag -a "$version" -m "$TITLE"
+            if git push --atomic origin HEAD:main "refs/tags/$version"; then
+              echo "Released [$version]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$version) ($level)" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            git tag -d "$version"
+            echo "Push attempt $attempt/5 failed, trying again..."
+            sleep 5
+          done
+          echo "::error::Could not push the release to main"
+          exit 1
