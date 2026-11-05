@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
       packages: write
     timeout-minutes: 30
     steps:
@@ -61,11 +62,14 @@ jobs:
         run: |
           npm ci
           npm test
+      # OIDC: the GitHub token is exchanged for a Docker Hub token that outlives the build (the default is 5 minutes)
       - name: Log in to Docker Hub
         uses: docker/login-action@v4
+        env:
+          DOCKERHUB_OIDC_CONNECTIONID: ${{ vars.DOCKERHUB_OIDC_CONNECTIONID }}
+          DOCKERHUB_OIDC_EXPIREIN: 1800
         with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ vars.DOCKERHUB_OIDC_USERNAME }}
       - name: Log in to GitHub Packages
         uses: docker/login-action@v4
         with:
