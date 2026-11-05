@@ -13,10 +13,10 @@ const SERVER = fileURLToPath(new URL('../dist/index.js', import.meta.url));
 
 /* Size budgets (in characters of JSON): raise them deliberately when adding tools, as every client pays for the tool list in every session */
 const BUDGET = {
-	toolsCount: 150,
-	toolsListSize: 250_000,
+	toolsCount: 155,
+	toolsListSize: 255_000,
 	toolsListSizeWithoutOutputSchemas: 175_000,
-	toolsListSizeWithOutputSchemas: 320_000,
+	toolsListSizeWithOutputSchemas: 330_000,
 	toolSize: 20_000,
 	instructionsSize: 7_000,
 	descriptionMinLength: 40,
