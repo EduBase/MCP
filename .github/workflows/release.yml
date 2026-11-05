@@ -1,7 +1,7 @@
 ---
 # Release the server when a pull request labelled major, minor or patch is merged: the next version
-# is committed to main and the Publish workflow is started, which tags the commit once everything is
-# published. Without one of these labels nothing happens.
+# is committed to main and the Publish workflow is started, which tags the commit and creates a GitHub
+# release once everything is published. Without one of these labels nothing happens.
 # pull_request_target also has the secrets for pull requests from forks. It is safe here, as the job
 # only runs after the merge and only runs code from main: the pull request's package.json is only read.
 # The release app can skip the pull request rule of main, so it is only available in this job: its

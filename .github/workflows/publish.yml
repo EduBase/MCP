@@ -1,9 +1,10 @@
 ---
 # Publish a release: the package to npm and the MCP Registry, and the container image to Docker Hub
 # (edubase/mcp) and GitHub Packages (ghcr.io/edubase/mcp). The two jobs run independently once the
-# release passes its checks, and the commit is only tagged after both of them succeeded.
+# release passes its checks. Only after both of them succeeded is the commit tagged and a GitHub
+# release created.
 # The Release workflow starts this after committing a version. Run it by hand with a version to retry
-# or rebuild a release: whatever is already on npm and the MCP Registry is skipped, and latest only
+# or rebuild a release: whatever is already published, tagged or released is skipped, and latest only
 # moves for the newest release.
 # npm trusted publishing is tied to the name of this file: renaming it needs the same change on npm.
 name: Publish
@@ -31,7 +32,6 @@ jobs:
     outputs:
       latest: ${{ steps.release.outputs.latest }}
       commit: ${{ steps.commit.outputs.commit }}
-      tagged: ${{ steps.commit.outputs.tagged }}
     steps:
       - name: Check release version
         run: |
@@ -45,9 +45,7 @@ jobs:
         id: commit
         run: |
           # The tag once there is one, otherwise the first commit on main with the version in both files: later merges keep the version, but are not part of the release
-          if commit="$(git rev-parse --verify --quiet "refs/tags/$VERSION^{commit}")"; then
-            echo "tagged=true" >> "$GITHUB_OUTPUT"
-          else
+          if ! commit="$(git rev-parse --verify --quiet "refs/tags/$VERSION^{commit}")"; then
             commit=""
             for candidate in $(git log --first-parent --reverse --format=%H -G "\"version\": \"$VERSION\"" -- package.json server.json); do
               if [[ "$(git show "$candidate:package.json" | jq -r .version)" == "$VERSION" && "$(git show "$candidate:server.json" | jq -r .version)" == "$VERSION" ]]; then
@@ -56,7 +54,6 @@ jobs:
               fi
             done
             [[ -n "$commit" ]] || { echo "::error::No commit on main sets version $VERSION"; exit 1; }
-            echo "tagged=false" >> "$GITHUB_OUTPUT"
           fi
           echo "commit=$commit" >> "$GITHUB_OUTPUT"
           jq -r .version package.json > "$RUNNER_TEMP/main-version"
@@ -238,12 +235,11 @@ jobs:
             [[ "$digest" == "$DIGEST" ]] || { echo "::error::$image:$VERSION is $digest, not $DIGEST"; exit 1; }
             echo "- \`$image:$VERSION\`" >> "$GITHUB_STEP_SUMMARY"
           done
-  tag:
+  release:
     needs:
       - check
       - package
       - image
-    if: needs.check.outputs.tagged != 'true'
     runs-on: ubuntu-latest
     environment: release
     timeout-minutes: 5
@@ -267,9 +263,23 @@ jobs:
           APP_SLUG: ${{ steps.app.outputs.app-slug }}
           TITLE: ${{ github.event.client_payload.title }}
         run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/$VERSION" >/dev/null; then
+            echo "$VERSION is already tagged, skipping"
+            exit 0
+          fi
           user_id="$(gh api "/users/${APP_SLUG}[bot]" --jq .id)"
           git config user.name "${APP_SLUG}[bot]"
           git config user.email "${user_id}+${APP_SLUG}[bot]@users.noreply.github.com"
           git tag -a "$VERSION" -m "${TITLE:-Release $VERSION}"
           git push origin "refs/tags/$VERSION"
-          echo "Tagged [$VERSION]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$VERSION)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          LATEST: ${{ needs.check.outputs.latest }}
+        run: |
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "$VERSION already has a release, skipping"
+            exit 0
+          fi
+          gh release create "$VERSION" --verify-tag --title "$VERSION" --generate-notes --latest="$LATEST"
+          echo "Released [$VERSION]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$VERSION)" >> "$GITHUB_STEP_SUMMARY"
