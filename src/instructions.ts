@@ -45,10 +45,10 @@ const EDUBASE_TOOLSET_GUIDES: Record<EduBaseToolset, EduBaseToolsetGuide> = {
 		],
 	},
 	results: {
-		summary: 'results of Quiz plays and exams, results exports and certificate downloads',
-		tools: ['edubase_get_exam_results_user', 'edubase_get_quiz_results_play', 'edubase_post_exam_results_export', 'edubase_get_exam_certificates_user'],
+		summary: 'results of Quiz plays and exams, results exports, reports and certificate downloads',
+		tools: ['edubase_get_exam_results_user', 'edubase_get_quiz_results_play', 'edubase_post_exam_results_export', 'edubase_get_exam_report', 'edubase_get_exam_certificates_user'],
 		notes: [
-			'Prefer edubase_get_exam_results_user and edubase_get_quiz_results_play, only use edubase_get_exam_results_raw when every given answer is needed. Use edubase_post_exam_results_export to get the results of every examinee as a CSV or XLSX file.',
+			'Prefer edubase_get_exam_results_user and edubase_get_quiz_results_play, only use edubase_get_exam_results_raw when every given answer is needed. Use edubase_post_exam_results_export to get the results of every examinee as a CSV or XLSX file, and edubase_get_exam_report or edubase_get_quiz_report to list the other downloadable reports (task statistics, summaries).',
 		],
 	},
 	users: {

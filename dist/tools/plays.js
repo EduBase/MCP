@@ -1,4 +1,14 @@
 import * as z from 'zod/v4';
+/* Custom user data filters of the exam reports */
+const EXAM_REPORT_FILTERS = z.record(z.string(), z.union([
+    z.array(z.string()),
+    z.string(),
+    z.object({
+        min: z.union([z.number(), z.string()]).optional().describe('lowest value (inclusive)'),
+        max: z.union([z.number(), z.string()]).optional().describe('highest value (inclusive)'),
+    }),
+]));
+const EXAM_REPORT_FILTERS_DESCRIPTION = 'keyed by the label (or hash) of a custom user data field with filtering configured or the users list filter enabled (see edubase_get_exam_fields), the value is a filterable option of the field or a list of them (listed by edubase_get_exam_report), number, from-to, date and datetime fields with the users list filter can use a range instead (min and/or max, numbers or YYYY-MM-DD dates), the examinees have to match any value of a field and all fields';
 export const EDUBASE_API_TOOLS_PLAYS = [
     // GET /quiz:results:play - Get detailed results for a specific Quiz play
     {
@@ -60,6 +70,43 @@ export const EDUBASE_API_TOOLS_PLAYS = [
             })),
         }),
     },
+    // GET /quiz:report - List the reports of a Quiz set
+    {
+        name: 'edubase_get_quiz_report',
+        description: 'List the reports of a Quiz set that can be downloaded with edubase_post_quiz_report. Only the results outside of exams are reported, the list is empty while there are no such results. Needs reporting permission for the Quiz set.',
+        inputSchema: z.object({
+            quiz: z.string().describe('Quiz set identification string'),
+        }),
+        outputSchema: z.object({
+            quiz: z.string().describe('Quiz set identification string'),
+            reports: z.array(z.object({
+                report: z.string().describe('report identifier (tasks: statistics of the tasks)'),
+                formats: z.array(z.string()).describe('file formats, the first is the default'),
+            })),
+        }),
+    },
+    // POST /quiz:report - Generate a download link for a report of a Quiz set
+    {
+        name: 'edubase_post_quiz_report',
+        description: 'Generate a download link for a report of a Quiz set. The link is not authenticated, it can only be used once and expires in an hour. Needs reporting permission for the Quiz set.',
+        inputSchema: z.object({
+            quiz: z.string().describe('Quiz set identification string'),
+            report: z.string().describe('report identifier, listed by edubase_get_quiz_report'),
+            format: z.string().optional().describe('one of the formats of the report (default: the first)'),
+            language: z.string().optional().describe('language of the report (default: the language of the user)'),
+        }),
+        outputSchema: z.object({
+            quiz: z.string().describe('Quiz set identification string'),
+            report: z.string().describe('report identifier'),
+            format: z.string().describe('format of the file'),
+            url: z.url().describe('download link for the report'),
+            valid: z.string().describe('date and time of link expiration'),
+        }),
+        /* Only generates a download link, no data is changed */
+        annotations: {
+            readOnlyHint: true,
+        },
+    },
     // GET /exam:results:user - Get user results for a specific exam
     {
         name: 'edubase_get_exam_results_user',
@@ -107,16 +154,63 @@ export const EDUBASE_API_TOOLS_PLAYS = [
             preset: z.enum(['default', 'answers']).describe('content of the exported file (default: the examinees with their results, answers: the answers only, without the examinees), the answers preset is only available for anonymous surveys (default: default)').optional(),
             sort: z.enum(['default', 'name']).describe('ordering of the examinees in the exported file (default: the same order they are listed in on the users page of the exam, name: by the name of the examinees), default: the export_sort setting of the exam').optional(),
             round: z.number().int().describe('export the results of a previous round instead of the current one, only available when the exam is configured to keep the results of its previous rounds, has to be the number of an already closed round (see edubase_get_exam_round)').optional(),
-            filters: z.record(z.string(), z.union([
-                z.array(z.string()),
-                z.string(),
-            ])).describe('only export the examinees matching the given user data, keyed by the label of a custom user data field of the exam (see edubase_get_exam_fields), only those select custom fields can be used that have their filtering configured, the value is one of the filterable options of the field or a list of them, the examinees have to match any of the values given for the same field and all of the fields specified, cannot be combined with round as the results of a previous round cannot be filtered').optional(),
+            filters: EXAM_REPORT_FILTERS.describe('only export the examinees matching the given user data, ' + EXAM_REPORT_FILTERS_DESCRIPTION + ', cannot be combined with round as the results of a previous round cannot be filtered').optional(),
             language: z.string().describe('language of the exported file (default: the language of the user)').optional(),
         }),
         outputSchema: z.object({
             exam: z.string().describe('exam identification string'),
             format: z.enum(['csv', 'xlsx']).describe('format of the exported file'),
             url: z.url().describe('download link for the results'),
+            valid: z.string().describe('date and time of link expiration'),
+        }),
+        /* Only generates a download link, no data is changed */
+        annotations: {
+            readOnlyHint: true,
+        },
+    },
+    // GET /exam:report - List the reports of an exam
+    {
+        name: 'edubase_get_exam_report',
+        description: 'List the reports of an exam that can be downloaded with edubase_post_exam_report, and the custom user data filters they can be narrowed down with. The list is empty while the exam has no examinees or results. Needs reporting permission for the exam.',
+        inputSchema: z.object({
+            exam: z.string().describe('exam identification string'),
+        }),
+        outputSchema: z.object({
+            exam: z.string().describe('exam identification string'),
+            reports: z.array(z.object({
+                report: z.string().describe('report identifier (e.g. tasks, tasks-answers, results-current, results-round, results-summary, summary)'),
+                formats: z.array(z.string()).describe('file formats, the first is the default'),
+                filterable: z.boolean().describe('the report accepts filters'),
+                rounds: z.array(z.number().int()).optional().describe('selectable rounds (results-round only)'),
+            })),
+            filters: z.array(z.object({
+                hash: z.string().describe('hash of the field, usable instead of the label'),
+                label: z.string().describe('label of the field'),
+                values: z.array(z.string()).describe('values to filter for'),
+                range: z.object({
+                    min: z.string(),
+                    max: z.string(),
+                }).optional().describe('lowest and highest value given (range filters only)'),
+            })).describe('the custom user data fields usable as filters'),
+        }),
+    },
+    // POST /exam:report - Generate a download link for a report of an exam
+    {
+        name: 'edubase_post_exam_report',
+        description: 'Generate a download link for a report of an exam. The link is not authenticated, it can only be used once and expires in an hour. Only the examinees visible for the current user are included. Needs reporting permission for the exam.',
+        inputSchema: z.object({
+            exam: z.string().describe('exam identification string'),
+            report: z.string().describe('report identifier, listed by edubase_get_exam_report'),
+            format: z.string().optional().describe('one of the formats of the report (default: the first)'),
+            round: z.number().int().optional().describe('number of the round, mandatory for results-round only'),
+            filters: EXAM_REPORT_FILTERS.optional().describe('only include the examinees matching the given user data, the same way as with edubase_post_exam_results_export (filterable reports only)'),
+            language: z.string().optional().describe('language of the report (default: the language of the user)'),
+        }),
+        outputSchema: z.object({
+            exam: z.string().describe('exam identification string'),
+            report: z.string().describe('report identifier'),
+            format: z.string().describe('format of the file'),
+            url: z.url().describe('download link for the report'),
             valid: z.string().describe('date and time of link expiration'),
         }),
         /* Only generates a download link, no data is changed */
