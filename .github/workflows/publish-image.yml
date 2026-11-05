@@ -1,0 +1,130 @@
+---
+# Build the container image of a release and push it to Docker Hub (edubase/mcp) and GitHub
+# Packages (ghcr.io/edubase/mcp). Both get the same image under the version tag, and under latest
+# unless an older release is being rebuilt. Run it by hand to retry or rebuild a release.
+name: Publish container image
+run-name: Publishing container image ${{ inputs.tag || github.ref_name }}
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to build (e.g. 2.0.10)
+        required: true
+concurrency:
+  group: publish-image
+  cancel-in-progress: false
+permissions:
+  contents: read
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
+  TEST_IMAGE: edubase-mcp:test
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    timeout-minutes: 30
+    steps:
+      - name: Check release tag
+        run: |
+          [[ "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Invalid release tag: $TAG"; exit 1; }
+      - name: Check out release
+        uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ env.TAG }}
+          fetch-depth: 0
+      - name: Check release
+        id: release
+        run: |
+          # The tag is the version the sources and the MCP Registry entry state
+          [[ "$(jq -r .version package.json)" == "$TAG" ]] || { echo "::error::package.json is not at version $TAG"; exit 1; }
+          [[ "$(jq -r .version server.json)" == "$TAG" ]] || { echo "::error::server.json is not at version $TAG"; exit 1; }
+          [[ "$(jq -r '.packages[0].version' server.json)" == "$TAG" ]] || { echo "::error::The npm package in server.json is not at version $TAG"; exit 1; }
+          # Only the newest release may move latest
+          newest="$(git tag --list --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)"
+          if [[ "$TAG" == "$newest" ]]; then
+            echo "latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "$TAG is older than $newest, latest stays where it is"
+            echo "latest=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+      - name: Run tests
+        run: |
+          npm ci
+          npm test
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Log in to GitHub Packages
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Build image for testing
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          pull: true
+          load: true
+          provenance: false
+          tags: ${{ env.TEST_IMAGE }}
+      - name: Test image
+        run: .github/scripts/test-image.sh "$TEST_IMAGE" "$TAG"
+      - name: Prepare image metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
+        with:
+          images: |
+            edubase/mcp
+            ghcr.io/edubase/mcp
+          flavor: latest=${{ steps.release.outputs.latest }}
+          tags: type=semver,pattern={{version}},value=${{ env.TAG }}
+          labels: |
+            org.opencontainers.image.title=EduBase MCP server
+            org.opencontainers.image.revision=${{ steps.release.outputs.commit }}
+          annotations: |
+            org.opencontainers.image.title=EduBase MCP server
+            org.opencontainers.image.revision=${{ steps.release.outputs.commit }}
+      - name: Build and push image
+        id: push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          pull: true
+          push: true
+          sbom: true
+          provenance: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+      - name: Check registries
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
+          LATEST: ${{ steps.release.outputs.latest }}
+        run: |
+          # Both registries serve the image that was built
+          echo "Image \`$DIGEST\`, latest moved: $LATEST" >> "$GITHUB_STEP_SUMMARY"
+          for image in edubase/mcp ghcr.io/edubase/mcp; do
+            digest="$(docker buildx imagetools inspect "$image:$TAG" --format '{{.Manifest.Digest}}')"
+            [[ "$digest" == "$DIGEST" ]] || { echo "::error::$image:$TAG is $digest, not $DIGEST"; exit 1; }
+            echo "- \`$image:$TAG\`" >> "$GITHUB_STEP_SUMMARY"
+          done

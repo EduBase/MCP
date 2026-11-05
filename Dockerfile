@@ -1,5 +1,5 @@
 ## Multi-stage builder
-FROM node:24-alpine AS builder
+FROM --platform=$BUILDPLATFORM node:24-alpine AS builder
 COPY . /build
 WORKDIR /build
 RUN --mount=type=cache,target=/root/.npm npm install

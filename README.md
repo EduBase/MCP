@@ -191,7 +191,7 @@ Or download EduBase MCP server release or clone the repository and run `npm run 
 
 #### Using Docker
 
-Before running the MCP server, make sure you have **Docker installed and is running**. You can download it from [docker.com](https://www.docker.com/) or use a package manager. Do not forget to **configure the environmental variables**!
+Before running the MCP server, make sure you have **Docker installed and is running**. You can download it from [docker.com](https://www.docker.com/) or use a package manager. Do not forget to **configure the environmental variables**! The image is available for `linux/amd64` and `linux/arm64` on Docker Hub as `edubase/mcp` and on GitHub Packages as `ghcr.io/edubase/mcp`.
 
 ```json
 {
@@ -253,6 +253,8 @@ npx -y @smithery/cli install @EduBase/MCP --client claude
 Run `npm test` to build the server and check the tool listing: the size budgets of the tool list and the server instructions, the tool descriptions, the toolset, read-only and dynamic toolsets modes, and the configuration handling of the HTTP transport. When new tools exceed a budget, shorten their schemas or raise the budget in `test/server.test.mjs` deliberately, as every client pays for the tool list in every session.
 
 The reference documents in `src/references` are generated from the EduBase developer documentation, regenerate them with `node scripts/sync-references.mjs <path to the developer documentation repository>` when the question fields or the exam journey format change.
+
+Pushing a release tag (the version in `package.json`, for example `2.0.10`) publishes the package to npm and the MCP Registry, and the container image to Docker Hub and GitHub Packages. The image workflow runs the tests, checks the built image and needs the `DOCKERHUB_USERNAME` variable and the `DOCKERHUB_TOKEN` secret. Run it by hand with a tag to retry or rebuild a release: `latest` only moves for the newest release.
 
 > **Documentation sync point:** tools, prompts and references last synced **2026-11-01** against the **Developer documentation** at commit `7eb3cd8f2c` (*Update llms.txt*, after *Competency and journey improvements*), checked against the EduBase at commit `df0486217`.
 > To bring the server forward, run `git log --oneline 7eb3cd8f2c..HEAD` and `git diff 7eb3cd8f2c..HEAD -- docs/api/endpoints` in the developer documentation repository, update the affected tools in `src/tools` (and their prompts and toolset guides), regenerate the reference documents, and move this marker to the new HEAD commits. Where the two differ, the EduBase repository wins.
