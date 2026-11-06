@@ -36,7 +36,7 @@ export const EDUBASE_API_TOOLS_CLASSES = [
     // GET /class:assignments - List all assignments in a class
     {
         name: 'edubase_get_class_assignments',
-        description: "List the assignments of a class, with their titles, links, status (INACTIVE, ACTIVE, STARTED, SUBMITTED, GRADED) and submission period.",
+        description: "List the assignments of a class, including the inactive ones, with their titles, links, status (INACTIVE, ACTIVE, STARTED, SUBMITTED, GRADED) and submission period. Needs reporting permission for the class.",
         inputSchema: z.object({
             class: z.string().describe('class identification string'),
         }),
