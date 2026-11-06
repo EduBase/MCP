@@ -188,7 +188,7 @@ export const EDUBASE_API_TOOLS_PLAYS = [
 		outputSchema: z.object({
 			exam: z.string().describe('exam identification string'),
 			reports: z.array(z.object({
-				report: z.string().describe('report identifier (e.g. tasks, tasks-answers, results-current, results-round, results-summary, summary)'),
+				report: z.string().describe('report identifier (e.g. tasks, tasks-answers, results-current, results-current-preset-answers, results-round, results-summary, summary)'),
 				formats: z.array(z.string()).describe('file formats, the first is the default'),
 				filterable: z.boolean().describe('the report accepts filters'),
 				rounds: z.array(z.number().int()).optional().describe('selectable rounds (results-round only)'),
