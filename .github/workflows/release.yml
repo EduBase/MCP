@@ -1,7 +1,8 @@
 ---
 # Release the server when a pull request labelled major, minor or patch is merged: the next version
-# is committed to main and the Publish workflow is started, which tags the commit and creates a GitHub
-# release once everything is published. Without one of these labels nothing happens.
+# and a fresh build of dist (pull requests might only change src) are committed to main and the
+# Publish workflow is started, which tags the commit and creates a GitHub release once everything is
+# published. Without one of these labels nothing happens.
 # pull_request_target also has the secrets for pull requests from forks. It is safe here, as the job
 # only runs after the merge and only runs code from main: the pull request's package.json is only read.
 # The release app can skip the pull request rule of main, so it is only available in this job: its
@@ -28,7 +29,7 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'patch'))
     runs-on: ubuntu-latest
     environment: release
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       # Pushes with GITHUB_TOKEN could not skip the rule, and its events would start no workflows
       - name: Create token
@@ -44,6 +45,10 @@ jobs:
           ref: main
           fetch-depth: 0
           token: ${{ steps.app.outputs.token }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
       - name: Commit release version
         id: release
         env:
@@ -75,11 +80,17 @@ jobs:
             git fetch --quiet origin main
             git reset --quiet --hard origin/main
             version="$(.github/scripts/release-version.sh "$level" "$requested")"
-            if git diff --quiet -- package.json server.json; then
+            # Rebuild dist from scratch, so files of removed sources go too. No install scripts while
+            # the app token is around: the build is run explicitly
+            npm ci --ignore-scripts
+            rm -rf dist
+            npm run build
+            git add -A -- package.json server.json dist
+            if git diff --cached --quiet; then
               echo "version=$version" >> "$GITHUB_OUTPUT"
               exit 0
             fi
-            git commit --quiet -m "Release $version" -- package.json server.json
+            git commit --quiet -m "Release $version"
             if git push origin HEAD:main; then
               echo "version=$version" >> "$GITHUB_OUTPUT"
               exit 0
