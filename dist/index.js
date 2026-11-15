@@ -830,6 +830,8 @@ if (STREAMABLE_HTTP) {
         }
     });
     app.get('/mcp', async (req, res) => {
+        /* The response depends on Accept, caches must not serve one kind of response for the other */
+        res.set('Vary', 'Accept');
         /* MCP clients opening an SSE stream: not supported in stateless mode according to specification */
         if ((req.headers.accept || '').includes('text/event-stream')) {
             res.status(405).set('Allow', 'POST').send('Method Not Allowed');
@@ -842,12 +844,17 @@ if (STREAMABLE_HTTP) {
             `This is the remote Model Context Protocol (MCP) endpoint of EduBase: ${EDUBASE_OAUTH_RESOURCE_URL}`,
             '',
             '- Transport: Streamable HTTP (POST requests to this address)',
-            '- Authentication: OAuth 2.1 (authorization code with PKCE), or a Bearer token made of an EduBase integration app ID and secret',
-            `- OAuth metadata: ${getProtectedResourceMetadataUrl()}`,
+            /* OAuth metadata is only served when OAuth is enabled */
+            ...(EDUBASE_OAUTH ? [
+                '- Authentication: OAuth 2.1 (authorization code with PKCE), or a Bearer token made of an EduBase integration app ID and secret',
+                `- OAuth metadata: ${getProtectedResourceMetadataUrl()}`,
+            ] : [
+                '- Authentication: a Bearer token made of an EduBase integration app ID and secret',
+            ]),
             '- Source code and setup guide: https://github.com/EduBase/MCP',
             '- Developer documentation: https://developer.edubase.net/',
         ];
-        res.status(200).set('Allow', 'GET, POST, DELETE').set('Vary', 'Accept');
+        res.status(200).set('Allow', 'GET, POST, DELETE');
         if ((req.headers.accept || '').includes('text/html'))
             res.type('html').send('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>EduBase MCP server</title><meta name="robots" content="noindex"></head><body><pre>' + lines.join('\n').replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</pre></body></html>');
         else
