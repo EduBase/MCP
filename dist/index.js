@@ -35,7 +35,8 @@ if (!SSE && !STREAMABLE_HTTP && EDUBASE_API_APP.length == 0) {
     console.error('Error: EDUBASE_API_APP environment variable is required with this transport mode');
     process.exit(1);
 }
-const EDUBASE_API_KEY = process.env.EDUBASE_API_KEY || '';
+// EDUBASE_API_SECRET is accepted for clients configured from older registry metadata
+const EDUBASE_API_KEY = process.env.EDUBASE_API_KEY || process.env.EDUBASE_API_SECRET || '';
 if (!SSE && !STREAMABLE_HTTP && EDUBASE_API_KEY.length == 0) {
     console.error('Error: EDUBASE_API_KEY environment variable is required with this transport mode');
     process.exit(1);

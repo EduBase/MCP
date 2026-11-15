@@ -49,8 +49,8 @@
           "isSecret": false
         },
         {
-          "name": "EDUBASE_API_SECRET",
-          "description": "The secret key for the EduBase API",
+          "name": "EDUBASE_API_KEY",
+          "description": "The secret key of the integration app on EduBase (the secret on the EduBase API)",
           "isRequired": true,
           "isSecret": true
         }
