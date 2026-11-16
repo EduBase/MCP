@@ -2,7 +2,7 @@
   "name": "@edubase/mcp",
   "mcpName": "io.github.EduBase/MCP",
   "version": "2.0.14",
-  "description": "EduBase MCP server",
+  "description": "Official EduBase MCP server: manage training, exams, competencies, certificates and results in EduBase from Claude, ChatGPT or any MCP client",
   "repository": {
     "type": "git",
     "url": "https://github.com/EduBase/MCP.git"
