@@ -11,7 +11,9 @@ This repository contains the **implementation of the Model Context Protocol** (M
 
 ## What is EduBase?
 
-EduBase is an innovative, modular, online educational platform that makes learning more enjoyable, simpler and interactive, suitable for educational institutions or enterprises.
+EduBase is a learning, assessment and competency management platform developed by EduBase LLC (Budapest, Hungary). Organizations use it to run mandatory and compliance training, secure online exams (registration-free access by QR code, link or PIN, Safe Exam Browser, parametrized questions) and to keep an audit-ready record of who read which document version, passed which exam and holds which certificate. Universities use it for STEM assessment with LaTeX, mathematical expressions and LTI integration.
+
+EduBase is software that organizations run their own training on: it is not a course marketplace or a content agency. It is available as an EU-hosted cloud service, as a dedicated instance or on-premise. More at [www.edubase.net](https://www.edubase.net) and in the [feature catalog](https://www.edubase.net/product/features/).
 
 ### Why choose EduBase?
 
@@ -68,7 +70,7 @@ Select toolsets with a comma-separated list in `EDUBASE_TOOLSETS` (e.g. `questio
 
 Set `EDUBASE_DYNAMIC_TOOLSETS=true` to enable toolsets on demand: sessions start with only the critical tools, and the model enables the toolsets it needs with the `edubase_enable_toolsets` tool (listed with `edubase_list_toolsets`). This keeps the initial tool list small for clients that load every tool upfront, but needs a client that refreshes the tool list when notified about changes.
 
-When an HTTP transport is used, clients can narrow the configuration further for their own session with the `EduBase-Mcp-Toolsets`, `EduBase-Mcp-ReadOnly` and `EduBase-Mcp-Dynamic` headers, or the `toolsets`, `read_only` and `dynamic_toolsets` query parameters (e.g. `https://domain.edubase.net/mcp?toolsets=exams&read_only=true`). A session can never enable toolsets or write tools that the server configuration disables.
+When an HTTP transport is used, clients can narrow the configuration further for their own session with the `EduBase-Mcp-Toolsets`, `EduBase-Mcp-ReadOnly` and `EduBase-Mcp-Dynamic` headers, or the `toolsets`, `read_only` and `dynamic_toolsets` query parameters (e.g. `https://www.edubase.net/mcp?toolsets=exams&read_only=true`). A session can never enable toolsets or write tools that the server configuration disables.
 
 ## Prompts
 
@@ -138,7 +140,7 @@ For a step-by-step walkthrough, see our blog post on how to [connect EduBase wit
 
 ### Using the provided EduBase MCP server
 
-You can use the provided EduBase MCP server (if available) without any configuration, just by adding it as a remote server in your client with the URL `https://domain.edubase.net/mcp` (replace with the actual domain), if it supports OAuth authentication, or with the appropriate Bearer token in the `Authorization` header (`Authorization: Bearer ${BASE64_ENCODED_TOKEN}`).
+You can use the provided EduBase MCP server (if available) without any configuration, just by adding it as a remote server in your client with the URL `https://www.edubase.net/mcp` (dedicated instances use their own domain, for example `https://yourcompany.edubase.net/mcp`), if it supports OAuth authentication, or with the appropriate Bearer token in the `Authorization` header (`Authorization: Bearer ${BASE64_ENCODED_TOKEN}`).
 
 **Recommended for www.edubase.net users**, as the server is maintained and updated by us, and you don't have to worry about hosting or configuring it. Just make sure to use the correct URL and authentication method when connecting your client.
 
@@ -160,7 +162,7 @@ Before running the MCP server, make sure you have **Node.js installed**. You can
         "@edubase/mcp"
       ],
       "env": {
-        "EDUBASE_API_URL": "https://domain.edubase.net/api",
+        "EDUBASE_API_URL": "https://www.edubase.net/api",
         "EDUBASE_API_APP": "your_integration_app_id",
         "EDUBASE_API_KEY": "your_integration_secret_key"
       }
@@ -180,7 +182,7 @@ Or download EduBase MCP server release or clone the repository and run `npm run 
         "/path/to/dist/index.js"
       ],
       "env": {
-        "EDUBASE_API_URL": "https://domain.edubase.net/api",
+        "EDUBASE_API_URL": "https://www.edubase.net/api",
         "EDUBASE_API_APP": "your_integration_app_id",
         "EDUBASE_API_KEY": "your_integration_secret_key"
       }
@@ -211,7 +213,7 @@ Before running the MCP server, make sure you have **Docker installed and is runn
         "edubase/mcp"
       ],
       "env": {
-        "EDUBASE_API_URL": "https://domain.edubase.net/api",
+        "EDUBASE_API_URL": "https://www.edubase.net/api",
         "EDUBASE_API_APP": "your_integration_app_id",
         "EDUBASE_API_KEY": "your_integration_secret_key"
       }
@@ -231,7 +233,7 @@ You can use the provided EduBase MCP server (if available) as a remote server. W
       "command": "npx",
       "args": [
         "mcp-remote",
-        "https://domain.edubase.net/mcp",
+        "https://www.edubase.net/mcp",
         "--header",
         "Authorization: Bearer ${EDUBASE_API_APP}:${EDUBASE_API_KEY}"
       ]
@@ -261,6 +263,6 @@ Merging a pull request labelled `major`, `minor` or `patch` commits the next ver
 
 ## Contact
 
-Website: [www.edubase.net](www.edubase.net)  
-Developer Documentation: [developer.edubase.net](developer.edubase.net)  
+Website: [www.edubase.net](https://www.edubase.net)  
+Developer Documentation: [developer.edubase.net](https://developer.edubase.net)  
 Email: [info@edubase.net](mailto:info@edubase.net)
