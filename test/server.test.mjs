@@ -15,7 +15,7 @@ const SERVER = fileURLToPath(new URL('../dist/index.js', import.meta.url));
 const BUDGET = {
 	toolsCount: 155,
 	toolsListSize: 255_000,
-	toolsListSizeWithoutOutputSchemas: 175_000,
+	toolsListSizeWithoutOutputSchemas: 176_000,
 	toolsListSizeWithOutputSchemas: 330_000,
 	toolSize: 20_000,
 	instructionsSize: 7_000,

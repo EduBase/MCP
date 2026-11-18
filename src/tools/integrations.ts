@@ -33,6 +33,9 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 			type: z.enum(['api', 'moodle', 'canvas', 'd2l', 'schoology', 'lms']).describe('type of the integration'),
 			active: z.boolean().describe('integration is active'),
 			lti: z.enum(['1.0/1.1', '1.3']).describe('LTI version (1.0/1.1 or 1.3), only present if the integration is an LMS').optional(),
+			secret_lifetime: z.number().int().nullable().optional().describe('effective secret lifetime in days, null if never expires (API and LTI 1.0/1.1 only)'),
+			secret_expired: z.boolean().optional().describe('secret expired, integration stopped until rotated (if lifetime set)'),
+			secret_expires: z.string().optional().describe('UTC secret expiry (if lifetime set)'),
 		}),
 	},
 
@@ -46,6 +49,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 			type: z.enum(['api', 'moodle', 'canvas', 'd2l', 'schoology', 'lms']).optional().describe('type of the integration (default: api)'),
 			lti: z.enum(['1.0/1.1', '1.3']).optional().describe('LTI version, required for LMS integrations'),
 			platform: z.string().optional().describe('LMS platform URL, only necessary for LMS integrations!'),
+			secret_lifetime: z.number().int().min(0).max(9999).optional().describe('optional secret lifetime in days, 0 for never (default), not for LTI 1.3, capped by policy'),
 			organization: z.string().optional().describe('organization identification string to assign the integration to, only an organization of the API application owner can be used, always the organization of the user for organizational members'),
 		}).superRefine((data, ctx) => {
 			if (data.type && data.type !== 'api') {
@@ -73,10 +77,11 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 	// PATCH /integration - Update integration
 	{
 		name: 'edubase_patch_integration',
-		description: "Enable or disable an integration, or move it to another organization.",
+		description: "Enable or disable an integration, move it to another organization or set its secret lifetime.",
 		inputSchema: z.object({
 			integration: z.string().describe('integration identification string'),
 			active: z.boolean().optional().describe('enable or disable the integration'),
+			secret_lifetime: z.number().int().min(0).max(9999).optional().describe('optional secret lifetime in days, 0 for never, as in edubase_post_integration'),
 			organization: z.string().optional().describe('organization identification string to move the integration to, only an organization of the API application owner can be used, only the owner of the integration (or an administrator) can change the organization, send "none" (or an empty value) to remove the integration from its current organization, always the organization of the user for organizational members'),
 		}),
 		outputSchema: z.object({}).optional(),
@@ -103,6 +108,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 			app: z.string().describe('API application identification string, only present if the integration is an API integration').optional(),
 			consumer: z.string().describe('consumer key, only present if the integration is an LMS integration using LTI 1.0/1.1').optional(),
 			secret: z.string().describe('secret key, only present if the integration is an API integration or an LMS integration using LTI 1.0/1.1').optional(),
+			expires: z.string().nullable().optional().describe('UTC secret expiry, null if never (with secret)'),
 			jwk: z.string().describe('URL for the JWK (JSON Web Key) set, only present if the integration is an LMS integration using LTI 1.3').optional(),
 			pem: z.string().describe('PEM formatted public key, only present if the integration is an LMS integration using LTI 1.3').optional(),
 		}),
@@ -111,7 +117,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 	// POST /integration:keys - Rotate integration keys/secrets
 	{
 		name: 'edubase_post_integration_keys',
-		description: "Rotate the keys and secrets of an integration and return the new ones, the previous keys stop working. Confirm with the user first.",
+		description: "Rotate the keys and secrets of an integration and return the new ones, the previous keys stop working and the secret lifetime restarts. Confirm with the user first.",
 		inputSchema: z.object({
 			integration: z.string().describe('integration identification string'),
 		}),
@@ -119,6 +125,7 @@ export const EDUBASE_API_TOOLS_INTEGRATIONS = [
 			app: z.string().describe('API application identification string, only present if the integration is an API integration').optional(),
 			consumer: z.string().describe('consumer key, only present if the integration is an LMS integration using LTI 1.0/1.1').optional(),
 			secret: z.string().describe('secret key, only present if the integration is an API integration or an LMS integration using LTI 1.0/1.1').optional(),
+			expires: z.string().nullable().optional().describe('UTC secret expiry, null if never (with secret)'),
 			jwk: z.string().describe('URL for the JWK (JSON Web Key) set, only present if the integration is an LMS integration using LTI 1.3').optional(),
 			pem: z.string().describe('PEM formatted public key, only present if the integration is an LMS integration using LTI 1.3').optional(),
 		}),
