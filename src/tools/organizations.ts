@@ -353,6 +353,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 					all: z.boolean().describe('assigned to every member of the organization'),
 					departments: z.number().int().describe('number of departments assigned to'),
 					jobs: z.number().int().describe('number of job roles assigned to (members get the competency through their department or their job role)'),
+					departments_jobs: z.number().int().describe('number of department and job role pairs assigned to'),
 					members: z.number().int().describe('number of members assigned to individually'),
 				}),
 				assigned: z.number().int().describe('number of visible members assigned to the competency'),
@@ -388,6 +389,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 				type: z.enum(['exam', 'class', 'document', 'journey', 'todo']).describe('type of the requirement'),
 				optional: z.boolean().describe('requirement is optional'),
 				description: z.string().optional().describe('description of the requirement (only present if set for the requirement)'),
+				hours: z.number().optional().describe('training hours credited with every completion (only present if set)'),
 				deadline: z.object({
 					type: z.enum(['date', 'days']).describe('type of the deadline'),
 					date: z.string().optional().describe('fixed deadline (only if type is date)'),
@@ -416,7 +418,7 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 					outcomes: z.array(z.string()).describe('outcomes the journey has to be finished with to fulfill the requirement (empty if any outcome is accepted)'),
 				}).nullable().optional().describe('the required exam journey (only present if type is journey, null if the journey is not available)'),
 				todo: z.object({
-					type: z.enum(['default', 'document', 'exam', 'training', 'attestation']).describe('type of the task (attestation: the member signs a statement by typing their full name)'),
+					type: z.enum(['default', 'document', 'exam', 'training', 'attestation', 'practical']).describe('type of the task (attestation: the member signs a statement by typing their full name, practical: an assessor evaluates the member against criteria)'),
 					attachments: z.boolean().describe('attachments can be uploaded'),
 					educators: z.array(z.object({
 						user: z.string().describe('user identification string'),
@@ -433,10 +435,12 @@ export const EDUBASE_API_TOOLS_ORGANIZATIONS = [
 	// GET /organization:compliance - Get the competency compliance overview of an organization
 	{
 		name: 'edubase_get_organization_compliance',
-		description: "Get the competency compliance overview of an organization, grouped by departments. Organization reporters see every visible member, department leaders only the members of the departments they lead. Can be limited to the members of a job role. Library and competencies must be enabled for the organization.",
+		description: "Get the competency compliance overview of an organization, grouped by departments. Organization reporters see every visible member, department leaders only the members of the departments they lead. Can be limited to a department, a job role or a past day. Library and competencies must be enabled for the organization.",
 		inputSchema: z.object({
 			organization: z.string().describe('organization identification string'),
+			department: z.string().optional().describe('optional name (or external identifier) of a department, limits to it and the departments below it'),
 			job: z.string().optional().describe('optional name of job role (or its external identifier if no job role has this name) to limit the overview to its members'),
+			date: z.string().optional().describe('optional past day (YYYY-MM-DD), the overview as at its end'),
 		}),
 		outputSchema: z.object({
 			organization: z.string().describe('organization identification string'),
